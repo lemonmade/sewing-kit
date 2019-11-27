@@ -1,17 +1,17 @@
 {
   "name": "@sewing-kit/plugin-package-commonjs",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/plugin-babel": "^0.0.5",
-    "@sewing-kit/plugin-package-base": "^0.0.5",
-    "@sewing-kit/plugin-package-utilities": "^0.0.4",
-    "@sewing-kit/plugin-utilities": "^0.0.7",
-    "@sewing-kit/types": "^0.0.2",
+    "@sewing-kit/plugin-babel": "^0.0.6",
+    "@sewing-kit/plugin-package-base": "^0.0.6",
+    "@sewing-kit/plugin-package-utilities": "^0.0.5",
+    "@sewing-kit/plugin-utilities": "^0.0.8",
+    "@sewing-kit/types": "^0.0.3",
     "immer": "^5.0.0"
   }
 }
