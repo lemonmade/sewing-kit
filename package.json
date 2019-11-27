@@ -9,7 +9,7 @@
     "test": "yarn sk test",
     "lint": "yarn sk lint",
     "type-check": "yarn sk type-check",
-    "release": "lerna publish && git push --tags",
+    "release": "lerna publish --force-publish * && git push --tags",
     "dev:example": "yarn sk dev --root './example'"
   },
   "workspaces": [
