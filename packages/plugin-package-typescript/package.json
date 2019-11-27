@@ -1,17 +1,17 @@
 {
   "name": "@sewing-kit/plugin-package-typescript",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/core": "^0.0.6",
-    "@sewing-kit/plugin-package-base": "^0.0.4",
-    "@sewing-kit/plugin-utilities": "^0.0.6",
-    "@sewing-kit/types": "^0.0.1",
-    "@sewing-kit/ui": "^0.0.5",
+    "@sewing-kit/core": "^0.0.7",
+    "@sewing-kit/plugin-package-base": "^0.0.5",
+    "@sewing-kit/plugin-utilities": "^0.0.7",
+    "@sewing-kit/types": "^0.0.2",
+    "@sewing-kit/ui": "^0.0.6",
     "fs-extra": "^8.1.0"
   }
 }
