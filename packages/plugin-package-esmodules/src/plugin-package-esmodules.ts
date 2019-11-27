@@ -22,17 +22,15 @@ export default createPlugin(
   (tasks) => {
     tasks.build.tap(PLUGIN, ({workspace, hooks}) => {
       hooks.configure.tap(PLUGIN, (hooks) => {
-        if (hooks.packageBuildArtifacts) {
-          hooks.packageBuildArtifacts.tapPromise(PLUGIN, async (artifacts) => [
-            ...artifacts,
-            ...workspace.packages.map((pkg) => pkg.fs.buildPath('esm')),
-            ...(
-              await Promise.all(
-                workspace.packages.map((pkg) => pkg.fs.glob('./*.mjs')),
-              )
-            ).flat(),
-          ]);
-        }
+        hooks.packageBuildArtifacts?.tapPromise(PLUGIN, async (artifacts) => [
+          ...artifacts,
+          ...workspace.packages.map((pkg) => pkg.fs.buildPath('esm')),
+          ...(
+            await Promise.all(
+              workspace.packages.map((pkg) => pkg.fs.glob('./*.mjs')),
+            )
+          ).flat(),
+        ]);
       });
 
       hooks.package.tap(PLUGIN, ({pkg, hooks}) => {
@@ -46,21 +44,19 @@ export default createPlugin(
             return;
           }
 
-          if (configurationHooks.babelConfig) {
-            configurationHooks.babelConfig.tap(PLUGIN, (babelConfig) => {
-              return produce(
-                babelConfig,
-                updateBabelPreset(
-                  [
-                    'babel-preset-shopify',
-                    'babel-preset-shopify/web',
-                    'babel-preset-shopify/node',
-                  ],
-                  {modules: false},
-                ),
-              );
-            });
-          }
+          configurationHooks.babelConfig?.tap(PLUGIN, (babelConfig) => {
+            return produce(
+              babelConfig,
+              updateBabelPreset(
+                [
+                  'babel-preset-shopify',
+                  'babel-preset-shopify/web',
+                  'babel-preset-shopify/node',
+                ],
+                {modules: false},
+              ),
+            );
+          });
         });
 
         hooks.steps.tap(PLUGIN, (steps, {config, variant: {esmodules}}) => {

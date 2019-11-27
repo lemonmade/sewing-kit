@@ -20,14 +20,12 @@ export default function buildWebApp({hooks, workspace, options}: BuildTask) {
     });
 
     hooks.configure.tap(PLUGIN, (configurationHooks) => {
-      if (configurationHooks.babelConfig) {
-        configurationHooks.babelConfig.tap(PLUGIN, (babelConfig) => {
-          return produce(babelConfig, (babelConfig) => {
-            changePreset(babelConfig);
-            updatePreset(babelConfig);
-          });
+      configurationHooks.babelConfig?.tap(PLUGIN, (babelConfig) => {
+        return produce(babelConfig, (babelConfig) => {
+          changePreset(babelConfig);
+          updatePreset(babelConfig);
         });
-      }
+      });
 
       configurationHooks.output.tap(PLUGIN, () =>
         workspace.fs.buildPath('browser'),

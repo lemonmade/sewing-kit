@@ -32,7 +32,7 @@ export async function loadConfig<T = any>(
 async function loadConfigFile(file: string, {allowRootPlugins = false}) {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const exports = require(file);
-  const normalized = (exports && exports.default) || exports;
+  const normalized = exports?.default;
 
   if (normalized == null) {
     throw new DiagnosticError({

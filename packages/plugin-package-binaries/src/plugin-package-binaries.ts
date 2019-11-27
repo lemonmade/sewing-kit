@@ -13,20 +13,18 @@ export default createPlugin(
   (tasks) => {
     tasks.build.tap(PLUGIN, ({workspace, hooks}) => {
       hooks.configure.tap(PLUGIN, (hooks) => {
-        if (hooks.packageBuildArtifacts) {
-          hooks.packageBuildArtifacts.tapPromise(PLUGIN, async (artifacts) => [
-            ...artifacts,
-            ...((
-              await Promise.all(
-                workspace.packages.map((pkg) =>
-                  pkg.fs.hasDirectory('bin')
-                    ? pkg.fs.resolvePath('bin')
-                    : undefined,
-                ),
-              )
-            ).filter(Boolean) as string[]),
-          ]);
-        }
+        hooks.packageBuildArtifacts?.tapPromise(PLUGIN, async (artifacts) => [
+          ...artifacts,
+          ...((
+            await Promise.all(
+              workspace.packages.map((pkg) =>
+                pkg.fs.hasDirectory('bin')
+                  ? pkg.fs.resolvePath('bin')
+                  : undefined,
+              ),
+            )
+          ).filter(Boolean) as string[]),
+        ]);
       });
 
       hooks.package.tap(PLUGIN, ({pkg, hooks}) => {

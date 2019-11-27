@@ -10,11 +10,11 @@ class ServiceCreator {
   }
 
   options(options: ServiceOptions) {
-    this.builder.options = {...(this.builder.options || {}), ...options};
+    this.builder.options = {...(this.builder.options ?? {}), ...options};
   }
 
   plugin(...plugins: Plugin[]) {
-    this.builder.plugins = this.builder.plugins || [];
+    this.builder.plugins = this.builder.plugins ?? [];
     this.builder.plugins.push(...plugins);
   }
 }

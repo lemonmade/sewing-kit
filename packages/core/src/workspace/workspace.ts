@@ -138,7 +138,7 @@ export class Package extends Project {
   }
 
   get runtimeName() {
-    return (this.packageJson && this.packageJson.name) || this.name;
+    return this.packageJson?.name ?? this.name;
   }
 
   constructor({entries, binaries, runtime, ...rest}: PackageCreateOptions) {

@@ -23,7 +23,7 @@ class WorkspaceCreator {
       });
     }
 
-    this.builder.plugins = this.builder.plugins || [];
+    this.builder.plugins = this.builder.plugins ?? [];
     this.builder.plugins.push(...plugins);
   }
 }

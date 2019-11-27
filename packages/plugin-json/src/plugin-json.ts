@@ -33,9 +33,7 @@ export default createPlugin(
     tasks.test.tap(PLUGIN, ({hooks}) => {
       hooks.project.tap(PLUGIN, ({hooks}) => {
         hooks.configure.tap(PLUGIN, (hooks) => {
-          if (hooks.jestExtensions) {
-            hooks.jestExtensions.tap(PLUGIN, addJsonExtension);
-          }
+          hooks.jestExtensions?.tap(PLUGIN, addJsonExtension);
         });
       });
     });

@@ -26,29 +26,25 @@ export default createPlugin(
     tasks.test.tap(PLUGIN, ({hooks}) => {
       hooks.project.tap(PLUGIN, ({hooks}) => {
         hooks.configure.tap(PLUGIN, (hooks) => {
-          if (hooks.jestExtensions) {
-            hooks.jestExtensions.tap(PLUGIN, (extensions) => [
-              EXTENSION,
-              ...extensions,
-            ]);
-          }
+          hooks.jestExtensions?.tap(PLUGIN, (extensions) => [
+            EXTENSION,
+            ...extensions,
+          ]);
         });
       });
     });
 
     tasks.build.tap(PLUGIN, ({workspace, hooks}) => {
       hooks.configure.tap(PLUGIN, (hooks) => {
-        if (hooks.packageBuildArtifacts) {
-          hooks.packageBuildArtifacts.tapPromise(PLUGIN, async (artifacts) => [
-            ...artifacts,
-            ...workspace.packages.map((pkg) => pkg.fs.buildPath('node')),
-            ...(
-              await Promise.all(
-                workspace.packages.map((pkg) => pkg.fs.glob(`./*${EXTENSION}`)),
-              )
-            ).flat(),
-          ]);
-        }
+        hooks.packageBuildArtifacts?.tapPromise(PLUGIN, async (artifacts) => [
+          ...artifacts,
+          ...workspace.packages.map((pkg) => pkg.fs.buildPath('node')),
+          ...(
+            await Promise.all(
+              workspace.packages.map((pkg) => pkg.fs.glob(`./*${EXTENSION}`)),
+            )
+          ).flat(),
+        ]);
       });
 
       hooks.package.tap(PLUGIN, ({pkg, hooks}) => {

@@ -29,16 +29,14 @@ export default createPlugin(
   (tasks) => {
     tasks.build.tap(PLUGIN, ({workspace, hooks}) => {
       hooks.configure.tap(PLUGIN, (hooks) => {
-        if (hooks.packageBuildArtifacts) {
-          hooks.packageBuildArtifacts.tapPromise(PLUGIN, async (artifacts) => [
-            ...artifacts,
-            ...(
-              await Promise.all(
-                workspace.packages.map((pkg) => pkg.fs.glob('./*.d.ts')),
-              )
-            ).flat(),
-          ]);
-        }
+        hooks.packageBuildArtifacts?.tapPromise(PLUGIN, async (artifacts) => [
+          ...artifacts,
+          ...(
+            await Promise.all(
+              workspace.packages.map((pkg) => pkg.fs.glob('./*.d.ts')),
+            )
+          ).flat(),
+        ]);
       });
 
       // We don’t build TypeScript definitions for projects that also include

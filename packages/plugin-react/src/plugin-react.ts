@@ -47,17 +47,15 @@ export default createPlugin(
     tasks.test.tap(PLUGIN, ({hooks}) => {
       hooks.project.tap(PLUGIN, ({hooks}) => {
         hooks.configure.tap(PLUGIN, (hooks) => {
-          if (hooks.babelConfig) {
-            hooks.babelConfig.tap(PLUGIN, (babelConfig) => {
-              return produce(babelConfig, (babelConfig) => {
-                babelConfig.presets = babelConfig.presets || [];
-                babelConfig.presets.push([
-                  'babel-preset-shopify/react',
-                  {hot: false},
-                ]);
-              });
+          hooks.babelConfig?.tap(PLUGIN, (babelConfig) => {
+            return produce(babelConfig, (babelConfig) => {
+              babelConfig.presets = babelConfig.presets || [];
+              babelConfig.presets.push([
+                'babel-preset-shopify/react',
+                {hot: false},
+              ]);
             });
-          }
+          });
         });
       });
     });

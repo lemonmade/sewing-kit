@@ -29,10 +29,7 @@ export default function buildJavaScript({
 }: import('@sewing-kit/core').BuildTask) {
   hooks.package.tap(PLUGIN, ({hooks}) => {
     hooks.configure.tap(PLUGIN, (configurationHooks) => {
-      if (configurationHooks.babelConfig) {
-        configurationHooks.babelConfig.tap(PLUGIN, addBaseBabelPreset);
-      }
-
+      configurationHooks.babelConfig?.tap(PLUGIN, addBaseBabelPreset);
       configurationHooks.extensions.tap(PLUGIN, addJsExtensions);
     });
   });
@@ -40,54 +37,44 @@ export default function buildJavaScript({
   hooks.webApp.tap(PLUGIN, ({hooks}) => {
     hooks.configure.tap(PLUGIN, (configurationHooks) => {
       configurationHooks.extensions.tap(PLUGIN, addJsExtensions);
+      configurationHooks.babelConfig?.tap(PLUGIN, addBaseBabelPreset);
 
-      if (configurationHooks.babelConfig) {
-        configurationHooks.babelConfig.tap(PLUGIN, addBaseBabelPreset);
-      }
+      configurationHooks.webpackRules?.tapPromise(PLUGIN, async (rules) => {
+        const options =
+          configurationHooks.babelConfig &&
+          (await configurationHooks.babelConfig.promise({}));
 
-      if (configurationHooks.webpackRules) {
-        configurationHooks.webpackRules.tapPromise(PLUGIN, async (rules) => {
-          const options =
-            configurationHooks.babelConfig &&
-            (await configurationHooks.babelConfig.promise({}));
-
-          return produce(rules, (rules) => {
-            rules.push({
-              test: /\.m?js/,
-              exclude: /node_modules/,
-              loader: 'babel-loader',
-              options,
-            });
+        return produce(rules, (rules) => {
+          rules.push({
+            test: /\.m?js/,
+            exclude: /node_modules/,
+            loader: 'babel-loader',
+            options,
           });
         });
-      }
+      });
     });
   });
 
   hooks.service.tap(PLUGIN, ({hooks}) => {
     hooks.configure.tap(PLUGIN, (configurationHooks) => {
       configurationHooks.extensions.tap(PLUGIN, addJsExtensions);
+      configurationHooks.babelConfig?.tap(PLUGIN, addNodeBabelPreset);
 
-      if (configurationHooks.babelConfig) {
-        configurationHooks.babelConfig.tap(PLUGIN, addNodeBabelPreset);
-      }
+      configurationHooks.webpackRules?.tapPromise(PLUGIN, async (rules) => {
+        const options =
+          configurationHooks.babelConfig &&
+          (await configurationHooks.babelConfig.promise({}));
 
-      if (configurationHooks.webpackRules) {
-        configurationHooks.webpackRules.tapPromise(PLUGIN, async (rules) => {
-          const options =
-            configurationHooks.babelConfig &&
-            (await configurationHooks.babelConfig.promise({}));
-
-          return produce(rules, (rules) => {
-            rules.push({
-              test: /\.m?js/,
-              exclude: /node_modules/,
-              loader: 'babel-loader',
-              options,
-            });
+        return produce(rules, (rules) => {
+          rules.push({
+            test: /\.m?js/,
+            exclude: /node_modules/,
+            loader: 'babel-loader',
+            options,
           });
         });
-      }
+      });
     });
   });
 }

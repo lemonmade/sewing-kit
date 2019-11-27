@@ -20,22 +20,20 @@ export class PackageJson {
   }
 
   get dependencies() {
-    return this.internal.dependencies || {};
+    return this.internal.dependencies ?? {};
   }
 
   get devDependencies() {
-    return this.internal.devDependencies || {};
+    return this.internal.devDependencies ?? {};
   }
 
   constructor(private readonly internal: PackageJsonInternal) {}
 
   dependency(dependency: string) {
-    return this.internal.dependencies && this.internal.dependencies[dependency];
+    return this.internal.dependencies?.[dependency];
   }
 
   devDependency(dependency: string) {
-    return (
-      this.internal.devDependencies && this.internal.devDependencies[dependency]
-    );
+    return this.internal.devDependencies?.[dependency];
   }
 }

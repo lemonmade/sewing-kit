@@ -37,21 +37,19 @@ export default createPlugin(
   (tasks) => {
     tasks.build.tap(PLUGIN, ({workspace, hooks}) => {
       hooks.configure.tap(PLUGIN, (hooks) => {
-        if (hooks.packageBuildArtifacts) {
-          hooks.packageBuildArtifacts.tapPromise(PLUGIN, async (artifacts) => [
-            ...artifacts,
-            ...workspace.packages.map((pkg) => pkg.fs.buildPath('cjs')),
-            ...(
-              await Promise.all(
-                workspace.packages.map(async (pkg) =>
-                  pkg.fs.glob('./*.js', {
-                    ignore: await pkg.fs.glob('sewing-kit.config.*'),
-                  }),
-                ),
-              )
-            ).flat(),
-          ]);
-        }
+        hooks.packageBuildArtifacts?.tapPromise(PLUGIN, async (artifacts) => [
+          ...artifacts,
+          ...workspace.packages.map((pkg) => pkg.fs.buildPath('cjs')),
+          ...(
+            await Promise.all(
+              workspace.packages.map(async (pkg) =>
+                pkg.fs.glob('./*.js', {
+                  ignore: await pkg.fs.glob('sewing-kit.config.*'),
+                }),
+              ),
+            )
+          ).flat(),
+        ]);
       });
 
       hooks.package.tap(PLUGIN, ({pkg, hooks}) => {

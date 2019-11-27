@@ -7,6 +7,8 @@
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.7.4",
+    "@babel/plugin-proposal-optional-chaining": "^7.7.4",
     "@sewing-kit/plugin-babel": "^0.0.4",
     "@sewing-kit/plugin-eslint": "^0.0.4",
     "@sewing-kit/plugin-jest": "^0.0.4",

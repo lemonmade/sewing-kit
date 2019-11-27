@@ -22,17 +22,15 @@ export default createPlugin(
   (tasks) => {
     tasks.build.tap(PLUGIN, ({workspace, hooks}) => {
       hooks.configure.tap(PLUGIN, (hooks) => {
-        if (hooks.packageBuildArtifacts) {
-          hooks.packageBuildArtifacts.tapPromise(PLUGIN, async (artifacts) => [
-            ...artifacts,
-            ...workspace.packages.map((pkg) => pkg.fs.buildPath('esnext')),
-            ...(
-              await Promise.all(
-                workspace.packages.map((pkg) => pkg.fs.glob(`./*${EXTENSION}`)),
-              )
-            ).flat(),
-          ]);
-        }
+        hooks.packageBuildArtifacts?.tapPromise(PLUGIN, async (artifacts) => [
+          ...artifacts,
+          ...workspace.packages.map((pkg) => pkg.fs.buildPath('esnext')),
+          ...(
+            await Promise.all(
+              workspace.packages.map((pkg) => pkg.fs.glob(`./*${EXTENSION}`)),
+            )
+          ).flat(),
+        ]);
       });
 
       function prefixExtension(extensions: string[]) {

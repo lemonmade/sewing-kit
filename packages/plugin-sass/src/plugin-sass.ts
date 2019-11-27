@@ -131,12 +131,10 @@ export default createPlugin(
     tasks.test.tap(PLUGIN, ({hooks}) => {
       hooks.project.tap(PLUGIN, ({hooks}) => {
         hooks.configure.tap(PLUGIN, (hooks) => {
-          if (hooks.jestModuleMapper) {
-            hooks.jestModuleMapper.tap(PLUGIN, (moduleMapper) => ({
-              ...moduleMapper,
-              '\\.scss$': require.resolve('./jest-module-mapper'),
-            }));
-          }
+          hooks.jestModuleMapper?.tap(PLUGIN, (moduleMapper) => ({
+            ...moduleMapper,
+            '\\.scss$': require.resolve('./jest-module-mapper'),
+          }));
         });
       });
     });

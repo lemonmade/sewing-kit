@@ -41,17 +41,15 @@ export default createPlugin(
         return join(dirname(filename), browserTarget, basename(filename));
       });
 
-      if (configuration.babelConfig) {
-        configuration.babelConfig.tap(PLUGIN, (babelConfig) => {
-          return produce(
-            babelConfig,
-            updateBabelPreset(
-              ['babel-preset-shopify', 'babel-preset-shopify/web'],
-              {browsers: BROWSER_TARGETS[browserTarget]},
-            ),
-          );
-        });
-      }
+      configuration.babelConfig?.tap(PLUGIN, (babelConfig) => {
+        return produce(
+          babelConfig,
+          updateBabelPreset(
+            ['babel-preset-shopify', 'babel-preset-shopify/web'],
+            {browsers: BROWSER_TARGETS[browserTarget]},
+          ),
+        );
+      });
     });
   },
 );
