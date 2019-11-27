@@ -1,0 +1,36 @@
+{
+  "name": "sewing-kit-next",
+  "private": true,
+  "scripts": {
+    "postinstall": "yarn bootstrap",
+    "bootstrap": "lerna bootstrap && node ./scripts/bootstrap && tsc --build",
+    "sk": "node ./scripts/bootstrap && babel-node --extensions .ts,.tsx,.mjs,.js ./packages/cli/src/index",
+    "sewing-kit": "yarn sk",
+    "build": "yarn sk build",
+    "test": "yarn sk test",
+    "lint": "yarn sk lint",
+    "type-check": "yarn sk type-check",
+    "release": "lerna publish && git push --tags",
+    "dev:example": "yarn sk dev --root './example'"
+  },
+  "workspaces": [
+    "packages/*",
+    "example/apps/*"
+  ],
+  "devDependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/node": "^7.5.5",
+    "@types/fs-extra": "^8.0.0",
+    "babel-preset-shopify": "^20.0.0",
+    "eslint-plugin-shopify": "^30.0.1",
+    "fs-extra": "^8.1.0",
+    "glob": "^7.1.4",
+    "lerna": "^3.16.4",
+    "prettier": "^1.18.2",
+    "tree-node-cli": "^1.2.5",
+    "ts-node": "^8.3.0"
+  },
+  "resolutions": {
+    "typescript-eslint-parser": "npm:@typescript-eslint/parser@1.13.0"
+  }
+}

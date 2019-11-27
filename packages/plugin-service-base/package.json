@@ -1,0 +1,25 @@
+{
+  "name": "@sewing-kit/plugin-service-base",
+  "version": "0.0.0",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "@sewing-kit:registry": "https://registry.npmjs.org"
+  },
+  "dependencies": {
+    "@sewing-kit/config": "^0.0.4",
+    "@sewing-kit/core": "^0.0.6",
+    "@sewing-kit/plugin-babel": "^0.0.4",
+    "@sewing-kit/plugin-utilities": "^0.0.6",
+    "@sewing-kit/plugin-webpack": "^0.0.4",
+    "@sewing-kit/types": "^0.0.1",
+    "@sewing-kit/ui": "^0.0.5",
+    "@types/execa": "^2.0.0",
+    "@types/koa": "^2.0.49",
+    "@types/koa-webpack": "^5.0.1",
+    "execa": "^2.0.4",
+    "immer": "^3.2.0",
+    "koa": "^2.8.1",
+    "koa-webpack": "^5.2.4"
+  }
+}

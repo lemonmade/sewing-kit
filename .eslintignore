@@ -1,0 +1,8 @@
+**/node_modules
+/packages/*/build
+/packages/*/bin
+/packages/*/*.js
+/packages/*/*.node
+/packages/*/*.d.ts
+/packages/*/*.esnext
+/gems/sewing_kit/test/integration/fixtures

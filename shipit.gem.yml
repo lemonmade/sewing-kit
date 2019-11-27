@@ -1,0 +1,16 @@
+ci:
+  require:
+    - buildkite/sewing-kit-gem
+    - buildkite/sewing-kit
+
+dependencies:
+  override:
+    - echo "No dependencies required"
+
+deploy:
+  max_commits: 200
+  override:
+    - cd "gems/sewing_kit" && sed -i '/^ruby\s/d' Gemfile
+    - cd "gems/sewing_kit" && bundle install --frozen --jobs 4 --path /app/data/bundler --retry 2
+    - git status
+    - cd "gems/sewing_kit" && release-gem ./sewing_kit.gemspec || git status

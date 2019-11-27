@@ -1,0 +1,24 @@
+{
+  "name": "@sewing-kit/cli",
+  "version": "0.0.6",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "@sewing-kit:registry": "https://registry.npmjs.org"
+  },
+  "bin": {
+    "sewing-kit": "./bin/sewing-kit",
+    "sk": "./bin/sk"
+  },
+  "dependencies": {
+    "@sewing-kit/core": "^0.0.6",
+    "@sewing-kit/types": "^0.0.1",
+    "@sewing-kit/ui": "^0.0.5",
+    "arg": "^4.1.1",
+    "core-js": "^3.2.1",
+    "tapable": "^1.1.3"
+  },
+  "devDependencies": {
+    "@types/core-js": "^2.5.2"
+  }
+}

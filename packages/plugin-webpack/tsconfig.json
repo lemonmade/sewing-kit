@@ -1,0 +1,15 @@
+{
+  "extends": "../../config/typescript/tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "build/ts",
+    "baseUrl": "src",
+    "rootDir": "src",
+    "typeRoots": [
+      "./config/typescript/typings",
+      "./node_modules/@types",
+      "../../node_modules/@types"
+    ]
+  },
+  "include": ["src/**/*.ts"],
+  "references": [{"path": "../plugin-utilities"}]
+}

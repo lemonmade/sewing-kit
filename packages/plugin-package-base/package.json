@@ -1,0 +1,16 @@
+{
+  "name": "@sewing-kit/plugin-package-base",
+  "version": "0.0.4",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "@sewing-kit:registry": "https://registry.npmjs.org"
+  },
+  "dependencies": {
+    "@sewing-kit/config": "^0.0.4",
+    "@sewing-kit/core": "^0.0.6",
+    "@sewing-kit/plugin-jest": "^0.0.4",
+    "@sewing-kit/plugin-utilities": "^0.0.6",
+    "@sewing-kit/types": "^0.0.1"
+  }
+}

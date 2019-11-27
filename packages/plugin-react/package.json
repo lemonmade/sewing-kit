@@ -1,0 +1,14 @@
+{
+  "name": "@sewing-kit/plugin-react",
+  "version": "0.0.0",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "@sewing-kit:registry": "https://registry.npmjs.org"
+  },
+  "dependencies": {
+    "@sewing-kit/plugin-babel": "^0.0.4",
+    "@sewing-kit/plugin-utilities": "^0.0.6",
+    "@sewing-kit/types": "^0.0.1"
+  }
+}

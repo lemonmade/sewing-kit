@@ -1,0 +1,40 @@
+{
+  "files": [],
+  "include": [],
+  "references": [
+    {"path": "./packages/cli"},
+    {"path": "./packages/core"},
+    {"path": "./packages/config"},
+    {"path": "./packages/ui"},
+    {"path": "./packages/types"},
+
+    {"path": "./packages/plugin-utilities"},
+    {"path": "./packages/plugin-package-utilities"},
+
+    {"path": "./packages/plugin-babel"},
+    {"path": "./packages/plugin-eslint"},
+    {"path": "./packages/plugin-jest"},
+    {"path": "./packages/plugin-webpack"},
+
+    {"path": "./packages/plugin-json"},
+    {"path": "./packages/plugin-javascript"},
+    {"path": "./packages/plugin-typescript"},
+    {"path": "./packages/plugin-graphql"},
+    {"path": "./packages/plugin-sass"},
+
+    {"path": "./packages/plugin-react"},
+
+    {"path": "./packages/plugin-package-base"},
+    {"path": "./packages/plugin-package-binaries"},
+    {"path": "./packages/plugin-package-commonjs"},
+    {"path": "./packages/plugin-package-esmodules"},
+    {"path": "./packages/plugin-package-esnext"},
+    {"path": "./packages/plugin-package-node"},
+    {"path": "./packages/plugin-package-typescript"},
+
+    {"path": "./packages/plugin-service-base"},
+
+    {"path": "./packages/plugin-web-app-base"},
+    {"path": "./packages/plugin-differential-serving"}
+  ]
+}

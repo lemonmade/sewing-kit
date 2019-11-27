@@ -1,0 +1,29 @@
+name: sewing-kit
+type: node
+up:
+  - node:
+      version: v10.16.0
+      yarn: 1.17.3
+
+commands:
+  __default__: start
+  build: yarnpkg build
+  check: yarnpkg check
+  lint: yarnpkg lint
+  format: yarnpkg format
+  start: echo "To run sewing-kit, add it to a project using 'yarnpkg add @shopify/sewing-kit && yarnpkg sewing-kit --help'"
+  test:
+    desc: 'Runs tests for all projects.  Add test patterns to limit the number of tests executed.  e.g., {{bold:dev test externals resolve}}.'
+    syntax:
+      optional: testPatterns...
+    run: yarnpkg test
+  'test:unit':
+    desc: 'Starts Jest in watch mode with e2e tests automatically excluded.  Add pattern arguments to filter down to specific tests.  e.g., {{bold:dev test:unit entry}}.'
+    syntax:
+      optional: testPatterns...
+    run: yarnpkg test:unit
+  'test:e2e':
+    desc: 'Starts Jest in watch mode with unit tests automatically excluded.  Add pattern arguments to filter down to specific tests.  e.g., {{bold:dev test:e2e caching}}.'
+    syntax:
+      optional: testPatterns...
+    run: yarnpkg test:e2e

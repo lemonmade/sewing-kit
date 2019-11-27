@@ -1,0 +1,13 @@
+{
+  "name": "@sewing-kit/types",
+  "version": "0.0.1",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "@sewing-kit:registry": "https://registry.npmjs.org"
+  },
+  "dependencies": {
+    "@types/tapable": "^1.0.4",
+    "execa": "^2.0.4"
+  }
+}

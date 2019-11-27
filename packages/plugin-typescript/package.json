@@ -1,0 +1,18 @@
+{
+  "name": "@sewing-kit/plugin-typescript",
+  "version": "0.0.4",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "@sewing-kit:registry": "https://registry.npmjs.org"
+  },
+  "dependencies": {
+    "@sewing-kit/plugin-babel": "^0.0.4",
+    "@sewing-kit/plugin-eslint": "^0.0.4",
+    "@sewing-kit/plugin-jest": "^0.0.4",
+    "@sewing-kit/plugin-utilities": "^0.0.6",
+    "@sewing-kit/plugin-webpack": "^0.0.4",
+    "immer": "^3.2.0",
+    "typescript": "^3.5.3"
+  }
+}

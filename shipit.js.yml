@@ -1,0 +1,11 @@
+ci:
+  require:
+    - buildkite/sewing-kit-gem
+    - buildkite/sewing-kit
+
+dependencies:
+  post:
+    - yarn run build
+
+deploy:
+  max_commits: 20
