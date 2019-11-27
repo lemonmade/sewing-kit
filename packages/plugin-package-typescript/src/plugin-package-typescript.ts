@@ -93,6 +93,7 @@ export default createPlugin(
                 'node_modules/.bin/tsc',
                 ['--build', '--pretty'],
                 {
+                  all: true,
                   env: {FORCE_COLOR: '1'},
                 },
               );

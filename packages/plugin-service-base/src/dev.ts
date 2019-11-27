@@ -34,7 +34,7 @@ export default function devService({hooks, workspace}: DevTask) {
             const compiler = webpack(webpackConfig);
             const file = join(
               webpackConfig.output!.path!,
-              webpackConfig.output!.filename!,
+              webpackConfig.output!.filename as string,
             );
 
             const store = createSimpleStore(false);

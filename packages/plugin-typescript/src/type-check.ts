@@ -31,7 +31,7 @@ export default function typeCheckTypeScript({
         await step.exec(
           'node',
           [...heapArguments, 'node_modules/.bin/tsc', '--build', '--pretty'],
-          {env: {FORCE_COLOR: '1'}},
+          {all: true, env: {FORCE_COLOR: '1'}},
         );
       } catch (error) {
         throw new DiagnosticError({

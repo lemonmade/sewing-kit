@@ -255,10 +255,16 @@ export async function run(
       );
       // ui.log(error.message);
 
-      if (error.all == null) {
+      if (error.all != null) {
+        ui.error(error.all);
+        ui.error(error.stack);
+      } else if (error.stderr != null) {
+        ui.error(error.stderr);
+        ui.error(error.stack);
+      } else if (error.stdout != null) {
+        ui.error(error.stdout);
         ui.error(error.stack);
       } else {
-        ui.error(error.all);
         ui.error(error.stack);
       }
     }

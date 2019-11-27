@@ -62,7 +62,7 @@ export async function runDiscovery(
     hooks.webApps.promise([]),
     hooks.services.promise([]),
     hooks.packages.promise([]),
-  ]);
+  ] as const);
 
   return new Workspace({
     name,

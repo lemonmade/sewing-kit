@@ -58,6 +58,7 @@ export default createPlugin(
 
           try {
             await step.exec('node_modules/.bin/eslint', ['.', ...args], {
+              all: true,
               env: {FORCE_COLOR: '1'},
             });
           } catch (error) {
