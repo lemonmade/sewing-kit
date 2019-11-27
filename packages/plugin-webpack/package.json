@@ -9,7 +9,7 @@
   "dependencies": {
     "@sewing-kit/plugin-utilities": "^0.0.6",
     "@sewing-kit/types": "^0.0.1",
-    "@types/webpack": "^4.32.1",
-    "webpack": "^4.39.2"
+    "@types/webpack": "^4.41.0",
+    "webpack": "^4.41.2"
   }
 }

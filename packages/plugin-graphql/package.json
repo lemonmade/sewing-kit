@@ -10,6 +10,6 @@
     "@sewing-kit/plugin-jest": "^0.0.4",
     "@sewing-kit/plugin-utilities": "^0.0.6",
     "@sewing-kit/plugin-webpack": "^0.0.4",
-    "graphql-mini-transforms": "^1.0.3"
+    "graphql-mini-transforms": "^1.0.4"
   }
 }

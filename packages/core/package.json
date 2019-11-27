@@ -11,7 +11,7 @@
     "@sewing-kit/types": "^0.0.1",
     "@sewing-kit/ui": "^0.0.5",
     "fs-extra": "^8.1.0",
-    "glob": "^7.1.4",
+    "glob": "^7.1.6",
     "tapable": "^1.1.3"
   },
   "devDependencies": {

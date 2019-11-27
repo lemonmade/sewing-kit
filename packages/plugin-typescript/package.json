@@ -12,7 +12,7 @@
     "@sewing-kit/plugin-jest": "^0.0.4",
     "@sewing-kit/plugin-utilities": "^0.0.6",
     "@sewing-kit/plugin-webpack": "^0.0.4",
-    "immer": "^3.2.0",
-    "typescript": "^3.5.3"
+    "immer": "^5.0.0",
+    "typescript": "^3.7.2"
   }
 }

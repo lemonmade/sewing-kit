@@ -7,10 +7,10 @@
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@shopify/useful-types": "^2.0.0",
-    "ansi-escapes": "^4.2.1",
-    "chalk": "^2.4.2",
-    "execa": "^2.0.4",
+    "@shopify/useful-types": "^2.1.2",
+    "ansi-escapes": "^4.3.0",
+    "chalk": "^3.0.0",
+    "execa": "^3.4.0",
     "supports-hyperlinks": "^2.0.0"
   }
 }

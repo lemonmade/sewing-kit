@@ -12,8 +12,8 @@
     "@sewing-kit/plugin-utilities": "^0.0.6",
     "@sewing-kit/types": "^0.0.1",
     "@sewing-kit/ui": "^0.0.5",
-    "@types/jest": "^24.0.17",
+    "@types/jest": "^24.0.23",
     "jest": "^24.9.0",
-    "jest-watch-typeahead": "^0.3.1"
+    "jest-watch-typeahead": "^0.4.2"
   }
 }

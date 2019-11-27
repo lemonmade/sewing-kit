@@ -18,17 +18,17 @@
     "example/apps/*"
   ],
   "devDependencies": {
-    "@babel/core": "^7.5.5",
-    "@babel/node": "^7.5.5",
-    "@types/fs-extra": "^8.0.0",
-    "babel-preset-shopify": "^20.0.0",
-    "eslint-plugin-shopify": "^30.0.1",
+    "@babel/core": "^7.7.4",
+    "@babel/node": "^7.7.4",
+    "@types/fs-extra": "^8.0.1",
+    "babel-preset-shopify": "^20.1.0",
+    "eslint-plugin-shopify": "^33.0.0",
     "fs-extra": "^8.1.0",
-    "glob": "^7.1.4",
-    "lerna": "^3.16.4",
-    "prettier": "^1.18.2",
+    "glob": "^7.1.6",
+    "lerna": "^3.19.0",
+    "prettier": "^1.19.1",
     "tree-node-cli": "^1.2.5",
-    "ts-node": "^8.3.0"
+    "ts-node": "^8.5.2"
   },
   "resolutions": {
     "typescript-eslint-parser": "npm:@typescript-eslint/parser@1.13.0"

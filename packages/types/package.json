@@ -8,6 +8,6 @@
   },
   "dependencies": {
     "@types/tapable": "^1.0.4",
-    "execa": "^2.0.4"
+    "execa": "^3.4.0"
   }
 }

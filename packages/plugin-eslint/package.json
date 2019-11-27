@@ -10,7 +10,7 @@
     "@sewing-kit/plugin-utilities": "^0.0.6",
     "@sewing-kit/types": "^0.0.1",
     "@sewing-kit/ui": "^0.0.5",
-    "eslint": "^6.1.0",
+    "eslint": "^6.7.1",
     "tapable": "^1.1.3"
   }
 }

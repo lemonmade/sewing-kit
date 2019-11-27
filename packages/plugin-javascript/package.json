@@ -16,6 +16,6 @@
     "@sewing-kit/types": "^0.0.1",
     "@sewing-kit/ui": "^0.0.5",
     "babel-loader": "^8.0.6",
-    "immer": "^3.2.0"
+    "immer": "^5.0.0"
   }
 }
