@@ -1,6 +1,5 @@
 {
   "name": "@sewing-kit/examples-apps-1",
-  "version": "1.0.0",
   "private": true,
   "dependencies": {
     "react": "^16.12.0",
