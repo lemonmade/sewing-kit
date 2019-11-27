@@ -1,5 +1,7 @@
 import {join} from 'path';
+
 import {TestTask, Package} from '@sewing-kit/core';
+
 import {} from '@sewing-kit/plugin-jest';
 import {PLUGIN} from './common';
 

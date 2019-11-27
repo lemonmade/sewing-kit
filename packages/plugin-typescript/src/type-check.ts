@@ -1,6 +1,7 @@
 import {AsyncSeriesWaterfallHook} from 'tapable';
 import {createStep, DiagnosticError} from '@sewing-kit/ui';
 import {addHooks, compose} from '@sewing-kit/plugin-utilities';
+
 import {PLUGIN} from './common';
 
 declare module '@sewing-kit/types' {

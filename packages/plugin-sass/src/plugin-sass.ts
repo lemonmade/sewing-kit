@@ -1,6 +1,6 @@
 import {cpus} from 'os';
-import {AsyncSeriesWaterfallHook} from 'tapable';
 
+import {AsyncSeriesWaterfallHook} from 'tapable';
 import {
   addHooks,
   createPlugin,

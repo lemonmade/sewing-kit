@@ -1,6 +1,6 @@
 import exec from 'execa';
-
 import {Step, StepRunner as NestedStepRunner} from '@sewing-kit/types';
+
 import {Ui, Loggable} from './ui';
 import {DiagnosticError} from './errors';
 
@@ -215,7 +215,11 @@ export async function run(
   }
 
   const runnerUi = new RunnerUi(
-    [{steps: pre, skip: skipPre}, {steps, skip}, {steps: post, skip: skipPost}],
+    [
+      {steps: pre, skip: skipPre},
+      {steps, skip},
+      {steps: post, skip: skipPost},
+    ],
     ui,
   );
 
@@ -261,10 +265,10 @@ export async function run(
       } else if (error.stderr != null) {
         ui.error(error.stderr);
         ui.error(error.stack);
-      } else if (error.stdout != null) {
-        ui.error(error.stdout);
+      } else if (error.stdout == null) {
         ui.error(error.stack);
       } else {
+        ui.error(error.stdout);
         ui.error(error.stack);
       }
     }

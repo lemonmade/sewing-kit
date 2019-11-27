@@ -1,4 +1,5 @@
 import {FirstArgument} from '@shopify/useful-types';
+
 import {Ui} from './ui';
 
 interface DiagnosticErrorOptions {

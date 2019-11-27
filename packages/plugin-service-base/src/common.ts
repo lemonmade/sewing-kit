@@ -1,5 +1,4 @@
 import {Configuration} from 'webpack';
-
 import {Workspace, Service} from '@sewing-kit/core';
 import {BuildServiceConfigurationHooks} from '@sewing-kit/types';
 import {MissingPluginError} from '@sewing-kit/plugin-utilities';

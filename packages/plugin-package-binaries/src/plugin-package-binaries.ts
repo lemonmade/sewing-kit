@@ -1,4 +1,5 @@
 import {relative, dirname} from 'path';
+
 import {Runtime} from '@sewing-kit/types';
 import {Package} from '@sewing-kit/core';
 import {createStep} from '@sewing-kit/ui';
@@ -15,13 +16,15 @@ export default createPlugin(
         if (hooks.packageBuildArtifacts) {
           hooks.packageBuildArtifacts.tapPromise(PLUGIN, async (artifacts) => [
             ...artifacts,
-            ...((await Promise.all(
-              workspace.packages.map((pkg) =>
-                pkg.fs.hasDirectory('bin')
-                  ? pkg.fs.resolvePath('bin')
-                  : undefined,
-              ),
-            )).filter(Boolean) as string[]),
+            ...((
+              await Promise.all(
+                workspace.packages.map((pkg) =>
+                  pkg.fs.hasDirectory('bin')
+                    ? pkg.fs.resolvePath('bin')
+                    : undefined,
+                ),
+              )
+            ).filter(Boolean) as string[]),
           ]);
         }
       });

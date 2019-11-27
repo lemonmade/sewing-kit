@@ -1,4 +1,5 @@
 import {resolve, relative} from 'path';
+
 import {copy, symlink, remove} from 'fs-extra';
 import {Package} from '@sewing-kit/core';
 import {createStep, DiagnosticError} from '@sewing-kit/ui';
@@ -31,9 +32,11 @@ export default createPlugin(
         if (hooks.packageBuildArtifacts) {
           hooks.packageBuildArtifacts.tapPromise(PLUGIN, async (artifacts) => [
             ...artifacts,
-            ...(await Promise.all(
-              workspace.packages.map((pkg) => pkg.fs.glob('./*.d.ts')),
-            )).flat(),
+            ...(
+              await Promise.all(
+                workspace.packages.map((pkg) => pkg.fs.glob('./*.d.ts')),
+              )
+            ).flat(),
           ]);
         }
       });
@@ -155,7 +158,7 @@ async function writeTypeScriptEntries(
 async function getOutputPath(pkg: Package) {
   if (await pkg.fs.hasFile('tsconfig.json')) {
     try {
-      // eslint-disable-next-line typescript/no-var-requires
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const tsconfig = require(pkg.fs.resolvePath('tsconfig.json'));
       const relativePath =
         (tsconfig.compilerOptions && tsconfig.compilerOptions.outDir) ||

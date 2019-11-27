@@ -5,6 +5,7 @@ import {
   PackageEntryCreateOptions,
   PackageBinaryCreateOptions,
 } from '@sewing-kit/types';
+
 import {OptionBuilder} from './types';
 
 class PackageCreator {

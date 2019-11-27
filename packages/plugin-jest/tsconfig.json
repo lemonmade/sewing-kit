@@ -5,8 +5,6 @@
     "baseUrl": "src",
     "rootDir": "src",
     "typeRoots": [
-      "./config/typescript/typings",
-      "./node_modules/@types",
       "../../node_modules/@types"
     ],
     "types": ["jest"]

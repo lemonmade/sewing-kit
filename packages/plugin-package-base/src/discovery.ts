@@ -1,7 +1,9 @@
 import {basename} from 'path';
+
 import {PackageCreateOptions} from '@sewing-kit/types';
 import {DiscoveryTask, Package} from '@sewing-kit/core';
 import {loadConfig} from '@sewing-kit/config/load';
+
 import {PLUGIN} from './common';
 
 export default function discoverPackages({

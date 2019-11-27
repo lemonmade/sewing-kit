@@ -23,9 +23,9 @@ export default function buildPackages({hooks, workspace}: BuildTask) {
             {label: 'Removing package build artifacts', skip: /clean/},
             async () => {
               await Promise.all(
-                (await configuration.packageBuildArtifacts!.promise([])).map(
-                  (path) => remove(path),
-                ),
+                (
+                  await configuration.packageBuildArtifacts!.promise([])
+                ).map((path) => remove(path)),
               );
             },
           ),

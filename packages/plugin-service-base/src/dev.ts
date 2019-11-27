@@ -1,6 +1,6 @@
 import {join} from 'path';
-import Koa from 'koa';
 
+import Koa from 'koa';
 import {createStep} from '@sewing-kit/ui';
 import {DevTask} from '@sewing-kit/core';
 import {} from '@sewing-kit/plugin-webpack';

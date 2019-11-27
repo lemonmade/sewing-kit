@@ -1,5 +1,4 @@
 import {Configuration} from 'webpack';
-
 import {Workspace, WebApp} from '@sewing-kit/core';
 import {BuildBrowserConfigurationHooks} from '@sewing-kit/types';
 import {MissingPluginError} from '@sewing-kit/plugin-utilities';

@@ -1,4 +1,5 @@
 import {basename, resolve} from 'path';
+
 import {AsyncSeriesWaterfallHook} from 'tapable';
 import {ProjectCreateOptions, PluginTarget} from '@sewing-kit/types';
 import {loadConfig} from '@sewing-kit/config/load';

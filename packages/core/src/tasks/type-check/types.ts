@@ -1,5 +1,6 @@
 import {AsyncSeriesWaterfallHook, AsyncSeriesHook} from 'tapable';
 import {Step, TypeCheckRootConfigurationHooks} from '@sewing-kit/types';
+
 import {Workspace} from '../../workspace';
 
 export interface TypeCheckOptions {

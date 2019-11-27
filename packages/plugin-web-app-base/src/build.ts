@@ -1,6 +1,6 @@
 import {join} from 'path';
-import {produce} from 'immer';
 
+import {produce} from 'immer';
 import {Env} from '@sewing-kit/types';
 import {createStep} from '@sewing-kit/ui';
 import {BuildTask} from '@sewing-kit/core';

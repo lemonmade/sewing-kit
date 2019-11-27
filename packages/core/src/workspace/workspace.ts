@@ -10,6 +10,7 @@ import {
   WebAppCreateOptions,
   ServiceCreateOptions,
 } from '@sewing-kit/types';
+
 import {FileSystem, SewingKitFileSystem} from './fs';
 import {PackageJson} from './dependencies';
 
@@ -23,7 +24,7 @@ export class Project {
   readonly name: string;
   readonly root: string;
   readonly fs: FileSystem;
-  readonly plugins: readonly Plugin[];
+  readonly plugins: ReadonlyArray<Plugin>;
   protected readonly packageJson?: PackageJson;
 
   get id() {
@@ -56,7 +57,6 @@ export class Project {
     return dependencies;
   }
 
-  // eslint-disable-next-line require-await
   async hasDependency(
     name: string,
     _options?: DependencyOptions & {version?: string},
@@ -81,9 +81,9 @@ export interface WorkspaceCreateOptions extends ProjectCreateOptions {
 
 export class Workspace extends Project {
   readonly internal = new SewingKitFileSystem(this.root);
-  readonly webApps: readonly WebApp[];
-  readonly packages: readonly Package[];
-  readonly services: readonly Service[];
+  readonly webApps: ReadonlyArray<WebApp>;
+  readonly packages: ReadonlyArray<Package>;
+  readonly services: ReadonlyArray<Service>;
 
   get private() {
     return this.webApps.length > 0 || this.services.length > 0;

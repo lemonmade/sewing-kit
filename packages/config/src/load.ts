@@ -1,4 +1,5 @@
 import {join} from 'path';
+
 import {pathExists} from 'fs-extra';
 import {Plugin, PluginTarget, PLUGIN} from '@sewing-kit/types';
 import {DiagnosticError} from '@sewing-kit/ui';
@@ -14,6 +15,7 @@ export async function loadConfig<T = any>(
   }
 
   if (await pathExists(join(root, 'sewing-kit.config.ts'))) {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     require('@babel/register')({
       extensions: ['.mjs', '.js', '.ts', '.tsx'],
       presets: [['babel-preset-shopify/node', {typescript: true}]],
@@ -28,7 +30,7 @@ export async function loadConfig<T = any>(
 }
 
 async function loadConfigFile(file: string, {allowRootPlugins = false}) {
-  // eslint-disable-next-line typescript/no-var-requires
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const exports = require(file);
   const normalized = (exports && exports.default) || exports;
 

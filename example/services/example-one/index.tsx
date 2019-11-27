@@ -1,6 +1,7 @@
 import React from 'react';
 import {renderToString} from 'react-dom/server';
 import Koa from 'koa';
+
 import App from '../../apps/example-one';
 
 const app = new Koa();

@@ -1,5 +1,6 @@
 import {AsyncSeriesWaterfallHook, AsyncSeriesHook} from 'tapable';
 import {Step, LintRootConfigurationHooks} from '@sewing-kit/types';
+
 import {Workspace} from '../../workspace';
 
 export interface LintTaskOptions {

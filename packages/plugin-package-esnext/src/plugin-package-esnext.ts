@@ -1,5 +1,4 @@
 import {produce} from 'immer';
-
 import {createPlugin, PluginTarget} from '@sewing-kit/plugin-utilities';
 import {createWriteEntriesStep} from '@sewing-kit/plugin-package-utilities';
 import {
@@ -27,9 +26,11 @@ export default createPlugin(
           hooks.packageBuildArtifacts.tapPromise(PLUGIN, async (artifacts) => [
             ...artifacts,
             ...workspace.packages.map((pkg) => pkg.fs.buildPath('esnext')),
-            ...(await Promise.all(
-              workspace.packages.map((pkg) => pkg.fs.glob(`./*${EXTENSION}`)),
-            )).flat(),
+            ...(
+              await Promise.all(
+                workspace.packages.map((pkg) => pkg.fs.glob(`./*${EXTENSION}`)),
+              )
+            ).flat(),
           ]);
         }
       });

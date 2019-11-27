@@ -7,6 +7,7 @@
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
+    "@babel/register": "^7.7.4",
     "@sewing-kit/types": "^0.0.1",
     "@sewing-kit/ui": "^0.0.5",
     "fs-extra": "^8.1.0"

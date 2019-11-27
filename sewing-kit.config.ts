@@ -1,6 +1,5 @@
 import {createWorkspace} from '@sewing-kit/config';
 import {composePlugins} from '@sewing-kit/plugin-utilities';
-
 import babel from '@sewing-kit/plugin-babel';
 import eslint from '@sewing-kit/plugin-eslint';
 import json from '@sewing-kit/plugin-json';

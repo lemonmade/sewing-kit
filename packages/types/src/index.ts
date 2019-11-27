@@ -26,7 +26,7 @@ export interface StepRunner {
 export interface Step {
   readonly label?: Loggable;
   readonly indefinite?: boolean;
-  readonly steps?: readonly Step[];
+  readonly steps?: ReadonlyArray<Step>;
   skip(skipped: string[]): boolean;
   run?(runner: StepRunner): void | Promise<void>;
 }
@@ -57,7 +57,7 @@ export interface Plugin {
   readonly id: string;
   readonly target: PluginTarget;
   readonly [PLUGIN]: true;
-  readonly composes: readonly Plugin[];
+  readonly composes: ReadonlyArray<Plugin>;
 }
 
 export enum Runtime {
@@ -70,7 +70,7 @@ export enum Runtime {
 export interface ProjectCreateOptions {
   name: string;
   root: string;
-  plugins?: readonly Plugin[];
+  plugins?: ReadonlyArray<Plugin>;
 }
 
 export interface WebAppCoreOptions {}

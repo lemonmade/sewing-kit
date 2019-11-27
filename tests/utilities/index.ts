@@ -13,22 +13,22 @@ import {
   emptyDir,
 } from 'fs-extra';
 import toTree from 'tree-node-cli';
-import {ThenType} from '@shopify/useful-types';
 
 const commandMap = {
   build: () => import('../../packages/cli/src/build').then(({build}) => build),
 };
 
 type CommandMap = typeof commandMap;
-type CommandType<T extends keyof CommandMap> = ThenType<
-  ReturnType<CommandMap[T]>
->;
 
 class TestOutputStream extends Writable {
   private buffer = '';
 
   _write(buffer: Buffer) {
     this.buffer += buffer.toString();
+  }
+
+  toString() {
+    return this.buffer;
   }
 }
 

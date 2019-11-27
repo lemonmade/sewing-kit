@@ -12,6 +12,7 @@
 // but outside of sewing-kit.
 
 const {resolve, basename} = require('path');
+
 const {writeFileSync, removeSync, symlinkSync} = require('fs-extra');
 const {sync: glob} = require('glob');
 
@@ -19,10 +20,6 @@ for (const file of glob('packages/*/*.{js,mjs,node,esnext,ts}', {
   ignore: '**/sewing-kit.config.*',
 })) {
   removeSync(file);
-}
-
-for (const buildDir of glob('packages/*/build/')) {
-  removeSync(buildDir);
 }
 
 const CUSTOM_ENTRIES = new Map([['config', ['index', 'load']]]);

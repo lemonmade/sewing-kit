@@ -1,4 +1,5 @@
 import {Plugin, WebAppCreateOptions, WebAppOptions} from '@sewing-kit/types';
+
 import {OptionBuilder} from './types';
 
 class WebAppCreator {

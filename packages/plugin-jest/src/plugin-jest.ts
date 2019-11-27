@@ -12,6 +12,7 @@ import {
 
 // Brings in the Babel hook augmentations
 import {} from '@sewing-kit/plugin-babel';
+import {} from 'jest';
 
 const PLUGIN = 'SewingKit.jest';
 
@@ -96,27 +97,55 @@ export default createPlugin(
 
       hooks.configure.tap(
         PLUGIN,
-        compose(
-          addRootConfigurationHooks,
-          (hooks) => {
-            hooks.jestWatchIgnore!.tap(PLUGIN, (watchIgnore) => [
-              ...watchIgnore,
-              '/tmp/',
-              workspace.internal.resolvePath(),
-              workspace.fs.buildPath(),
-            ]);
+        compose(addRootConfigurationHooks, (hooks) => {
+          hooks.jestWatchIgnore!.tap(PLUGIN, (watchIgnore) => [
+            ...watchIgnore,
+            '/tmp/',
+            workspace.internal.resolvePath(),
+            workspace.fs.buildPath(),
+          ]);
 
-            hooks.jestWatchPlugins!.tap(PLUGIN, (watchPlugins) => [
-              ...watchPlugins,
-              'jest-watch-typeahead/filename',
-              'jest-watch-typeahead/testname',
-            ]);
+          hooks.jestWatchPlugins!.tap(PLUGIN, (watchPlugins) => [
+            ...watchPlugins,
+            'jest-watch-typeahead/filename',
+            'jest-watch-typeahead/testname',
+          ]);
+
+          hooks.jestSetupEnv!.tapPromise(PLUGIN, async (setupEnvFiles) => {
+            const packageSetupEnvFiles = ([] as string[]).concat(
+              ...(await Promise.all([
+                workspace.fs.glob('tests/setup/environment.*'),
+                workspace.fs.glob('tests/setup/environment/index.*'),
+              ])),
+            );
+
+            return [...setupEnvFiles, ...packageSetupEnvFiles];
+          });
+
+          hooks.jestSetupTests!.tapPromise(PLUGIN, async (setupTestsFiles) => {
+            const packageSetupTestsFiles = ([] as string[]).concat(
+              ...(await Promise.all([
+                workspace.fs.glob('tests/setup/tests.*'),
+                workspace.fs.glob('tests/setup/tests/index.*'),
+              ])),
+            );
+
+            return [...setupTestsFiles, ...packageSetupTestsFiles];
+          });
+        }),
+      );
+
+      hooks.project.tap(PLUGIN, ({project, hooks}) => {
+        hooks.configure.tap(
+          PLUGIN,
+          compose(addProjectConfigurationHooks, (hooks) => {
+            projectConfigurations.push({project, hooks});
 
             hooks.jestSetupEnv!.tapPromise(PLUGIN, async (setupEnvFiles) => {
               const packageSetupEnvFiles = ([] as string[]).concat(
                 ...(await Promise.all([
-                  workspace.fs.glob('tests/setup/environment.*'),
-                  workspace.fs.glob('tests/setup/environment/index.*'),
+                  project.fs.glob('tests/setup/environment.*'),
+                  project.fs.glob('tests/setup/environment/index.*'),
                 ])),
               );
 
@@ -128,52 +157,15 @@ export default createPlugin(
               async (setupTestsFiles) => {
                 const packageSetupTestsFiles = ([] as string[]).concat(
                   ...(await Promise.all([
-                    workspace.fs.glob('tests/setup/tests.*'),
-                    workspace.fs.glob('tests/setup/tests/index.*'),
+                    project.fs.glob('tests/setup/tests.*'),
+                    project.fs.glob('tests/setup/tests/index.*'),
                   ])),
                 );
 
                 return [...setupTestsFiles, ...packageSetupTestsFiles];
               },
             );
-          },
-        ),
-      );
-
-      hooks.project.tap(PLUGIN, ({project, hooks}) => {
-        hooks.configure.tap(
-          PLUGIN,
-          compose(
-            addProjectConfigurationHooks,
-            (hooks) => {
-              projectConfigurations.push({project, hooks});
-
-              hooks.jestSetupEnv!.tapPromise(PLUGIN, async (setupEnvFiles) => {
-                const packageSetupEnvFiles = ([] as string[]).concat(
-                  ...(await Promise.all([
-                    project.fs.glob('tests/setup/environment.*'),
-                    project.fs.glob('tests/setup/environment/index.*'),
-                  ])),
-                );
-
-                return [...setupEnvFiles, ...packageSetupEnvFiles];
-              });
-
-              hooks.jestSetupTests!.tapPromise(
-                PLUGIN,
-                async (setupTestsFiles) => {
-                  const packageSetupTestsFiles = ([] as string[]).concat(
-                    ...(await Promise.all([
-                      project.fs.glob('tests/setup/tests.*'),
-                      project.fs.glob('tests/setup/tests/index.*'),
-                    ])),
-                  );
-
-                  return [...setupTestsFiles, ...packageSetupTestsFiles];
-                },
-              );
-            },
-          ),
+          }),
         );
       });
 
@@ -203,9 +195,9 @@ export default createPlugin(
                 {babelTransform},
               );
               const environment = await hooks.jestEnvironment!.promise('node');
-              const extensions = (await hooks.jestExtensions!.promise([])).map(
-                (extension) => extension.replace('.', ''),
-              );
+              const extensions = (
+                await hooks.jestExtensions!.promise([])
+              ).map((extension) => extension.replace('.', ''));
               const moduleMapper = await hooks.jestModuleMapper!.promise({});
               const setupEnvFiles = await hooks.jestSetupEnv!.promise(
                 rootSetupEnvFiles,

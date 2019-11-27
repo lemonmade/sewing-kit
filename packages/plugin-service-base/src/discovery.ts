@@ -1,6 +1,8 @@
 import {basename} from 'path';
+
 import {DiscoveryTask, Service} from '@sewing-kit/core';
 import {loadConfig} from '@sewing-kit/config/load';
+
 import {PLUGIN} from './common';
 
 export default function discoverServices({

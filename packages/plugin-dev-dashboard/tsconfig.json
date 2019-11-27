@@ -3,13 +3,8 @@
   "compilerOptions": {
     "outDir": "build/ts",
     "baseUrl": "src",
-    "rootDir": "src",
-    "typeRoots": [
-      "./config/typescript/typings",
-      "./node_modules/@types",
-      "../../node_modules/@types"
-    ]
+    "rootDir": "src"
   },
   "include": ["src/**/*.ts"],
-  "references": [{"path": "../plugin-utilities"}, {"path": "../plugin-jest"}]
+  "references": [{"path": "../ui"}, {"path": "../plugin-utilities"}, {"path": "../plugin-jest"}]
 }

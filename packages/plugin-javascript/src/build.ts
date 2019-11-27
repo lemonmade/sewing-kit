@@ -1,5 +1,6 @@
 import {produce} from 'immer';
 import {BabelConfig} from '@sewing-kit/plugin-babel';
+
 import {PLUGIN} from './common';
 
 // Just loaded for its hook augmentations

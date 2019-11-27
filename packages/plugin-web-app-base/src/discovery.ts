@@ -1,6 +1,8 @@
 import {basename, join} from 'path';
+
 import {DiscoveryTask, WebApp} from '@sewing-kit/core';
 import {loadConfig} from '@sewing-kit/config/load';
+
 import {PLUGIN} from './common';
 
 export default function discoverWebApps({

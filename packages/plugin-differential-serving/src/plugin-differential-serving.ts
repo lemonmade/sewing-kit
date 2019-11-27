@@ -1,7 +1,7 @@
 import {join, dirname, basename} from 'path';
+
 import {produce} from 'immer';
 import {BuildWebAppOptions} from '@sewing-kit/types';
-
 import {createPlugin, PluginTarget} from '@sewing-kit/plugin-utilities';
 import {updateBabelPreset} from '@sewing-kit/plugin-babel';
 

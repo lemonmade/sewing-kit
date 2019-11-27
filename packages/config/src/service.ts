@@ -1,4 +1,5 @@
 import {Plugin, ServiceCreateOptions, ServiceOptions} from '@sewing-kit/types';
+
 import {OptionBuilder} from './types';
 
 class ServiceCreator {

@@ -1,6 +1,6 @@
 import {join} from 'path';
-import {produce} from 'immer';
 
+import {produce} from 'immer';
 import {BuildTask} from '@sewing-kit/core';
 import {changeBabelPreset, updateBabelPreset} from '@sewing-kit/plugin-babel';
 
