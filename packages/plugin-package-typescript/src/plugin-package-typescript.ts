@@ -120,18 +120,32 @@ async function writeTypeScriptEntries(
   const sourceRoot = pkg.fs.resolvePath('src');
 
   for (const entry of pkg.entries) {
-    const relativeFromSourceRoot = (await pkg.fs.hasDirectory(entry.root))
-      ? relative(sourceRoot, pkg.fs.resolvePath(entry.root, 'index'))
-      : relative(sourceRoot, pkg.fs.resolvePath(entry.root));
+    const absoluteEntryPath = (await pkg.fs.hasDirectory(entry.root))
+      ? pkg.fs.resolvePath(entry.root, 'index')
+      : pkg.fs.resolvePath(entry.root);
+    const relativeFromSourceRoot = relative(absoluteEntryPath, sourceRoot);
     const destinationInOutput = resolve(outputPath, relativeFromSourceRoot);
     const relativeFromRoot = normalizedRelative(pkg.root, destinationInOutput);
 
     if (strategy === EntryStrategy.ReExport) {
+      let hasDefault = true;
+
+      try {
+        hasDefault = /\bdefault\b/.test(await pkg.fs.read(absoluteEntryPath));
+      } catch {
+        // intentional no-op
+      }
+
       await pkg.fs.write(
         `${entry.name || 'index'}.d.ts`,
-        `export * from ${JSON.stringify(
-          relativeFromRoot,
-        )};\nexport {default} from ${JSON.stringify(relativeFromRoot)};`,
+        [
+          `export * from ${JSON.stringify(relativeFromRoot)};`,
+          hasDefault
+            ? `export {default} from ${JSON.stringify(relativeFromRoot)};`
+            : false,
+        ]
+          .filter(Boolean)
+          .join('\n'),
       );
     } else {
       const symlinkFile = `${relativeFromRoot}.d.ts`;

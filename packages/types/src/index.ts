@@ -1,5 +1,5 @@
 import {AsyncSeriesHook, AsyncSeriesWaterfallHook} from 'tapable';
-import execa from 'execa';
+import {ExecaChildProcess, Options as ExecaOptions} from 'execa';
 
 // ==================================================================
 // UI
@@ -19,8 +19,12 @@ export enum LogLevel {
 }
 
 export interface StepRunner {
-  readonly exec: typeof execa;
   log(arg: Loggable, level?: LogLevel): void;
+  exec(
+    file: string,
+    args?: ReadonlyArray<string> | ExecaOptions,
+    options?: ExecaOptions,
+  ): ExecaChildProcess;
 }
 
 export interface Step {
