@@ -135,7 +135,12 @@ async function writeTypeScriptEntries(
         content = await pkg.fs.read(
           (await pkg.fs.glob(`${absoluteEntryPath}.*`))[0],
         );
-        hasDefault = /\bdefault\b/.test(content);
+
+        // export default ...
+        // export {Foo as default} from ...
+        // export {default} from ...
+        hasDefault =
+          /(?:export|as) default\b/.test(content) || /{default}/.test(content);
       } catch {
         // intentional no-op
         content = '';

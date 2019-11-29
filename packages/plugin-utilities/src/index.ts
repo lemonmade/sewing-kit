@@ -69,7 +69,7 @@ export function composePlugins(id: string, plugins: Plugin[]): Plugin {
   if (targets.size > 1) {
     throw new DiagnosticError({
       title: 'Invalid plugin composition',
-      content: `You are attempting to compose plugins of different types in composed plugin ${JSON.stringify(
+      content: `You are attempting to compose plugins of different types in the composed plugin ${JSON.stringify(
         id,
       )}, which is not supported.`,
     });
