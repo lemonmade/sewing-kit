@@ -1,14 +1,14 @@
 {
   "name": "@sewing-kit/plugin-dev-dashboard",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/plugin-utilities": "^0.0.9",
-    "@sewing-kit/ui": "^0.0.7",
+    "@sewing-kit/plugin-utilities": "^0.0.10",
+    "@sewing-kit/ui": "^0.0.8",
     "tapable": "^1.1.3"
   }
 }
