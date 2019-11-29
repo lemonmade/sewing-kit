@@ -60,8 +60,8 @@ export const PLUGIN = Symbol('SewingKitPlugin');
 export interface Plugin {
   readonly id: string;
   readonly target: PluginTarget;
-  readonly [PLUGIN]: true;
   readonly composes: ReadonlyArray<Plugin>;
+  readonly [PLUGIN]: true;
 }
 
 export enum Runtime {

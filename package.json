@@ -32,8 +32,5 @@
     "prettier": "^1.19.1",
     "tree-node-cli": "^1.2.5"
   },
-  "dependencies": {
-    "@shopify/useful-types": "^2.1.2",
-    "core-js": "^3.4.4"
-  }
+  "dependencies": {}
 }
