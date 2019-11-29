@@ -1,19 +1,19 @@
 {
   "name": "@sewing-kit/plugin-javascript",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/babel-preset": "^0.0.1",
-    "@sewing-kit/core": "^0.0.8",
-    "@sewing-kit/plugin-babel": "^0.0.6",
-    "@sewing-kit/plugin-eslint": "^0.0.6",
-    "@sewing-kit/plugin-jest": "^0.0.6",
-    "@sewing-kit/plugin-utilities": "^0.0.8",
-    "@sewing-kit/plugin-webpack": "^0.0.6",
+    "@sewing-kit/babel-preset": "^0.0.2",
+    "@sewing-kit/core": "^0.0.9",
+    "@sewing-kit/plugin-babel": "^0.0.7",
+    "@sewing-kit/plugin-eslint": "^0.0.7",
+    "@sewing-kit/plugin-jest": "^0.0.7",
+    "@sewing-kit/plugin-utilities": "^0.0.9",
+    "@sewing-kit/plugin-webpack": "^0.0.7",
     "@sewing-kit/types": "^0.0.3",
     "@sewing-kit/ui": "^0.0.7",
     "babel-loader": "^8.0.6",
