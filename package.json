@@ -9,7 +9,7 @@
     "test": "yarn sk test",
     "lint": "yarn sk lint",
     "type-check": "yarn sk type-check",
-    "prerelease": "yarn build",
+    "prerelease": "yarn lint && yarn test --no-watch && yarn type-check && yarn build",
     "release": "lerna publish && git push --tags",
     "dev:example": "yarn sk dev --root './example'"
   },
