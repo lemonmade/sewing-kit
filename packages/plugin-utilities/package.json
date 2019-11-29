@@ -1,15 +1,15 @@
 {
   "name": "@sewing-kit/plugin-utilities",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/core": "^0.0.10",
-    "@sewing-kit/types": "^0.0.4",
-    "@sewing-kit/ui": "^0.0.8",
+    "@sewing-kit/core": "^0.0.11",
+    "@sewing-kit/types": "^0.0.5",
+    "@sewing-kit/ui": "^0.0.9",
     "change-case": "^3.1.0"
   }
 }

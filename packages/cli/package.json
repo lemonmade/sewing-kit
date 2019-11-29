@@ -1,6 +1,6 @@
 {
   "name": "@sewing-kit/cli",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -11,9 +11,9 @@
     "sk": "./bin/sk"
   },
   "dependencies": {
-    "@sewing-kit/core": "^0.0.10",
-    "@sewing-kit/types": "^0.0.4",
-    "@sewing-kit/ui": "^0.0.8",
+    "@sewing-kit/core": "^0.0.11",
+    "@sewing-kit/types": "^0.0.5",
+    "@sewing-kit/ui": "^0.0.9",
     "arg": "^4.1.2",
     "core-js": "^3.4.4",
     "tapable": "^1.1.3"

@@ -1,6 +1,6 @@
 {
   "name": "@sewing-kit/config",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -10,8 +10,8 @@
     "@babel/preset-typescript": "^7.7.4",
     "@babel/register": "^7.7.4",
     "@sewing-kit/babel-preset": "^0.0.2",
-    "@sewing-kit/types": "^0.0.4",
-    "@sewing-kit/ui": "^0.0.8",
+    "@sewing-kit/types": "^0.0.5",
+    "@sewing-kit/ui": "^0.0.9",
     "fs-extra": "^8.1.0"
   }
 }
