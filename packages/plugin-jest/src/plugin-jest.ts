@@ -69,6 +69,7 @@ const addRootConfigurationHooks = addHooks<
 }));
 
 interface JestFlags {
+  ci?: boolean;
   config?: string;
   watch?: boolean;
   watchAll?: boolean;
@@ -256,21 +257,24 @@ export default createPlugin(
           process.env.BABEL_ENV = 'test';
           process.env.NODE_ENV = 'test';
 
+          const isCi = ['true', '1'].includes(process.env.CI || '');
+
           const {
             coverage = false,
             debug = false,
-            watch = !['true', '1'].includes(process.env.CI || ''),
+            watch = !isCi,
             testPattern,
             testNamePattern,
             updateSnapshot,
           } = options;
 
           const flags = await configuration.jestFlags!.promise({
+            ci: isCi ? isCi : undefined,
             config: rootConfigPath,
             coverage,
             watch: watch && testPattern == null,
             watchAll: watch && testPattern != null,
-            onlyChanged: testPattern == null,
+            onlyChanged: !isCi && testPattern == null,
             testNamePattern,
             testPathPattern: testPattern,
             updateSnapshot,
