@@ -4,28 +4,22 @@ import {produce} from 'immer';
 import {Env} from '@sewing-kit/types';
 import {createStep} from '@sewing-kit/ui';
 import {BuildTask} from '@sewing-kit/core';
-import {changeBabelPreset, updateBabelPreset} from '@sewing-kit/plugin-babel';
+import {
+  changeBaseJavaScriptBabelPreset,
+  BaseBabelPresetModule,
+} from '@sewing-kit/plugin-javascript';
+import {} from '@sewing-kit/plugin-babel';
 
 import {PLUGIN, createWebpackConfig} from './common';
 
 export default function buildWebApp({hooks, workspace, options}: BuildTask) {
   hooks.webApp.tap(PLUGIN, ({webApp, hooks}) => {
-    const changePreset = changeBabelPreset(
-      'babel-preset-shopify',
-      'babel-preset-shopify/web',
-    );
-
-    const updatePreset = updateBabelPreset('babel-preset-shopify/web', {
-      modules: false,
+    const updatePreset = changeBaseJavaScriptBabelPreset({
+      modules: BaseBabelPresetModule.Preserve,
     });
 
     hooks.configure.tap(PLUGIN, (configurationHooks) => {
-      configurationHooks.babelConfig?.tap(PLUGIN, (babelConfig) => {
-        return produce(babelConfig, (babelConfig) => {
-          changePreset(babelConfig);
-          updatePreset(babelConfig);
-        });
-      });
+      configurationHooks.babelConfig?.tap(PLUGIN, produce(updatePreset));
 
       configurationHooks.output.tap(PLUGIN, () =>
         workspace.fs.buildPath('browser'),

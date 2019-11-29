@@ -2,29 +2,25 @@ import {join} from 'path';
 
 import {produce} from 'immer';
 import {BuildTask} from '@sewing-kit/core';
-import {changeBabelPreset, updateBabelPreset} from '@sewing-kit/plugin-babel';
+import {
+  changeBaseJavaScriptBabelPreset,
+  BaseBabelPresetModule,
+  BaseBabelPresetTarget,
+} from '@sewing-kit/plugin-javascript';
+import {} from '@sewing-kit/plugin-babel';
 
 import {PLUGIN} from './common';
 
 export default function buildService({hooks, workspace}: BuildTask) {
   hooks.service.tap(PLUGIN, ({service, hooks}) => {
-    const changePreset = changeBabelPreset(
-      'babel-preset-shopify',
-      'babel-preset-shopify/node',
-    );
-
-    const updatePreset = updateBabelPreset('babel-preset-shopify/node', {
-      modules: false,
+    const updatePreset = changeBaseJavaScriptBabelPreset({
+      target: BaseBabelPresetTarget.Node,
+      modules: BaseBabelPresetModule.CommonJs,
     });
 
     hooks.configure.tap(PLUGIN, (configurationHooks) => {
       if (configurationHooks.babelConfig) {
-        configurationHooks.babelConfig.tap(PLUGIN, (babelConfig) => {
-          return produce(babelConfig, (babelConfig) => {
-            changePreset(babelConfig);
-            updatePreset(babelConfig);
-          });
-        });
+        configurationHooks.babelConfig.tap(PLUGIN, produce(updatePreset));
       }
 
       configurationHooks.output.tap(PLUGIN, () =>

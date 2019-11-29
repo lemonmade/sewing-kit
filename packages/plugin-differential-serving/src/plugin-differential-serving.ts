@@ -3,7 +3,9 @@ import {join, dirname, basename} from 'path';
 import {produce} from 'immer';
 import {BuildWebAppOptions} from '@sewing-kit/types';
 import {createPlugin, PluginTarget} from '@sewing-kit/plugin-utilities';
-import {updateBabelPreset} from '@sewing-kit/plugin-babel';
+import {changeBaseJavaScriptBabelPreset} from '@sewing-kit/plugin-javascript';
+
+import {} from '@sewing-kit/plugin-babel';
 
 declare module '@sewing-kit/types' {
   interface BuildWebAppOptions {
@@ -44,10 +46,9 @@ export default createPlugin(
       configuration.babelConfig?.tap(PLUGIN, (babelConfig) => {
         return produce(
           babelConfig,
-          updateBabelPreset(
-            ['babel-preset-shopify', 'babel-preset-shopify/web'],
-            {browsers: BROWSER_TARGETS[browserTarget]},
-          ),
+          changeBaseJavaScriptBabelPreset({
+            target: BROWSER_TARGETS[browserTarget],
+          }),
         );
       });
     });

@@ -2,11 +2,13 @@ import {produce} from 'immer';
 import {Runtime} from '@sewing-kit/types';
 import {createPlugin, PluginTarget} from '@sewing-kit/plugin-utilities';
 import {createWriteEntriesStep} from '@sewing-kit/plugin-package-utilities';
+import {createCompileBabelStep} from '@sewing-kit/plugin-babel';
 import {
-  changeBabelPreset,
-  updateBabelPreset,
-  createCompileBabelStep,
-} from '@sewing-kit/plugin-babel';
+  changeBaseJavaScriptBabelPreset,
+  BaseBabelPresetModule,
+  BaseBabelPresetTarget,
+} from '@sewing-kit/plugin-javascript';
+
 import {} from '@sewing-kit/plugin-package-base';
 
 const PLUGIN = 'SewingKit.package-commonjs';
@@ -18,19 +20,13 @@ declare module '@sewing-kit/types' {
   }
 }
 
-const setCommonJsModules = updateBabelPreset(
-  [
-    'babel-preset-shopify',
-    'babel-preset-shopify/web',
-    'babel-preset-shopify/node',
-  ],
-  {modules: 'commonjs'},
-);
+const setCommonJsModules = changeBaseJavaScriptBabelPreset({
+  modules: BaseBabelPresetModule.CommonJs,
+});
 
-const setNodePreset = changeBabelPreset(
-  ['babel-preset-shopify', 'babel-preset-shopify/web'],
-  'babel-preset-shopify/node',
-);
+const setNodeTarget = changeBaseJavaScriptBabelPreset({
+  target: BaseBabelPresetTarget.Node,
+});
 
 export default createPlugin(
   {id: PLUGIN, target: PluginTarget.Root},
@@ -71,7 +67,7 @@ export default createPlugin(
 
               return produce(babelConfig, (babelConfig) => {
                 if (allEntriesAreNode) {
-                  setNodePreset(babelConfig);
+                  setNodeTarget(babelConfig);
                 }
 
                 setCommonJsModules(babelConfig);

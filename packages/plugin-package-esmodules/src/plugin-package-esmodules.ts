@@ -1,10 +1,11 @@
 import {produce} from 'immer';
 import {createPlugin, PluginTarget} from '@sewing-kit/plugin-utilities';
 import {createWriteEntriesStep} from '@sewing-kit/plugin-package-utilities';
+import {createCompileBabelStep} from '@sewing-kit/plugin-babel';
 import {
-  updateBabelPreset,
-  createCompileBabelStep,
-} from '@sewing-kit/plugin-babel';
+  changeBaseJavaScriptBabelPreset,
+  BaseBabelPresetModule,
+} from '@sewing-kit/plugin-javascript';
 import {} from '@sewing-kit/types';
 import {} from '@sewing-kit/plugin-package-base';
 
@@ -20,6 +21,10 @@ declare module '@sewing-kit/types' {
 export default createPlugin(
   {id: PLUGIN, target: PluginTarget.Root},
   (tasks) => {
+    const preserveEsModules = changeBaseJavaScriptBabelPreset({
+      modules: BaseBabelPresetModule.Preserve,
+    });
+
     tasks.build.tap(PLUGIN, ({workspace, hooks}) => {
       hooks.configure.tap(PLUGIN, (hooks) => {
         hooks.packageBuildArtifacts?.tapPromise(PLUGIN, async (artifacts) => [
@@ -45,17 +50,7 @@ export default createPlugin(
           }
 
           configurationHooks.babelConfig?.tap(PLUGIN, (babelConfig) => {
-            return produce(
-              babelConfig,
-              updateBabelPreset(
-                [
-                  'babel-preset-shopify',
-                  'babel-preset-shopify/web',
-                  'babel-preset-shopify/node',
-                ],
-                {modules: false},
-              ),
-            );
+            return produce(babelConfig, preserveEsModules);
           });
         });
 

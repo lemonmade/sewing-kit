@@ -3,6 +3,7 @@ import {join} from 'path';
 import {pathExists} from 'fs-extra';
 import {Plugin, PluginTarget, PLUGIN} from '@sewing-kit/types';
 import {DiagnosticError} from '@sewing-kit/ui';
+import {Target as BabelTarget} from '@sewing-kit/babel-preset';
 
 export async function loadConfig<T = any>(
   root: string,
@@ -18,7 +19,13 @@ export async function loadConfig<T = any>(
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     require('@babel/register')({
       extensions: ['.mjs', '.js', '.ts', '.tsx'],
-      presets: [['babel-preset-shopify/node', {typescript: true}]],
+      presets: [
+        require.resolve('@babel/preset-typescript'),
+        [
+          require.resolve('@sewing-kit/babel-preset'),
+          {target: BabelTarget.Node},
+        ],
+      ],
     });
 
     return loadConfigFile(join(root, 'sewing-kit.config.ts'), {

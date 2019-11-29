@@ -1,4 +1,9 @@
 import {produce} from 'immer';
+import {
+  Module as BabelPresetModule,
+  Target as BabelPresetTarget,
+} from '@sewing-kit/babel-preset';
+import {} from '@sewing-kit/plugin-babel';
 
 import {PLUGIN} from './common';
 
@@ -28,8 +33,11 @@ export default function testJavaScript({
         return produce(babelConfig, (babelConfig) => {
           babelConfig.presets = babelConfig.presets || [];
           babelConfig.presets.push([
-            'babel-preset-shopify/node',
-            {modules: 'commonjs'},
+            require.resolve('@sewing-kit/babel-preset'),
+            {
+              modules: BabelPresetModule.CommonJs,
+              target: BabelPresetTarget.Node,
+            },
           ]);
         });
       });

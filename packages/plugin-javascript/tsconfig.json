@@ -11,6 +11,7 @@
     {"path": "../plugin-webpack"},
     {"path": "../plugin-eslint"},
     {"path": "../plugin-babel"},
-    {"path": "../plugin-jest"}
+    {"path": "../plugin-jest"},
+    {"path": "../babel-preset"}
   ]
 }

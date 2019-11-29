@@ -1,6 +1,7 @@
 import {produce} from 'immer';
-import {updateBabelPreset} from '@sewing-kit/plugin-babel';
+import {} from '@sewing-kit/plugin-babel';
 
+import {addTypeScriptBabelConfig} from './utilities';
 import {PLUGIN} from './common';
 
 import {} from '@sewing-kit/plugin-jest';
@@ -22,35 +23,7 @@ export default function testTypescript({
         });
       });
 
-      hooks.babelConfig?.tap(PLUGIN, (babelConfig) => {
-        return produce(babelConfig, (babelConfig) => {
-          babelConfig.plugins = babelConfig.plugins ?? [];
-
-          if (
-            !babelConfig.plugins!.includes(
-              '@babel/plugin-proposal-optional-chaining',
-            )
-          ) {
-            babelConfig.plugins!.push(
-              '@babel/plugin-proposal-optional-chaining',
-            );
-          }
-
-          if (
-            !babelConfig.plugins!.includes(
-              '@babel/plugin-proposal-nullish-coalescing-operator',
-            )
-          ) {
-            babelConfig.plugins!.push(
-              '@babel/plugin-proposal-nullish-coalescing-operator',
-            );
-          }
-
-          updateBabelPreset('babel-preset-shopify/node', {typescript: true})(
-            babelConfig,
-          );
-        });
-      });
+      hooks.babelConfig?.tap(PLUGIN, addTypeScriptBabelConfig);
     });
   });
 }

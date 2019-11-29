@@ -8,15 +8,8 @@ import {} from '@sewing-kit/plugin-webpack';
 
 function addBaseBabelPreset(babelConfig: BabelConfig) {
   return produce(babelConfig, (babelConfig) => {
-    babelConfig.presets = babelConfig.presets || [];
-    babelConfig.presets.push('babel-preset-shopify');
-  });
-}
-
-function addNodeBabelPreset(babelConfig: BabelConfig) {
-  return produce(babelConfig, (babelConfig) => {
-    babelConfig.presets = babelConfig.presets || [];
-    babelConfig.presets.push('babel-preset-shopify/node');
+    babelConfig.presets = babelConfig.presets ?? [];
+    babelConfig.presets.push(require.resolve('@sewing-kit/babel-preset'));
   });
 }
 
@@ -40,9 +33,7 @@ export default function buildJavaScript({
       configurationHooks.babelConfig?.tap(PLUGIN, addBaseBabelPreset);
 
       configurationHooks.webpackRules?.tapPromise(PLUGIN, async (rules) => {
-        const options =
-          configurationHooks.babelConfig &&
-          (await configurationHooks.babelConfig.promise({}));
+        const options = await configurationHooks.babelConfig?.promise({});
 
         return produce(rules, (rules) => {
           rules.push({
@@ -59,12 +50,10 @@ export default function buildJavaScript({
   hooks.service.tap(PLUGIN, ({hooks}) => {
     hooks.configure.tap(PLUGIN, (configurationHooks) => {
       configurationHooks.extensions.tap(PLUGIN, addJsExtensions);
-      configurationHooks.babelConfig?.tap(PLUGIN, addNodeBabelPreset);
+      configurationHooks.babelConfig?.tap(PLUGIN, addBaseBabelPreset);
 
       configurationHooks.webpackRules?.tapPromise(PLUGIN, async (rules) => {
-        const options =
-          configurationHooks.babelConfig &&
-          (await configurationHooks.babelConfig.promise({}));
+        const options = await configurationHooks.babelConfig?.promise({});
 
         return produce(rules, (rules) => {
           rules.push({

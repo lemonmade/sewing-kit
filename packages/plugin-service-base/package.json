@@ -10,6 +10,7 @@
     "@sewing-kit/config": "^0.0.6",
     "@sewing-kit/core": "^0.0.8",
     "@sewing-kit/plugin-babel": "^0.0.6",
+    "@sewing-kit/plugin-javascript": "^0.0.6",
     "@sewing-kit/plugin-utilities": "^0.0.8",
     "@sewing-kit/plugin-webpack": "^0.0.6",
     "@sewing-kit/types": "^0.0.3",

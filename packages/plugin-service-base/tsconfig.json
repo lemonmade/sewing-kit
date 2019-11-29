@@ -13,6 +13,7 @@
     {"path": "../types"},
     {"path": "../plugin-utilities"},
     {"path": "../plugin-babel"},
+    {"path": "../plugin-javascript"},
     {"path": "../plugin-webpack"}
   ]
 }

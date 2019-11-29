@@ -1,4 +1,4 @@
 export interface BabelConfig {
   presets?: (string | [string, object?])[];
-  plugins?: string[];
+  plugins?: (string | [string, object?])[];
 }

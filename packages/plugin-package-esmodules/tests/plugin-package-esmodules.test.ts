@@ -21,10 +21,10 @@ describe('@sewing-kit/plugin-package-esmodules', () => {
       await workspace.writeFile(
         'src/index.js',
         `
-            export function pkg(greet) {
-              console.log(\`Hello, \${greet}!\`);
-            }
-          `,
+          export function pkg(greet) {
+            console.log(\`Hello, \${greet}!\`);
+          }
+        `,
       );
 
       await workspace.run('build');

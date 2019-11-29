@@ -6,5 +6,9 @@
     "rootDir": "src"
   },
   "include": ["src/**/*.ts"],
-  "references": [{"path": "../types"}, {"path": "../ui"}]
+  "references": [
+    {"path": "../types"},
+    {"path": "../ui"},
+    {"path": "../babel-preset"}
+  ]
 }

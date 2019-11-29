@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@sewing-kit/plugin-babel": "^0.0.6",
+    "@sewing-kit/plugin-javascript": "^0.0.6",
     "@sewing-kit/plugin-package-base": "^0.0.6",
     "@sewing-kit/plugin-package-utilities": "^0.0.5",
     "@sewing-kit/plugin-utilities": "^0.0.8",

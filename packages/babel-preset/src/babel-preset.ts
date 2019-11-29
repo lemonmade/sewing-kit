@@ -22,10 +22,10 @@ export interface Options {
 export default function babelPresetSewingKit(
   _: any,
   {
+    target,
     debug = false,
     modules = Module.CommonJs,
     polyfill = Polyfill.Entry,
-    target = Target.Node,
   }: Options = {},
 ) {
   return {
@@ -40,15 +40,17 @@ export default function babelPresetSewingKit(
       ],
     ],
     presets: [
-      [require.resolve('@babel/preset-env')],
-      {
-        debug,
-        useBuiltIns: polyfill,
-        corejs: 3,
-        modules: modules === Module.Preserve ? false : modules,
-        targets: target === Target.Node ? {node: true} : target,
-        ignoreBrowserslistConfig: true,
-      },
+      [
+        require.resolve('@babel/preset-env'),
+        {
+          debug,
+          useBuiltIns: polyfill,
+          corejs: 3,
+          modules: modules === Module.Preserve ? false : modules,
+          targets: target === Target.Node ? {node: true} : target,
+          ignoreBrowserslistConfig: true,
+        },
+      ],
     ],
   };
 }

@@ -1,10 +1,11 @@
 import {produce} from 'immer';
 import {createPlugin, PluginTarget} from '@sewing-kit/plugin-utilities';
 import {createWriteEntriesStep} from '@sewing-kit/plugin-package-utilities';
+import {createCompileBabelStep} from '@sewing-kit/plugin-babel';
 import {
-  updateBabelPreset,
-  createCompileBabelStep,
-} from '@sewing-kit/plugin-babel';
+  changeBaseJavaScriptBabelPreset,
+  BaseBabelPresetModule,
+} from '@sewing-kit/plugin-javascript';
 import {} from '@sewing-kit/plugin-package-base';
 
 const PLUGIN = 'SewingKit.package-esnext';
@@ -63,17 +64,10 @@ export default createPlugin(
             configurationHooks.babelConfig.tap(PLUGIN, (babelConfig) => {
               return produce(
                 babelConfig,
-                updateBabelPreset(
-                  [
-                    'babel-preset-shopify',
-                    'babel-preset-shopify/web',
-                    'babel-preset-shopify/node',
-                  ],
-                  {
-                    modules: false,
-                    browsers: ['last 1 chrome version'],
-                  },
-                ),
+                changeBaseJavaScriptBabelPreset({
+                  modules: BaseBabelPresetModule.Preserve,
+                  target: ['last 1 chrome version'],
+                }),
               );
             });
           }

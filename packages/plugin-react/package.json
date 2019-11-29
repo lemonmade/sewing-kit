@@ -7,6 +7,7 @@
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
+    "@babel/preset-react": "^7.7.4",
     "@sewing-kit/plugin-babel": "^0.0.6",
     "@sewing-kit/plugin-utilities": "^0.0.8",
     "@sewing-kit/types": "^0.0.3",
