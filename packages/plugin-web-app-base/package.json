@@ -1,6 +1,6 @@
 {
   "name": "@sewing-kit/plugin-web-app-base",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -9,10 +9,10 @@
   "dependencies": {
     "@sewing-kit/config": "^0.0.9",
     "@sewing-kit/core": "^0.0.11",
-    "@sewing-kit/plugin-babel": "^0.0.9",
-    "@sewing-kit/plugin-javascript": "^0.0.9",
-    "@sewing-kit/plugin-utilities": "^0.0.11",
-    "@sewing-kit/plugin-webpack": "^0.0.9",
+    "@sewing-kit/plugin-babel": "^0.0.10",
+    "@sewing-kit/plugin-javascript": "^0.0.10",
+    "@sewing-kit/plugin-utilities": "^0.0.12",
+    "@sewing-kit/plugin-webpack": "^0.0.10",
     "@sewing-kit/types": "^0.0.5",
     "@sewing-kit/ui": "^0.0.9",
     "@types/koa": "^2.11.0",

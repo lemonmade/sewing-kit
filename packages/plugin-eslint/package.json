@@ -1,13 +1,13 @@
 {
   "name": "@sewing-kit/plugin-eslint",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/plugin-utilities": "^0.0.11",
+    "@sewing-kit/plugin-utilities": "^0.0.12",
     "@sewing-kit/types": "^0.0.5",
     "@sewing-kit/ui": "^0.0.9",
     "eslint": "^6.7.1",
