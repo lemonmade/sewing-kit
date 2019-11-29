@@ -2,8 +2,9 @@
   "name": "sewing-kit-next",
   "private": true,
   "scripts": {
-    "bootstrap": "lerna bootstrap && babel-node --extensions .ts,.tsx,.mjs,.js ./scripts/bootstrap && tsc --build",
-    "sk": "babel-node --extensions .ts,.tsx,.mjs,.js ./packages/cli/src/index",
+    "bootstrap:to-source": "babel-node --extensions .ts,.tsx,.mjs,.js ./scripts/bootstrap",
+    "bootstrap": "lerna bootstrap && yarn bootstrap:to-source && tsc --build",
+    "sk": "yarn bootstrap:to-source && babel-node --extensions .ts,.tsx,.mjs,.js ./packages/cli/src/index",
     "sewing-kit": "yarn sk",
     "build": "yarn sk build --skip-pre clean",
     "test": "yarn sk test",

@@ -123,17 +123,22 @@ async function writeTypeScriptEntries(
     const absoluteEntryPath = (await pkg.fs.hasDirectory(entry.root))
       ? pkg.fs.resolvePath(entry.root, 'index')
       : pkg.fs.resolvePath(entry.root);
-    const relativeFromSourceRoot = relative(absoluteEntryPath, sourceRoot);
+    const relativeFromSourceRoot = relative(sourceRoot, absoluteEntryPath);
     const destinationInOutput = resolve(outputPath, relativeFromSourceRoot);
     const relativeFromRoot = normalizedRelative(pkg.root, destinationInOutput);
 
     if (strategy === EntryStrategy.ReExport) {
       let hasDefault = true;
+      let content = '';
 
       try {
-        hasDefault = /\bdefault\b/.test(await pkg.fs.read(absoluteEntryPath));
+        content = await pkg.fs.read(
+          (await pkg.fs.glob(`${absoluteEntryPath}.*`))[0],
+        );
+        hasDefault = /\bdefault\b/.test(content);
       } catch {
         // intentional no-op
+        content = '';
       }
 
       await pkg.fs.write(
