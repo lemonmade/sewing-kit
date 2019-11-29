@@ -5,10 +5,11 @@
     "bootstrap": "lerna bootstrap && babel-node --extensions .ts,.tsx,.mjs,.js ./scripts/bootstrap && tsc --build",
     "sk": "babel-node --extensions .ts,.tsx,.mjs,.js ./packages/cli/src/index",
     "sewing-kit": "yarn sk",
-    "build": "yarn sk build",
+    "build": "yarn sk build --skip-pre clean",
     "test": "yarn sk test",
     "lint": "yarn sk lint",
     "type-check": "yarn sk type-check",
+    "prerelease": "yarn build",
     "release": "lerna publish && git push --tags",
     "dev:example": "yarn sk dev --root './example'"
   },

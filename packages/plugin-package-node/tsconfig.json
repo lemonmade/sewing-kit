@@ -11,6 +11,7 @@
     {"path": "../plugin-utilities"},
     {"path": "../plugin-package-utilities"},
     {"path": "../plugin-package-base"},
+    {"path": "../plugin-javascript"},
     {"path": "../plugin-babel"},
     {"path": "../plugin-jest"}
   ]

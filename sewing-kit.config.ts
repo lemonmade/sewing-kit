@@ -16,6 +16,9 @@ import packageCommonJS from '@sewing-kit/plugin-package-commonjs';
 import packageEsnext from '@sewing-kit/plugin-package-esnext';
 import packageTypeScript from '@sewing-kit/plugin-package-typescript';
 
+const REMOVE_SOURCE_MAPPING_PLUGIN =
+  'SewingKit.removeTestSourceMappingForBabelPreset';
+
 const plugin = composePlugins('SewingKit.self', [
   babel,
   eslint,
@@ -44,9 +47,6 @@ export default createWorkspace((workspace) => {
 // tests, which won't work because it's the source, not CommonJS. This
 // just removes the name mapping so any references to this package
 // point at the compiled output, which is a sloppy but workable solution.
-const REMOVE_SOURCE_MAPPING_PLUGIN =
-  'SewingKit.removeTestSourceMappingForBabelPreset';
-
 function createRemoveSourceMappingPlugin() {
   return createPlugin(
     {id: REMOVE_SOURCE_MAPPING_PLUGIN, target: PluginTarget.Root},
