@@ -8,17 +8,20 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+      name: Checkout
 
     - uses: actions/setup-node@v1
+      name: Setup node.js and yarn
       with:
         node-version: 13.1.0
 
-    - name: Get Yarn cache
+    - name: Get yarn cache directory
       id: yarn-cache-get-dir
       run: echo "::set-output name=dir::$(yarn cache dir)"
 
     - uses: actions/cache@v1
       id: yarn-cache
+      name: Restore yarn cache
       with:
         path: ${{ steps.yarn-cache-get-dir.outputs.dir }}
         key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
@@ -38,17 +41,20 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+      name: Checkout
 
     - uses: actions/setup-node@v1
+      name: Setup node.js and yarn
       with:
         node-version: 13.1.0
 
-    - name: Get Yarn cache
+    - name: Get yarn cache directory
       id: yarn-cache-get-dir
       run: echo "::set-output name=dir::$(yarn cache dir)"
 
     - uses: actions/cache@v1
       id: yarn-cache
+      name: Restore yarn cache
       with:
         path: ${{ steps.yarn-cache-get-dir.outputs.dir }}
         key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
@@ -57,6 +63,15 @@ jobs:
 
     - name: Yarn install
       run: yarn install --frozen-lockfile
+
+    - uses: actions/cache@v1
+      id: jest-cache
+      name: Restore jest cache
+      with:
+        path: .sewing-kit/cache/jest/
+        key: ${{ runner.os }}-jest
+        restore-keys: |
+          ${{ runner.os }}-jest
 
     - name: Test
       run: yarn test
@@ -68,17 +83,20 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+      name: Checkout
 
     - uses: actions/setup-node@v1
+      name: Setup node.js and yarn
       with:
         node-version: 13.1.0
 
-    - name: Get Yarn cache
+    - name: Get yarn cache directory
       id: yarn-cache-get-dir
       run: echo "::set-output name=dir::$(yarn cache dir)"
 
     - uses: actions/cache@v1
       id: yarn-cache
+      name: Restore yarn cache
       with:
         path: ${{ steps.yarn-cache-get-dir.outputs.dir }}
         key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
