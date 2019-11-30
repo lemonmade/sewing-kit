@@ -283,10 +283,7 @@ export default createPlugin(
           });
 
           const jest = await import('jest');
-          console.log(flags, toArgs(flags));
-          console.log(typeof jest, typeof jest?.default);
-
-          // jest.default.run(toArgs(flags));
+          jest.default.run(toArgs(flags));
         }),
       ]);
     });
