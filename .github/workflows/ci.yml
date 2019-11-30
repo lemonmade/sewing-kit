@@ -31,6 +31,15 @@ jobs:
     - name: Yarn install
       run: yarn install --frozen-lockfile
 
+    - uses: actions/cache@v1
+      id: typescript-cache
+      name: Restore TypeScript cache
+      with:
+        path: .sewing-kit/cache/typescript/
+        key: ${{ runner.os }}-typescript
+        restore-keys: |
+          ${{ runner.os }}-typescript
+
     - name: Type check
       run: yarn type-check
       env:
