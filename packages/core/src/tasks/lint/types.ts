@@ -6,6 +6,7 @@ import {Workspace} from '../../workspace';
 export interface LintTaskOptions {
   readonly fix?: boolean;
   readonly skip?: string[];
+  readonly cache?: boolean;
   readonly skipPre?: string[];
   readonly skipPost?: string[];
 }
