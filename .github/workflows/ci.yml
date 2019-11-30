@@ -28,10 +28,11 @@ jobs:
     - name: Yarn install
       run: yarn install --frozen-lockfile
 
-    - run: export CI=1
-
     - name: Type check
       run: yarn type-check
+      env:
+        CI: "1"
+
   test:
     runs-on: ubuntu-latest
 
@@ -57,10 +58,11 @@ jobs:
     - name: Yarn install
       run: yarn install --frozen-lockfile
 
-    - run: export CI=1
-
     - name: Test
       run: yarn test
+      env:
+        CI: "1"
+
   lint:
     runs-on: ubuntu-latest
 
@@ -86,7 +88,7 @@ jobs:
     - name: Yarn install
       run: yarn install --frozen-lockfile
 
-    - run: export CI=1
-
     - name: Lint
       run: yarn lint
+      env:
+        CI: "1"
