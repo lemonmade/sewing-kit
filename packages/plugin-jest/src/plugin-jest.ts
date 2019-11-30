@@ -81,6 +81,7 @@ interface JestFlags {
   onlyChanged?: boolean;
   coverage?: boolean;
   updateSnapshot?: boolean;
+  cacheDirectory?: string;
 }
 
 export default createPlugin(
@@ -280,6 +281,7 @@ export default createPlugin(
             updateSnapshot,
             runInBand: debug,
             forceExit: debug,
+            cacheDirectory: workspace.internal.cachePath('jest'),
           });
 
           const jest = await import('jest');
