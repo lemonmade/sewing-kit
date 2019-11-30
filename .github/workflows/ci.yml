@@ -116,7 +116,7 @@ jobs:
       run: yarn install --frozen-lockfile
 
     - uses: actions/cache@v1
-      id: typescript-cache
+      id: eslint-cache
       name: Restore ESLint cache
       with:
         path: .sewing-kit/cache/eslint
