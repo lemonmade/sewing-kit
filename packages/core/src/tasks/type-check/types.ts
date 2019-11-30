@@ -5,6 +5,7 @@ import {Workspace} from '../../workspace';
 
 export interface TypeCheckOptions {
   readonly watch?: boolean;
+  readonly cache?: boolean;
   readonly skip?: string[];
   readonly skipPre?: string[];
   readonly skipPost?: string[];

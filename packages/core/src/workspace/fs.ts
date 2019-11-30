@@ -1,6 +1,12 @@
 import {resolve, join, dirname} from 'path';
 
-import {writeFile, readFile, mkdirp} from 'fs-extra';
+import {
+  writeFile,
+  readFile,
+  mkdirp,
+  copy as copyExtra,
+  CopyOptions,
+} from 'fs-extra';
 import glob, {IOptions as GlobOptions} from 'glob';
 
 export class FileSystem {
@@ -14,6 +20,13 @@ export class FileSystem {
     const resolved = this.resolvePath(file);
     await mkdirp(dirname(resolved));
     await writeFile(resolved, contents);
+  }
+
+  async copy(from: string, to: string, options?: CopyOptions) {
+    const resolvedFrom = this.resolvePath(from);
+    const resolvedTo = this.resolvePath(to);
+
+    await copyExtra(resolvedFrom, resolvedTo, options);
   }
 
   async hasFile(file: string) {
