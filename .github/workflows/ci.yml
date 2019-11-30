@@ -30,7 +30,9 @@ jobs:
       run: yarn install --frozen-lockfile
 
     - name: Type check
-      run: yarn type-check
+      run: |
+        export CI=1
+        yarn type-check
   test:
     runs-on: ubuntu-latest
 
@@ -58,7 +60,9 @@ jobs:
       run: yarn install --frozen-lockfile
 
     - name: Test
-      run: yarn test
+      run: |
+        export CI=1
+        yarn test
   lint:
     runs-on: ubuntu-latest
 
@@ -86,4 +90,6 @@ jobs:
       run: yarn install --frozen-lockfile
 
     - name: Lint
-      run: yarn lint
+      run: |
+        export CI=1
+        yarn lint
