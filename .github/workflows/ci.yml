@@ -29,10 +29,10 @@ jobs:
       if: steps.yarn-cache.outputs.cache-hit != 'true'
       run: yarn install --frozen-lockfile
 
+    - run: export CI=1
+
     - name: Type check
-      run: |
-        export CI=1
-        yarn type-check
+      run: yarn type-check
   test:
     runs-on: ubuntu-latest
 
@@ -59,10 +59,10 @@ jobs:
       if: steps.yarn-cache.outputs.cache-hit != 'true'
       run: yarn install --frozen-lockfile
 
+    - run: export CI=1
+
     - name: Test
-      run: |
-        export CI=1
-        yarn test
+      run: yarn test
   lint:
     runs-on: ubuntu-latest
 
@@ -89,7 +89,7 @@ jobs:
       if: steps.yarn-cache.outputs.cache-hit != 'true'
       run: yarn install --frozen-lockfile
 
+    - run: export CI=1
+
     - name: Lint
-      run: |
-        export CI=1
-        yarn lint
+      run: yarn lint
