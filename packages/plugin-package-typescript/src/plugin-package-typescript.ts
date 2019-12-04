@@ -1,6 +1,6 @@
 import {resolve, relative} from 'path';
 
-import {copy, symlink, remove} from 'fs-extra';
+import {copy, symlink, remove, utimes} from 'fs-extra';
 import {Package} from '@sewing-kit/core';
 import {createStep, DiagnosticError} from '@sewing-kit/ui';
 import {createPlugin, PluginTarget} from '@sewing-kit/plugin-utilities';
@@ -161,6 +161,11 @@ async function writeTypeScriptEntries(
       const symlinkFile = `${relativeFromRoot}.d.ts`;
       if (!(await pkg.fs.hasFile(symlinkFile))) {
         await pkg.fs.write(symlinkFile, '');
+        await utimes(
+          pkg.fs.resolvePath(symlinkFile),
+          201001010000,
+          201001010000,
+        );
       }
 
       try {
