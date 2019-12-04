@@ -305,7 +305,11 @@ export async function run<T>(ui: Ui, run: (runner: Runner) => T) {
     );
   };
 
-  const interval: any = setInterval(frame, 60);
+  let interval: any;
+
+  if (isInteractive) {
+    interval = setInterval(frame, 60);
+  }
 
   try {
     const result = await run({
@@ -375,7 +379,7 @@ export async function run<T>(ui: Ui, run: (runner: Runner) => T) {
 
     process.exitCode = 1;
   } finally {
-    clearInterval(interval);
+    if (interval) clearInterval(interval);
   }
 }
 
