@@ -95,7 +95,6 @@ export default {
     'error',
     {
       groups: ['builtin', 'external', 'internal', 'parent', 'sibling'],
-      'newlines-between': 'always',
     },
   ],
   // Enforce a newline after import statements
