@@ -84,8 +84,12 @@ export async function run<T>(ui: Ui, run: (runner: Runner) => T) {
 
     logQueue.length = 0;
 
-    const persistentLineText = [...persistentLines]
-      .map(({loggable, state}) =>
+    const persistentLineText = [
+      ui.stdout.stringify(
+        (fmt) =>
+          fmt`{subdued -------------------------------------------------------------------------------------}`,
+      ),
+      ...[...persistentLines].map(({loggable, state}) =>
         ui.stdout.stringify(
           (fmt) =>
             fmt`${
@@ -94,8 +98,8 @@ export async function run<T>(ui: Ui, run: (runner: Runner) => T) {
                 : fmt`{error ✕}`
             } ${loggable}`,
         ),
-      )
-      .join('\n');
+      ),
+    ].join('\n');
     lastPersistentContentSize = persistentLineText.split('\n').length;
 
     if (persistentLineText.length > 0) {
@@ -241,13 +245,13 @@ export async function run<T>(ui: Ui, run: (runner: Runner) => T) {
       };
     };
 
+    if (separator) {
+      logSeparator();
+    }
+
     await runNested(
       {id, persistentLine: createPersistentLabel()},
       async ({log, stepRunner, persistentLine}) => {
-        if (separator) {
-          logSeparator();
-        }
-
         log(`starting ${stepOrSteps}`);
 
         for (const step of steps) {
