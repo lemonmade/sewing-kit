@@ -1,17 +1,17 @@
 {
   "name": "@sewing-kit/plugin-sass",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/core": "^0.0.11",
-    "@sewing-kit/plugin-jest": "^0.0.10",
-    "@sewing-kit/plugin-utilities": "^0.0.12",
-    "@sewing-kit/plugin-webpack": "^0.0.10",
-    "@sewing-kit/types": "^0.0.5",
+    "@sewing-kit/core": "^0.0.12",
+    "@sewing-kit/plugin-jest": "^0.0.11",
+    "@sewing-kit/plugin-utilities": "^0.0.13",
+    "@sewing-kit/plugin-webpack": "^0.0.11",
+    "@sewing-kit/types": "^0.0.6",
     "@types/happypack": "^5.0.0",
     "cache-loader": "^4.1.0",
     "css-loader": "^3.2.0",
