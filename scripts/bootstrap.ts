@@ -24,7 +24,7 @@ for (const file of glob('packages/*/*.{js,mjs,node,esnext,ts}', {
 }
 
 const CUSTOM_ENTRIES = new Map([['config', ['index', 'load']]]);
-const NEEDS_FULL_BUILD = new Set(['babel-preset']);
+const NEEDS_FULL_BUILD = new Set(['babel-preset', 'eslint-plugin']);
 
 const COMMONJS_DIRECTORY = 'build/cjs';
 const TS_DEFINITIONS_DIRECTORY = 'build/ts';

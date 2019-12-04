@@ -37,6 +37,7 @@
     {"path": "./packages/plugin-web-app-base"},
     {"path": "./packages/plugin-differential-serving"},
     
-    {"path": "./packages/babel-preset"}
+    {"path": "./packages/babel-preset"},
+    {"path": "./packages/eslint-plugin"}
   ]
 }
