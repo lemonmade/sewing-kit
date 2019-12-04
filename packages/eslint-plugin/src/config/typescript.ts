@@ -46,6 +46,7 @@ export default {
         'no-new-symbol': 'off',
         'no-this-before-super': 'off',
         'no-redeclare': 'off',
+        'consistent-return': 'off',
 
         // Flag overloaded methods in TS
         'no-dupe-class-members': 'off',

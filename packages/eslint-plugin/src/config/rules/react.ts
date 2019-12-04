@@ -6,7 +6,7 @@ export default {
   // Prevent usage of button elements without an explicit type attribute
   'react/button-has-type': 'error',
   // Prevent missing displayName in a React component definition
-  'react/display-name': ['error', {ignoreTranspilerName: false}],
+  'react/display-name': 'off',
   // Prevent extraneous defaultProps on components
   'react/default-props-match-prop-types': 'error',
   // Enforce consistent usage of destructuring assignment of props, state, and context
