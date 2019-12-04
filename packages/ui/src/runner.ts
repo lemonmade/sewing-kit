@@ -62,7 +62,6 @@ interface Runner {
   ): Promise<T>;
 }
 
-// eslint-disable-next-line consistent-return
 export async function run<T>(ui: Ui, run: (runner: Runner) => T) {
   let tick = 0;
   let hasLoggedSection = false;
