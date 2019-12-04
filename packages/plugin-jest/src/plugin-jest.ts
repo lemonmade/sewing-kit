@@ -258,7 +258,10 @@ export default createPlugin(
           process.env.BABEL_ENV = 'test';
           process.env.NODE_ENV = 'test';
 
-          const isCi = ['true', '1'].includes(process.env.CI || '');
+          const truthyEnvValues = new Set(['true', '1']);
+          const isCi = [process.env.CI, process.env.GITHUB_ACTIONS].some(
+            (envVar) => Boolean(envVar) && truthyEnvValues.has(envVar!),
+          );
 
           const {
             coverage = false,
