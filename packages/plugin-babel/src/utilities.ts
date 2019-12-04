@@ -23,11 +23,14 @@ export function createCompileBabelStep(
       `build/packages/${pkg.name}/${configFile}`,
     );
 
-    if (config.babelConfig == null) {
+    if (config.babelConfig == null || config.babelIgnorePatterns == null) {
       throw new MissingPluginError('@sewing-kit/plugin-babel');
     }
 
-    const babelConfig = await config.babelConfig.promise({presets: []});
+    const [babelConfig, babelIgnorePatterns] = await Promise.all([
+      config.babelConfig.promise({}),
+      config.babelIgnorePatterns.promise([]),
+    ]);
 
     await workspace.internal.write(
       babelConfigPath,
@@ -47,6 +50,7 @@ export function createCompileBabelStep(
           noBabelrc: true,
           babelConfig: false,
           extensions: extensions.join(','),
+          ignore: babelIgnorePatterns.join(','),
         },
         {dasherize: true},
       ),

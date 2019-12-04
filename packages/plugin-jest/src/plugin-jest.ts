@@ -87,6 +87,18 @@ interface JestFlags {
 export default createPlugin(
   {id: PLUGIN, target: PluginTarget.Root},
   (tasks) => {
+    tasks.build.tap(PLUGIN, ({hooks}) => {
+      hooks.package.tap(PLUGIN, ({hooks}) => {
+        hooks.configure.tap(PLUGIN, (configurationHooks) => {
+          configurationHooks.babelIgnorePatterns?.tap(PLUGIN, (patterns) => [
+            ...patterns,
+            '**/test/',
+            '**/tests/',
+          ]);
+        });
+      });
+    });
+
     tasks.test.tap(PLUGIN, ({workspace, hooks, options}) => {
       const projectConfigurations: {
         project: Project;

@@ -9,6 +9,7 @@ import {BabelConfig} from './types';
 
 interface BabelHooks {
   readonly babelConfig: AsyncSeriesWaterfallHook<BabelConfig>;
+  readonly babelIgnorePatterns: AsyncSeriesWaterfallHook<string[]>;
 }
 
 declare module '@sewing-kit/types' {
@@ -23,6 +24,9 @@ const PLUGIN = 'SewingKit.babel';
 
 const addBabelHooks = addHooks(() => ({
   babelConfig: new AsyncSeriesWaterfallHook<BabelConfig>(['babelConfig']),
+  babelIgnorePatterns: new AsyncSeriesWaterfallHook<string[]>([
+    'babelIgnorePatterns',
+  ]),
 }));
 
 export default createPlugin(
