@@ -50,7 +50,10 @@ export function createCompileBabelStep(
           noBabelrc: true,
           babelConfig: false,
           extensions: extensions.join(','),
-          ignore: babelIgnorePatterns.join(','),
+          ignore:
+            babelIgnorePatterns.length > 0
+              ? babelIgnorePatterns.join(',')
+              : undefined,
         },
         {dasherize: true},
       ),

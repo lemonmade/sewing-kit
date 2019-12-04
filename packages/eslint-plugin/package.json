@@ -1,0 +1,13 @@
+{
+  "name": "@sewing-kit/eslint-plugin",
+  "version": "0.0.0",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "@sewing-kit:registry": "https://registry.npmjs.org"
+  },
+  "dependencies": {},
+  "optionalDependencies": {
+    "eslint": "*"
+  }
+}

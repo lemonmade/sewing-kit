@@ -1,17 +1,13 @@
 module.exports = {
   extends: [
-    'plugin:shopify/typescript',
-    'plugin:shopify/node',
-    'plugin:shopify/prettier',
+    'plugin:@sewing-kit/typescript',
+    'plugin:@sewing-kit/node',
+    'plugin:@sewing-kit/prettier',
   ],
-  rules: {
-    'no-console': 'error',
-    'callback-return': 'off',
-  },
   overrides: [
     {
       files: ['*.test.ts', '*.test.tsx', './tests/**/*'],
-      extends: ['plugin:shopify/jest'],
+      extends: ['plugin:@sewing-kit/jest'],
     },
     {
       files: ['sewing-kit.config.ts'],

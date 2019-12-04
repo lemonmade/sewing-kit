@@ -9,6 +9,7 @@ tmp
 yarn-error.log
 .sewing-kit
 packages/*/*.js
+!packages/*/.eslintrc.js
 packages/*/*.esnext
 packages/*/*.node
 packages/*/*.d.ts
