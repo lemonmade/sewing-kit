@@ -1,13 +1,13 @@
 {
   "name": "@sewing-kit/plugin-json",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/plugin-jest": "^0.0.13",
+    "@sewing-kit/plugin-jest": "^0.0.14",
     "@sewing-kit/plugin-utilities": "^0.0.13"
   }
 }
