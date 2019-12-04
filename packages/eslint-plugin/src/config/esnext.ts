@@ -12,7 +12,6 @@ import sortClassMembers from './rules/sort-class-members';
 import importRules from './rules/import';
 
 export default {
-  extends: 'plugin:shopify/core',
   parser: 'babel-eslint',
 
   env: {
