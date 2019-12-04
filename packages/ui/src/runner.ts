@@ -73,6 +73,8 @@ export async function run<T>(ui: Ui, run: (runner: Runner) => T) {
   const persistentLines = new Set<PersistentLine>();
 
   const update = () => {
+    if (!isInteractive) return;
+
     if (lastPersistentContentSize > 0) {
       ui.stdout.moveCursor(0, -1 * Math.max(0, lastPersistentContentSize - 1));
       ui.stdout.clearDown();
