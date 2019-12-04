@@ -93,7 +93,7 @@ export default {
   // Allow reassignment of function parameters
   'no-param-reassign': 'off',
   // Disallow use of process.env
-  'no-process-env': 'error',
+  'no-process-env': 'off',
   // Disallow usage of __proto__ property
   'no-proto': 'error',
   // Disallow declaring the same variable more than once
