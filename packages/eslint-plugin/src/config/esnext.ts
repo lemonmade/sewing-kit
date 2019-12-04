@@ -23,7 +23,13 @@ export default {
     sourceType: 'module',
   },
 
-  plugins: ['babel', 'promise', 'sort-class-members', 'import'],
+  plugins: [
+    'babel',
+    'promise',
+    'sort-class-members',
+    'import',
+    'eslint-comments',
+  ],
 
   settings: {
     'import/ignore': ['node_modules', '\\.s?css'],
