@@ -37,13 +37,17 @@ export async function runTypeCheck(
 
   const {skip, skipPre, skipPost} = options;
 
-  await run(steps, {
-    ui: runner.ui,
-    title: 'type-check',
-    pre,
-    post,
-    skip,
-    skipPre,
-    skipPost,
+  await run(runner.ui, async (runner) => {
+    runner.title('type-check');
+
+    await runner.pre(pre, skipPre);
+    await runner.steps(steps, {
+      skip,
+      id: 'type-check',
+      separator: pre.length > 0,
+    });
+    await runner.post(post, skipPost);
+
+    runner.epilogue((fmt) => fmt`{success type-check completed successfully}`);
   });
 }

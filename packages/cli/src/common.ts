@@ -2,6 +2,7 @@ import {Readable, Writable} from 'stream';
 
 import {AsyncSeriesHook} from 'tapable';
 import arg, {Result} from 'arg';
+import {LogLevel} from '@sewing-kit/types';
 
 export function createCommand<Flags extends {[key: string]: any}>(
   flagSpec: Flags,
@@ -16,11 +17,24 @@ export function createCommand<Flags extends {[key: string]: any}>(
     {
       __internal: internalOptions = {},
     }: {
-      __internal?: {stdin?: Readable; stdout?: Writable; stderr?: Writable};
+      __internal?: {
+        stdin?: Readable;
+        stdout?: Writable;
+        stderr?: Writable;
+      };
     } = {},
   ) => {
     const {Ui, DiagnosticError} = await import('@sewing-kit/ui');
-    const ui = new Ui(internalOptions as any);
+
+    const {'--root': root, '--log-level': logLevel, ...flags} = arg(
+      {...flagSpec, '--root': String, '--log-level': String},
+      {argv},
+    );
+
+    const ui = new Ui({
+      ...(internalOptions as any),
+      level: mapLogLevel(logLevel as any),
+    });
 
     const runner: import('@sewing-kit/core').Runner = {
       ui,
@@ -48,11 +62,6 @@ export function createCommand<Flags extends {[key: string]: any}>(
 
     const {runDiscovery} = await import('@sewing-kit/core');
 
-    const {'--root': root, ...flags} = arg(
-      {...flagSpec, '--root': String},
-      {argv},
-    );
-
     try {
       const workspace = await runDiscovery({root: root as any}, runner);
       await run(flags as any, workspace, runner);
@@ -70,4 +79,23 @@ export function createCommand<Flags extends {[key: string]: any}>(
       process.exitCode = 1;
     }
   };
+}
+
+function mapLogLevel(level?: string) {
+  if (level == null) {
+    return LogLevel.Info;
+  }
+
+  switch (level) {
+    case 'errors':
+      return LogLevel.Errors;
+    case 'warnings':
+      return LogLevel.Warnings;
+    case 'info':
+      return LogLevel.Info;
+    case 'debug':
+      return LogLevel.Debug;
+    default:
+      throw new Error(`Unrecognized --log-level option: ${level}`);
+  }
 }

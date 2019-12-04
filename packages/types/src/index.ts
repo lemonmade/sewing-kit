@@ -14,12 +14,17 @@ export type Loggable = ((format: Formatter) => string) | string;
 
 export enum LogLevel {
   Errors,
+  Warnings,
   Info,
   Debug,
 }
 
+export interface LogOptions {
+  level?: LogLevel;
+}
+
 export interface StepRunner {
-  log(arg: Loggable, level?: LogLevel): void;
+  log(arg: Loggable, options?: LogOptions): void;
   exec(
     file: string,
     args?: ReadonlyArray<string> | ExecaOptions,
@@ -30,9 +35,8 @@ export interface StepRunner {
 export interface Step {
   readonly label?: Loggable;
   readonly indefinite?: boolean;
-  readonly steps?: ReadonlyArray<Step>;
-  skip(skipped: string[]): boolean;
-  run?(runner: StepRunner): void | Promise<void>;
+  skip?(skipped: string[]): boolean;
+  run(runner: StepRunner): void | Promise<void>;
 }
 
 // ==================================================================
