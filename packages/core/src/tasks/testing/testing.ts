@@ -75,5 +75,14 @@ export async function runTests(
   const post = await hooks.post.promise([], stepDetails);
 
   const {skip, skipPre, skipPost} = options;
-  await run(steps, {ui: runner.ui, pre, post, skip, skipPre, skipPost});
+
+  await run(runner.ui, async (runner) => {
+    runner.title('test');
+
+    await runner.pre(pre, skipPre);
+    await runner.steps(steps, {skip, id: 'test', separator: pre.length > 0});
+    await runner.post(post, skipPost);
+
+    runner.epilogue((fmt) => fmt`{success testing completed successfully}`);
+  });
 }

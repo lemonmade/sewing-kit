@@ -3,11 +3,13 @@ import {clearScreenDown, clearLine, moveCursor, cursorTo} from 'readline';
 import {link} from 'ansi-escapes';
 import chalk from 'chalk';
 import {supportsHyperlink} from 'supports-hyperlinks';
+import {LogLevel, LogOptions, Loggable, Formatter} from '@sewing-kit/types';
 
 interface Options {
   stdin: NodeJS.ReadStream;
   stdout: NodeJS.WriteStream;
   stderr: NodeJS.WriteStream;
+  level: LogLevel;
 }
 
 const CHALK_MAPPINGS = new Map([
@@ -18,13 +20,14 @@ const CHALK_MAPPINGS = new Map([
   ['emphasis', 'bold'],
   ['code', 'inverse'],
   ['command', 'bold'],
+  ['title', 'bold.underline'],
 ]);
 
 function createFormatter(stream: NodeJS.WriteStream) {
   const supportsLinks = supportsHyperlink(stream);
 
   const formatString = (str: string) => {
-    const formattingRegex = /\{(success|error|info|subdued|emphasis|code|command)/g;
+    const formattingRegex = /\{(success|error|info|subdued|emphasis|code|command|title)/g;
     const linkRegex = /\{link\s+(.*?)(?=http)([^}])*\}/;
 
     return str
@@ -57,9 +60,6 @@ function createFormatter(stream: NodeJS.WriteStream) {
   return formatter;
 }
 
-type Formatter = ReturnType<typeof createFormatter>;
-export type Loggable = ((format: Formatter) => string) | string;
-
 class FormattedStream {
   private readonly formatter: Formatter;
 
@@ -91,26 +91,37 @@ class FormattedStream {
 export class Ui {
   readonly stdout: FormattedStream;
   readonly stderr: FormattedStream;
+  readonly level: LogLevel;
 
   constructor({
     stdout = process.stdout,
     stderr = process.stderr,
+    level = LogLevel.Info,
   }: Partial<Options> = {}) {
     this.stdout = new FormattedStream(stdout);
     this.stderr = new FormattedStream(stderr);
+    this.level = level;
   }
 
-  async spin(_label: Loggable, wait: () => void) {
-    await wait();
-  }
+  log(value: Loggable, {level = LogLevel.Info}: LogOptions = {}) {
+    if (!this.canLogLevel(level)) {
+      return;
+    }
 
-  log(value: Loggable) {
     this.stdout.write(value);
     this.stdout.write('\n');
   }
 
-  error(value: Loggable) {
+  error(value: Loggable, {level = LogLevel.Info}: LogOptions = {}) {
+    if (!this.canLogLevel(level)) {
+      return;
+    }
+
     this.stderr.write(value);
     this.stderr.write('\n');
+  }
+
+  canLogLevel(level: LogLevel) {
+    return this.level >= level;
   }
 }

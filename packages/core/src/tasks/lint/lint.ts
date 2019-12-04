@@ -37,13 +37,13 @@ export async function runLint(
 
   const {skip, skipPre, skipPost} = options;
 
-  await run(steps, {
-    ui: runner.ui,
-    title: 'lint',
-    pre,
-    post,
-    skip,
-    skipPre,
-    skipPost,
+  await run(runner.ui, async (runner) => {
+    runner.title('lint');
+
+    await runner.pre(pre, skipPre);
+    await runner.steps(steps, {skip, id: 'lint', separator: pre.length > 0});
+    await runner.post(post, skipPost);
+
+    runner.epilogue((fmt) => fmt`{success linting completed successfully}`);
   });
 }

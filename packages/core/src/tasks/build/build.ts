@@ -8,6 +8,8 @@ import {
   BuildPackageHooks,
   BuildPackageConfigurationHooks,
   PluginTarget,
+  Loggable,
+  LogLevel,
 } from '@sewing-kit/types';
 import {run, createStep} from '@sewing-kit/ui';
 import {ArrayElement} from '@shopify/useful-types';
@@ -40,7 +42,7 @@ export async function runBuild(
     workspace,
   });
 
-  const webAppSteps: Step[] = await Promise.all(
+  const webAppSteps = await Promise.all(
     workspace.webApps.map(async (webApp) => {
       const hooks: BuildWebAppHooks = {
         variants: new AsyncSeriesWaterfallHook(['variants']),
@@ -99,23 +101,27 @@ export async function runBuild(
         variants.length > 1
           ? await Promise.all(
               variants.map(async (variant) => {
-                return createStep({
-                  label: (fmt) =>
-                    fmt`Building variant {${stringifyVariant(variant)}}`,
+                return createStepFromNestedSteps({
                   steps: await stepsForVariant(variant),
+                  label: (fmt) =>
+                    fmt`Build {emphasis ${stringifyVariant(
+                      variant,
+                    )}} web app variant`,
                 });
               }),
             )
-          : await stepsForVariant({});
+          : [
+              createStepFromNestedSteps({
+                steps: await stepsForVariant({}),
+                label: (fmt) => fmt`Build web app`,
+              }),
+            ];
 
-      return createStep({
-        label: (fmt) => fmt`Building app {emphasis ${webApp.name}}`,
-        steps,
-      });
+      return {webApp, steps};
     }),
   );
 
-  const serviceSteps: Step[] = await Promise.all(
+  const serviceSteps = await Promise.all(
     workspace.services.map(async (service) => {
       const hooks: BuildServiceHooks = {
         steps: new AsyncSeriesWaterfallHook(['steps', 'options']),
@@ -153,14 +159,11 @@ export async function runBuild(
         config: configurationHooks,
       });
 
-      return createStep({
-        steps,
-        label: (fmt) => fmt`Building service {emphasis ${service.name}}`,
-      });
+      return {service, steps};
     }),
   );
 
-  const packageSteps: Step[] = workspace.private
+  const packageSteps = workspace.private
     ? []
     : await Promise.all(
         workspace.packages.map(async (pkg) => {
@@ -205,18 +208,17 @@ export async function runBuild(
                 config: configurationHooks,
               });
 
-              return createStep({
+              return createStepFromNestedSteps({
                 steps,
                 label: (fmt) =>
-                  fmt`Build {emphasis ${stringifyVariant(variant)}} variant`,
+                  fmt`Build {emphasis ${stringifyVariant(
+                    variant,
+                  )}} package variant`,
               });
             }),
           );
 
-          return createStep({
-            steps,
-            label: (fmt) => fmt`Build package {emphasis ${pkg.name}}`,
-          });
+          return {pkg, steps};
         }),
       );
 
@@ -230,13 +232,28 @@ export async function runBuild(
 
   const {skip, skipPre, skipPost} = options;
 
-  await run([...webAppSteps, ...serviceSteps, ...packageSteps], {
-    ui: runner.ui,
-    pre,
-    post,
-    skip,
-    skipPre,
-    skipPost,
+  await run(runner.ui, async (runner) => {
+    runner.title('build');
+
+    await runner.pre(pre, skipPre);
+
+    runner.separator();
+
+    for (const {webApp, steps} of webAppSteps) {
+      await runner.steps(steps, {id: webApp.name, skip});
+    }
+
+    for (const {pkg, steps} of packageSteps) {
+      await runner.steps(steps, {id: pkg.name, skip});
+    }
+
+    for (const {service, steps} of serviceSteps) {
+      await runner.steps(steps, {id: service.name, skip});
+    }
+
+    await runner.post(post, skipPost);
+
+    runner.epilogue((fmt) => fmt`{success build completed successfully!}`);
   });
 }
 
@@ -246,4 +263,28 @@ function stringifyVariant(variant: object) {
       return value === true ? key : `${key}: ${value}`;
     })
     .join(', ');
+}
+
+function createStepFromNestedSteps({
+  steps,
+  label,
+}: {
+  steps: Step[];
+  label: Loggable;
+}) {
+  return createStep({label}, async (stepRunner) => {
+    for (const step of steps) {
+      if (step.label) {
+        stepRunner.log((fmt) => fmt`starting sub-step: {info ${step.label!}}`, {
+          level: LogLevel.Debug,
+        });
+      } else {
+        stepRunner.log(`starting unlabeled sub-step`, {
+          level: LogLevel.Debug,
+        });
+      }
+
+      await step.run(stepRunner);
+    }
+  });
 }

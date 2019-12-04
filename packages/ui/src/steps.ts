@@ -7,7 +7,7 @@ const defaultSkip = () => false;
 export function createStep(run: Step['run']): Step;
 export function createStep(
   options: Omit<Step, 'run' | 'skip'> & {skip?: Skipper},
-  run?: Step['run'],
+  run: Step['run'],
 ): Step;
 export function createStep(
   runOrStep: Step['run'] | (Omit<Step, 'run' | 'skip'> & {skip?: Skipper}),
@@ -15,13 +15,13 @@ export function createStep(
 ): Step {
   return typeof runOrStep === 'function'
     ? {run: runOrStep, skip: defaultSkip}
-    : {run, ...normalizeOptions(runOrStep!)};
+    : {run: run!, ...normalizeOptions(runOrStep!)};
 }
 
 function normalizeOptions({
   skip,
   ...rest
-}: Omit<Step, 'run' | 'skip'> & {skip?: Skipper}): Step {
+}: Omit<Step, 'run' | 'skip'> & {skip?: Skipper}): Omit<Step, 'run'> {
   return {...rest, skip: skip ? normalizeSkip(skip) : defaultSkip};
 }
 
