@@ -1,6 +1,6 @@
 {
   "name": "@sewing-kit/plugin-differential-serving",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -8,9 +8,9 @@
   },
   "dependencies": {
     "@sewing-kit/babel-preset": "^0.0.2",
-    "@sewing-kit/plugin-babel": "^0.0.13",
-    "@sewing-kit/plugin-javascript": "^0.0.14",
-    "@sewing-kit/plugin-utilities": "^0.0.13",
+    "@sewing-kit/plugin-babel": "^0.0.14",
+    "@sewing-kit/plugin-javascript": "^0.0.15",
+    "@sewing-kit/plugin-utilities": "^0.0.14",
     "@sewing-kit/types": "^0.0.6",
     "immer": "^5.0.0"
   }
