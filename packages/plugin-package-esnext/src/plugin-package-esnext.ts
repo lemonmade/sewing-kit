@@ -70,6 +70,7 @@ export const packageCreateEsNextOutputPlugin = createProjectBuildPlugin(
           ...steps,
           createCompileBabelStep(pkg, api, config, {
             outputPath,
+            extension: EXTENSION,
             configFile: 'babel.esnext.js',
           }),
           createWriteEntriesStep(pkg, {

@@ -90,7 +90,7 @@ function createPluginApi(workspace: Workspace): PluginApi {
     resolvePath,
     read: (path) => workspace.fs.read(resolvePath(path)),
     write: (path, contents) => workspace.fs.write(resolvePath(path), contents),
-    configPath: (...parts) => resolvePath('cache', ...parts),
-    cachePath: (...parts) => resolvePath('config', ...parts),
+    configPath: (...parts) => resolvePath('config', ...parts),
+    cachePath: (...parts) => resolvePath('cache', ...parts),
   };
 }

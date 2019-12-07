@@ -51,6 +51,7 @@ export const packageCreateEsModulesOutputPlugin = createProjectBuildPlugin(
           ...steps,
           createCompileBabelStep(pkg, api, config, {
             outputPath,
+            extension: '.mjs',
             configFile: 'babel.esm.js',
           }),
           createWriteEntriesStep(pkg, {

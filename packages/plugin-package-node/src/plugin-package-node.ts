@@ -65,6 +65,7 @@ export const packageCreateNodeOutputPlugin = createProjectPlugin({
             ...steps,
             createCompileBabelStep(pkg, api, config, {
               outputPath,
+              extension: EXTENSION,
               configFile: 'babel.node.js',
             }),
             createWriteEntriesStep(pkg, {

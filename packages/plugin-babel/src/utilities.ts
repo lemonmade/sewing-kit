@@ -1,4 +1,6 @@
 import {resolve} from 'path';
+import {rename} from 'fs-extra';
+import {sync as glob} from 'glob';
 
 import {createStep} from '@sewing-kit/ui';
 import {BuildPackageConfigurationHooks} from '@sewing-kit/hooks';
@@ -6,8 +8,9 @@ import {Package} from '@sewing-kit/model';
 import {toArgs, MissingPluginError, PluginApi} from '@sewing-kit/plugins';
 
 interface CompileBabelOptions {
-  configFile: string;
-  outputPath: string;
+  readonly configFile: string;
+  readonly outputPath: string;
+  readonly extension?: string;
 }
 
 export function createCompileBabelStep(
@@ -17,7 +20,7 @@ export function createCompileBabelStep(
   options: CompileBabelOptions,
 ) {
   return createStep(async (step) => {
-    const {configFile = 'babel.js', outputPath} = options;
+    const {configFile = 'babel.js', outputPath, extension} = options;
 
     const babelConfigPath = api.configPath(
       `build/packages/${pkg.name}/${configFile}`,
@@ -58,5 +61,17 @@ export function createCompileBabelStep(
         {dasherize: true},
       ),
     ]);
+
+    if (extension) {
+      const replaceJsWith = extension.startsWith('.')
+        ? extension
+        : `.${extension}`;
+
+      await Promise.all(
+        glob('**/*.js', {cwd: outputPath, absolute: true}).map((file) =>
+          rename(file, file.replace(/\.js$/, replaceJsWith)),
+        ),
+      );
+    }
   });
 }
