@@ -1,17 +1,17 @@
 {
   "name": "@sewing-kit/plugin-package-esnext",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/hooks": "^0.0.7",
-    "@sewing-kit/plugin-babel": "^0.0.15",
-    "@sewing-kit/plugin-javascript": "^0.0.16",
-    "@sewing-kit/plugin-package-utilities": "^0.0.11",
-    "@sewing-kit/plugins": "^0.0.1",
+    "@sewing-kit/hooks": "^0.0.8",
+    "@sewing-kit/plugin-babel": "^0.0.16",
+    "@sewing-kit/plugin-javascript": "^0.0.17",
+    "@sewing-kit/plugin-package-utilities": "^0.0.12",
+    "@sewing-kit/plugins": "^0.0.2",
     "immer": "^5.0.0"
   }
 }
