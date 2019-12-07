@@ -1,4 +1,4 @@
-import {basename, dirname} from 'path';
+import {basename} from 'path';
 import {Readable, Writable} from 'stream';
 import arg, {Result} from 'arg';
 import {sync as glob} from 'glob';
@@ -8,15 +8,6 @@ import {loadConfig, ConfigurationKind} from '@sewing-kit/config/load';
 import {ProjectPlugin} from '@sewing-kit/plugins';
 import {SewingKitDelegate} from '@sewing-kit/core';
 import {Package, Service, WebApp, Workspace, Project} from '@sewing-kit/model';
-
-const DIRECTORIES_NOT_TO_USE_FOR_NAME = new Set([
-  'src',
-  'lib',
-  'server',
-  'app',
-  'client',
-  'ui',
-]);
 
 export function createCommand<Flags extends {[key: string]: any}>(
   flagSpec: Flags,
@@ -92,39 +83,29 @@ export function createCommand<Flags extends {[key: string]: any}>(
         });
       }
 
-      for (const config of loadedConfigs) {
-        const configDir = dirname(config.file);
-        const configDirName = basename(configDir);
-        const name = DIRECTORIES_NOT_TO_USE_FOR_NAME.has(configDirName)
-          ? basename(dirname(configDir))
-          : configDirName;
-
-        const options = {
-          name,
-          root: configDir,
-          ...((config.options ?? {}) as any),
-        };
-
-        switch (config.kind) {
+      for (const {kind, options, projectPlugins} of loadedConfigs) {
+        switch (kind) {
           case ConfigurationKind.Package: {
             const pkg = new Package({
-              entries: [{root: './src/index'}],
+              entries: [
+                {root: './src/index', runtime: (options as any).runtime},
+              ],
               ...options,
-            });
+            } as any);
             packages.add(pkg);
-            pluginMap.set(pkg, config.projectPlugins);
+            pluginMap.set(pkg, projectPlugins);
             break;
           }
           case ConfigurationKind.WebApp: {
-            const webApp = new WebApp({entry: './index', ...options});
+            const webApp = new WebApp({entry: './index', ...options} as any);
             webApps.add(webApp);
-            pluginMap.set(webApp, config.projectPlugins);
+            pluginMap.set(webApp, projectPlugins);
             break;
           }
           case ConfigurationKind.Service: {
-            const service = new Service({entry: './index', ...options});
+            const service = new Service({entry: './index', ...options} as any);
             services.add(service);
-            pluginMap.set(service, config.projectPlugins);
+            pluginMap.set(service, projectPlugins);
             break;
           }
         }
