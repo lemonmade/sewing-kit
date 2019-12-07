@@ -1,3 +1,4 @@
+import {join} from 'path';
 import {withWorkspace} from '../../../tests/utilities';
 
 describe('@sewing-kit/plugin-package-esmodules', () => {
@@ -100,6 +101,71 @@ describe('@sewing-kit/plugin-package-esmodules', () => {
       expect(await workspace.contents('index.mjs')).toContain(
         'export * from "./build/esm/custom";',
       );
+    });
+  });
+
+  it('only exports default when the source has a default export', async () => {
+    await withWorkspace('default-exports', async (workspace) => {
+      const writePackageSewingKitConfig = (packageDirectory: string) =>
+        workspace.writeFile(
+          join(packageDirectory, 'sewing-kit.config.ts'),
+          `
+            import {createPackage} from '@sewing-kit/config';
+
+            import {babelProjectPlugin} from '@sewing-kit/plugin-babel';
+            import {javascriptProjectPlugin} from '@sewing-kit/plugin-javascript';
+            import {packageCreateEsModulesOutputPlugin} from '@sewing-kit/plugin-package-esmodules';
+
+            export default createPackage((pkg) => {
+              pkg.plugins(babelProjectPlugin, javascriptProjectPlugin, packageCreateEsModulesOutputPlugin);
+            });
+          `,
+        );
+
+      const writePackageWithSource = async (name: string, source: string) => {
+        const packageDirectory = join('packages', name);
+        await Promise.all([
+          workspace.writeFile(join(packageDirectory, 'src/index.js'), source),
+          writePackageSewingKitConfig(packageDirectory),
+        ]);
+
+        return {
+          output: () => workspace.contents(join(packageDirectory, 'index.mjs')),
+        };
+      };
+
+      const defaultOne = await writePackageWithSource(
+        'default-one',
+        `const foo = 'bar'; export default foo;`,
+      );
+
+      const defaultTwo = await writePackageWithSource(
+        'default-two',
+        `const foo = () => {}; export default foo();`,
+      );
+
+      const defaultThree = await writePackageWithSource(
+        'default-three',
+        `const foo = 'bar'; export {foo as default};`,
+      );
+
+      const defaultFour = await writePackageWithSource(
+        'default-four',
+        `export {default} from './foo';`,
+      );
+
+      const notDefaultOne = await writePackageWithSource(
+        'non-default-one',
+        `export {defaultNot} from './foo';`,
+      );
+
+      await workspace.run('build');
+
+      expect(await defaultOne.output()).toContain('default');
+      expect(await defaultTwo.output()).toContain('default');
+      expect(await defaultThree.output()).toContain('default');
+      expect(await defaultFour.output()).toContain('default');
+      expect(await notDefaultOne.output()).not.toContain('default');
     });
   });
 });

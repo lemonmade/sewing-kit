@@ -11,6 +11,7 @@ Understanding the architecture about this project is mostly about understanding 
 ## TODO
 
 - [ ] Get rid of discovery. Discovery should just be looking for every `sewing-kit.config.*`, running it, and collecting the results to form the project.
+- [ ] Find a way to help avoid issues where re-export of a type leads to an unresolvable export once compiled from TS to another format (the re-export of the type can remain because babel doesn’t know it has to be removed)
 
 ## Ideal at Shopify
 

@@ -1,6 +1,9 @@
 import {produce} from 'immer';
 import {createProjectBuildPlugin} from '@sewing-kit/plugins';
-import {createWriteEntriesStep} from '@sewing-kit/plugin-package-utilities';
+import {
+  createWriteEntriesStep,
+  ExportStyle,
+} from '@sewing-kit/plugin-package-utilities';
 import {createCompileBabelStep} from '@sewing-kit/plugin-babel';
 import {
   changeBaseJavaScriptBabelPreset,
@@ -76,10 +79,7 @@ export const packageCreateEsNextOutputPlugin = createProjectBuildPlugin(
           createWriteEntriesStep(pkg, {
             outputPath,
             extension: EXTENSION,
-            contents: (relative) =>
-              `export * from ${JSON.stringify(
-                relative,
-              )};\nexport {default} from ${JSON.stringify(relative)};`,
+            exportStyle: ExportStyle.EsModules,
           }),
         ];
       });

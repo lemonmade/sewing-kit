@@ -2,7 +2,10 @@ import {produce} from 'immer';
 
 import {Runtime} from '@sewing-kit/model';
 import {createProjectBuildPlugin} from '@sewing-kit/plugins';
-import {createWriteEntriesStep} from '@sewing-kit/plugin-package-utilities';
+import {
+  createWriteEntriesStep,
+  ExportStyle,
+} from '@sewing-kit/plugin-package-utilities';
 import {createCompileBabelStep} from '@sewing-kit/plugin-babel';
 import {
   changeBaseJavaScriptBabelPreset,
@@ -73,9 +76,8 @@ export const packageCreateCommonJsOutputPlugin = createProjectBuildPlugin(
           }),
           createWriteEntriesStep(pkg, {
             outputPath,
+            exportStyle: ExportStyle.CommonJs,
             extension: '.js',
-            contents: (relative) =>
-              `module.exports = require(${JSON.stringify(relative)});`,
           }),
         ];
       });
