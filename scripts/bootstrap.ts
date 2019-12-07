@@ -42,8 +42,8 @@ const jsExport = (name = 'index', {compiled = false} = {}) =>
       const compile = NEEDS_FULL_BUILD.has(directory);
       await Promise.all([
         compile ? compileCommonJs(pkg) : Promise.resolve(),
-        ...(CUSTOM_ENTRIES.get(directory) ?? ['index']).map((entry) =>
-          Promise.all([
+        ...(CUSTOM_ENTRIES.get(directory) ?? ['index']).map(async (entry) => {
+          await Promise.all([
             writeFile(
               resolve(pkg, `${entry}.js`),
               jsExport(entry, {compiled: compile}),
@@ -52,8 +52,8 @@ const jsExport = (name = 'index', {compiled = false} = {}) =>
               `./${TS_DEFINITIONS_DIRECTORY}/${entry}.d.ts`,
               resolve(pkg, `${entry}.d.ts`),
             ),
-          ]).then(() => {}),
-        ),
+          ]);
+        }),
       ]);
     }),
   );

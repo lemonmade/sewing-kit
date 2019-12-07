@@ -2,5 +2,10 @@
   "javascript.validate.enable": false,
   "typescript.tsdk": "./node_modules/typescript/lib",
   "editor.formatOnSave": true,
-  "eslint.validate": ["typescript", "typescriptreact", "javascript"],
+  "eslint.validate": [
+    "typescript",
+    "typescriptreact",
+    "javascript"
+  ],
+  "eslint.enable": true,
 }

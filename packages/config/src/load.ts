@@ -1,21 +1,25 @@
-import {join} from 'path';
-
 import {pathExists} from 'fs-extra';
-import {Plugin, PluginTarget, PLUGIN} from '@sewing-kit/types';
 import {DiagnosticError} from '@sewing-kit/ui';
 import {Target as BabelTarget} from '@sewing-kit/babel-preset';
 
-export async function loadConfig<T = any>(
-  root: string,
-  {allowRootPlugins = false} = {},
-): Promise<Partial<T>> {
-  if (await pathExists(join(root, 'sewing-kit.config.js'))) {
-    return loadConfigFile(join(root, 'sewing-kit.config.js'), {
-      allowRootPlugins,
+import {
+  ConfigurationBuilderResult,
+  BUILDER_RESULT_MARKER,
+  ConfigurationKind,
+} from './base';
+
+export {ConfigurationKind, ConfigurationBuilderResult};
+
+export async function loadConfig<T = unknown>(file: string) {
+  if (!(await pathExists(file))) {
+    throw new DiagnosticError({
+      title: `No config file found at ${file}`,
+      suggestion:
+        'Make sure you have specified the --config flag to point at a valid workspace config file.',
     });
   }
 
-  if (await pathExists(join(root, 'sewing-kit.config.ts'))) {
+  if (/.tsx?$/.test(file)) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     require('@babel/register')({
       extensions: ['.mjs', '.js', '.ts', '.tsx'],
@@ -28,18 +32,33 @@ export async function loadConfig<T = any>(
       ],
     });
 
-    return loadConfigFile(join(root, 'sewing-kit.config.ts'), {
-      allowRootPlugins,
-    });
+    return loadConfigFile<T>(file);
   }
 
-  return {} as any;
+  if (/.mjs$/.test(file)) {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    require('@babel/register')({
+      extensions: ['.mjs', '.js'],
+      presets: [
+        [
+          require.resolve('@sewing-kit/babel-preset'),
+          {target: BabelTarget.Node},
+        ],
+      ],
+    });
+
+    return loadConfigFile<T>(file);
+  }
+
+  return loadConfigFile<T>(file);
 }
 
-async function loadConfigFile(file: string, {allowRootPlugins = false}) {
+async function loadConfigFile<T = unknown>(
+  file: string,
+): Promise<ConfigurationBuilderResult<T> & {readonly file: string}> {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const exports = require(file);
-  const normalized = exports?.default;
+  const normalized = exports?.default ?? exports;
 
   if (normalized == null) {
     throw new DiagnosticError({
@@ -67,33 +86,13 @@ async function loadConfigFile(file: string, {allowRootPlugins = false}) {
     });
   }
 
-  const {plugins = []} = result as {plugins?: Plugin[]};
-
-  if (plugins.some((plugin) => !plugin[PLUGIN])) {
-    throw new DiagnosticError({
-      title: 'Invalid configuration file',
-      content: `The configuration file ${file} contains invalid plugins`,
-      suggestion: `Make sure that all plugins included in the configuration file were generated using createPlugin from @sewing-kit/plugin-utilities. If this is the case, you may have duplicate versions of some @sewing-kit dependencies. Resolve any duplicate versions and try your command again.`,
-    });
-  }
-
-  if (!allowRootPlugins) {
-    if (plugins.some((plugin) => plugin.target === PluginTarget.Root)) {
-      throw new DiagnosticError({
-        title: 'Invalid configuration file',
-        content: `The configuration file ${file} specifies plugins targeted at root, which is not supported for project-level configuration`,
-        suggestion: `Move any "root plugins" to the sewing-kit.config file at the root of your repository. Your project’s configuration may only contain plugins that target project-level hooks.`,
-      });
-    }
-  }
-
-  return result;
+  return {...result, file};
 }
 
-function looksLikeValidConfigurationObject(value: unknown) {
+function looksLikeValidConfigurationObject(
+  value: unknown,
+): value is ConfigurationBuilderResult<unknown> {
   return (
-    typeof value === 'object' &&
-    value != null &&
-    (!('plugins' in value) || Array.isArray((value as any).plugins))
+    typeof value === 'object' && value != null && BUILDER_RESULT_MARKER in value
   );
 }

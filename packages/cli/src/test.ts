@@ -24,25 +24,20 @@ export const test = createCommand(
       '--skip-pre': skipPre,
       '--skip-post': skipPost,
     },
-    workspace,
-    runner,
+    context,
   ) => {
     const {runTests} = await import('@sewing-kit/core');
 
-    await runTests(
-      {
-        debug,
-        coverage,
-        testPattern,
-        testNamePattern,
-        updateSnapshot,
-        watch: noWatch == null ? noWatch : !noWatch,
-        skip,
-        skipPre,
-        skipPost,
-      },
-      workspace,
-      runner,
-    );
+    await runTests(context, {
+      debug,
+      coverage,
+      testPattern,
+      testNamePattern,
+      updateSnapshot,
+      watch: noWatch == null ? noWatch : !noWatch,
+      skip,
+      skipPre,
+      skipPost,
+    });
   },
 );

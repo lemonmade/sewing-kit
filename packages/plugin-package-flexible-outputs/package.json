@@ -1,0 +1,10 @@
+{
+  "name": "@sewing-kit/plugin-package-flexible-outputs",
+  "version": "0.0.0",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "@sewing-kit:registry": "https://registry.npmjs.org"
+  },
+  "dependencies": {}
+}

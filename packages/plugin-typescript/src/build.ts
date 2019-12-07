@@ -7,13 +7,13 @@ import {PLUGIN} from './common';
 // Just loaded for its hook augmentations
 import {} from '@sewing-kit/plugin-webpack';
 
-function addTsExtensions(extensions: string[]) {
+function addTsExtensions(extensions: readonly string[]) {
   return ['.ts', '.tsx', ...extensions];
 }
 
-export default function buildTypescript({
+export function buildTypeScript({
   hooks,
-}: import('@sewing-kit/core').BuildTask) {
+}: import('@sewing-kit/tasks').BuildProjectTask) {
   hooks.package.tap(PLUGIN, ({hooks}) => {
     hooks.configure.tap(PLUGIN, (configurationHooks) => {
       configurationHooks.extensions.tap(PLUGIN, addTsExtensions);

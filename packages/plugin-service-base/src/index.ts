@@ -1,1 +1,1 @@
-export {default} from './plugin-service-base';
+export {serviceWebpackPlugin} from './plugin-service-base';

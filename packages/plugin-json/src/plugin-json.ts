@@ -1,16 +1,16 @@
-import {createPlugin, PluginTarget} from '@sewing-kit/plugin-utilities';
+import {createProjectPlugin} from '@sewing-kit/plugins';
 import {} from '@sewing-kit/plugin-jest';
 
 const PLUGIN = 'SewingKit.json';
 
-function addJsonExtension(extensions: string[]) {
+function addJsonExtension(extensions: readonly string[]) {
   return ['.json', ...extensions];
 }
 
-export default createPlugin(
-  {id: PLUGIN, target: PluginTarget.Root},
-  (tasks) => {
-    tasks.build.tap(PLUGIN, ({hooks}) => {
+export const jsonProjectPlugin = createProjectPlugin({
+  id: PLUGIN,
+  run({build, test}) {
+    build.tap(PLUGIN, ({hooks}) => {
       hooks.package.tap(PLUGIN, ({hooks}) => {
         hooks.configure.tap(PLUGIN, (configurationHooks) => {
           configurationHooks.extensions.tap(PLUGIN, addJsonExtension);
@@ -30,7 +30,7 @@ export default createPlugin(
       });
     });
 
-    tasks.test.tap(PLUGIN, ({hooks}) => {
+    test.tap(PLUGIN, ({hooks}) => {
       hooks.project.tap(PLUGIN, ({hooks}) => {
         hooks.configure.tap(PLUGIN, (hooks) => {
           hooks.jestExtensions?.tap(PLUGIN, addJsonExtension);
@@ -38,4 +38,4 @@ export default createPlugin(
       });
     });
   },
-);
+});

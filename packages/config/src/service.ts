@@ -1,31 +1,23 @@
-import {Plugin, ServiceCreateOptions, ServiceOptions} from '@sewing-kit/types';
+import {ServiceOptions} from '@sewing-kit/model';
 
-import {OptionBuilder} from './types';
+import {BaseBuilder, ConfigurationKind} from './base';
 
-class ServiceCreator {
-  constructor(private readonly builder: OptionBuilder<ServiceCreateOptions>) {}
+class ServiceBuilder extends BaseBuilder<ServiceOptions> {
+  constructor() {
+    super(ConfigurationKind.Service);
+  }
 
   entry(entry: string) {
-    this.builder.entry = entry;
-  }
-
-  options(options: ServiceOptions) {
-    this.builder.options = {...(this.builder.options ?? {}), ...options};
-  }
-
-  plugin(...plugins: Plugin[]) {
-    this.builder.plugins = this.builder.plugins ?? [];
-    this.builder.plugins.push(...plugins);
+    this.options.entry = entry;
   }
 }
 
 export function createService(
-  create: (pkg: ServiceCreator) => void | Promise<void>,
+  create: (pkg: ServiceBuilder) => void | Promise<void>,
 ) {
   return async () => {
-    const options: OptionBuilder<ServiceCreateOptions> = {};
-    const creator = new ServiceCreator(options);
-    await create(creator);
-    return options;
+    const builder = new ServiceBuilder();
+    await create(builder);
+    return builder.toOptions();
   };
 }

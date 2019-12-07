@@ -1,6 +1,6 @@
 import {resolve, relative} from 'path';
 
-import {Package, PackageEntry} from '@sewing-kit/core';
+import {Package, PackageEntry} from '@sewing-kit/model';
 import {createStep} from '@sewing-kit/ui';
 
 interface WriteEntriesOptions {

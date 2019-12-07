@@ -4,7 +4,7 @@ This `sewing-kit` plugin is charged with generating type definitions for package
 
 To build type definitions, this plugin requires that the packages use TypeScript project references. This allows for faster, reproducible builds. Once it has built the project, it writes `.d.ts` entry files at the root of the package for each entrypoint in the package. This means that developers still get the typings they need from different entrypoints, but can't access all typings from the project unless they reach into the build directory (which is heavily discouraged).
 
-This plugin adds an additional option you can pass when creating a package entry in a `sewing-kit` config file: `typesAtRoot`. This option means that, instead of creating `.d.ts` entry point files that re-export all the contents of the corresponding built `.d.ts` file, the `.d.ts` files at root **must** contain the raw type declarations. This can be useful in packages that rely heavily on module augmentations, like `@sewing-kit/types`.
+This plugin adds an additional option you can pass when creating a package entry in a `sewing-kit` config file: `typesAtRoot`. This option means that, instead of creating `.d.ts` entry point files that re-export all the contents of the corresponding built `.d.ts` file, the `.d.ts` files at root **must** contain the raw type declarations. This can be useful in packages that rely heavily on module augmentations, like `@sewing-kit/hooks`.
 
 ## Implementation details
 

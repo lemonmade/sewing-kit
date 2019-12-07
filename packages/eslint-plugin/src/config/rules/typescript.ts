@@ -90,8 +90,8 @@ export default {
   '@typescript-eslint/array-type': [
     'error',
     {
-      default: 'array-simple',
-      readonly: 'generic',
+      default: 'array',
+      readonly: 'array',
     },
   ],
   // Enforces that types will not to be used

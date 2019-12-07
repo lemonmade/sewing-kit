@@ -9,9 +9,9 @@ import {PLUGIN} from './common';
 
 import {} from '@sewing-kit/plugin-jest';
 
-export default function testJavaScript({
+export function testJavaScript({
   hooks,
-}: import('@sewing-kit/core').TestTask) {
+}: import('@sewing-kit/tasks').TestProjectTask) {
   hooks.project.tap(PLUGIN, ({hooks}) => {
     hooks.configure.tap(PLUGIN, (hooks) => {
       // Unfortunately, some packages (like `graphql`) use `.mjs` for esmodule

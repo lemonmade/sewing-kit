@@ -1,16 +1,16 @@
-import {createPlugin, PluginTarget} from '@sewing-kit/plugin-utilities';
+import {createProjectPlugin} from '@sewing-kit/plugins';
 import {} from '@sewing-kit/plugin-jest';
 import {} from '@sewing-kit/plugin-webpack';
 import {AsyncSeriesWaterfallHook} from 'tapable';
 
 const PLUGIN = 'SewingKit.graphql';
 
-export default createPlugin(
-  {id: PLUGIN, target: PluginTarget.Root},
-  (tasks) => {
-    tasks.build.tap(PLUGIN, ({hooks}) => {
+export const graphqlProjectPlugin = createProjectPlugin({
+  id: PLUGIN,
+  run({build, test}) {
+    build.tap(PLUGIN, ({hooks}) => {
       function addWebpackRule(configurationHooks: {
-        webpackRules?: AsyncSeriesWaterfallHook<any[]>;
+        webpackRules?: AsyncSeriesWaterfallHook<readonly any[]>;
       }) {
         configurationHooks.webpackRules?.tap(PLUGIN, (rules) => [
           ...rules,
@@ -30,7 +30,7 @@ export default createPlugin(
       });
     });
 
-    tasks.test.tap(PLUGIN, ({hooks}) => {
+    test.tap(PLUGIN, ({hooks}) => {
       hooks.project.tap(PLUGIN, ({hooks}) => {
         hooks.configure.tap(PLUGIN, (hooks) => {
           hooks.jestTransforms?.tap(PLUGIN, (transforms) => ({
@@ -43,4 +43,4 @@ export default createPlugin(
       });
     });
   },
-);
+});

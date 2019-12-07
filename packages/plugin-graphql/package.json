@@ -8,7 +8,6 @@
   },
   "dependencies": {
     "@sewing-kit/plugin-jest": "^0.0.15",
-    "@sewing-kit/plugin-utilities": "^0.0.14",
     "@sewing-kit/plugin-webpack": "^0.0.12",
     "graphql-mini-transforms": "^1.0.4",
     "tapable": "^1.1.3"

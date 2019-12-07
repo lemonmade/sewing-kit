@@ -16,14 +16,9 @@ export const typeCheck = createCommand(
       '--skip-pre': skipPre,
       '--skip-post': skipPost,
     },
-    workspace,
-    runner,
+    context,
   ) => {
     const {runTypeCheck} = await import('@sewing-kit/core');
-    await runTypeCheck(
-      {watch, cache, skip, skipPre, skipPost},
-      workspace,
-      runner,
-    );
+    await runTypeCheck(context, {watch, cache, skip, skipPre, skipPost});
   },
 );

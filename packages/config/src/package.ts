@@ -1,24 +1,25 @@
 import {
   Runtime,
-  Plugin,
-  PackageCreateOptions,
-  PackageEntryCreateOptions,
-  PackageBinaryCreateOptions,
-} from '@sewing-kit/types';
+  PackageOptions,
+  PackageEntryOptions,
+  PackageBinaryOptions,
+} from '@sewing-kit/model';
 
-import {OptionBuilder} from './types';
+import {BaseBuilder, ConfigurationKind} from './base';
 
-class PackageCreator {
-  constructor(private readonly builder: OptionBuilder<PackageCreateOptions>) {}
-
-  runtime(defaultRuntime: Runtime) {
-    this.builder.runtime = defaultRuntime;
+class PackageBuilder extends BaseBuilder<PackageOptions> {
+  constructor() {
+    super(ConfigurationKind.Package);
   }
 
-  entry(entry: PackageEntryCreateOptions) {
-    this.builder.entries = this.builder.entries ?? [];
-    this.builder.entries.push({
-      runtime: this.builder.runtime,
+  runtime(defaultRuntime: Runtime) {
+    this.options.runtime = defaultRuntime;
+  }
+
+  entry(entry: PackageEntryOptions) {
+    this.options.entries = this.options.entries ?? [];
+    this.options.entries.push({
+      runtime: this.options.runtime,
       ...entry,
       root:
         typeof entry.root === 'string' && entry.root.startsWith('/')
@@ -27,24 +28,18 @@ class PackageCreator {
     });
   }
 
-  binary(binary: PackageBinaryCreateOptions) {
-    this.builder.binaries = this.builder.binaries ?? [];
-    this.builder.binaries.push(binary);
-  }
-
-  plugin(...plugins: Plugin[]) {
-    this.builder.plugins = this.builder.plugins ?? [];
-    this.builder.plugins.push(...plugins);
+  binary(binary: PackageBinaryOptions) {
+    this.options.binaries = this.options.binaries ?? [];
+    this.options.binaries.push(binary);
   }
 }
 
 export function createPackage(
-  create: (pkg: PackageCreator) => void | Promise<void>,
+  create: (pkg: PackageBuilder) => void | Promise<void>,
 ) {
   return async () => {
-    const options: OptionBuilder<PackageCreateOptions> = {};
-    const creator = new PackageCreator(options);
-    await create(creator);
-    return options;
+    const builder = new PackageBuilder();
+    await create(builder);
+    return builder.toOptions();
   };
 }

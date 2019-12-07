@@ -16,7 +16,7 @@ export interface Options {
   debug?: boolean;
   modules?: Module;
   polyfill?: Polyfill;
-  target?: Target | string[];
+  target?: Target | readonly string[];
 }
 
 export default function babelPresetSewingKit(

@@ -1,7 +1,7 @@
 import {Configuration} from 'webpack';
-import {Workspace, Service} from '@sewing-kit/core';
-import {BuildServiceConfigurationHooks} from '@sewing-kit/types';
-import {MissingPluginError} from '@sewing-kit/plugin-utilities';
+import {Workspace, Service} from '@sewing-kit/model';
+import {BuildServiceConfigurationHooks} from '@sewing-kit/hooks';
+import {MissingPluginError} from '@sewing-kit/plugins';
 import {} from '@sewing-kit/plugin-webpack';
 
 export const PLUGIN = 'SewingKit.web-app-base';
@@ -28,16 +28,16 @@ export async function createWebpackConfig(
 
   return buildHooks.webpackConfig.promise({
     target: 'node',
-    entry: await buildHooks.entries.promise([service.entry]),
-    resolve: {extensions},
-    module: {rules},
+    entry: (await buildHooks.entries.promise([service.entry])) as string[],
+    resolve: {extensions: extensions as string[]},
+    module: {rules: rules as any[]},
     output: {
       path: outputPath,
       filename,
       libraryTarget: 'commonjs2',
       publicPath: '/assets/',
     },
-    plugins,
+    plugins: plugins as any,
     ...explicitConfig,
   });
 }

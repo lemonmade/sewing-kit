@@ -1,7 +1,7 @@
 import {Configuration} from 'webpack';
-import {Workspace, WebApp} from '@sewing-kit/core';
-import {BuildBrowserConfigurationHooks} from '@sewing-kit/types';
-import {MissingPluginError} from '@sewing-kit/plugin-utilities';
+import {Workspace, WebApp} from '@sewing-kit/model';
+import {BuildBrowserConfigurationHooks} from '@sewing-kit/hooks';
+import {MissingPluginError} from '@sewing-kit/plugins';
 import {} from '@sewing-kit/plugin-webpack';
 
 export const PLUGIN = 'SewingKit.web-app-base';
@@ -29,15 +29,15 @@ export async function createWebpackConfig(
   const publicPath = await buildHooks.webpackPublicPath.promise('/assets');
 
   return buildHooks.webpackConfig.promise({
-    entry: await buildHooks.entries.promise([webApp.entry]),
-    resolve: {extensions},
-    module: {rules},
+    entry: (await buildHooks.entries.promise([webApp.entry])) as string[],
+    resolve: {extensions: extensions as string[]},
+    module: {rules: rules as any[]},
     output: {
       path: outputPath,
       filename,
       publicPath,
     },
-    plugins,
+    plugins: plugins as any[],
     ...explicitConfig,
   });
 }

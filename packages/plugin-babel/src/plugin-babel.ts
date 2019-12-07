@@ -1,9 +1,5 @@
 import {AsyncSeriesWaterfallHook} from 'tapable';
-import {
-  addHooks,
-  createPlugin,
-  PluginTarget,
-} from '@sewing-kit/plugin-utilities';
+import {addHooks, createProjectPlugin} from '@sewing-kit/plugins';
 
 import {BabelConfig} from './types';
 
@@ -12,7 +8,7 @@ interface BabelHooks {
   readonly babelIgnorePatterns: AsyncSeriesWaterfallHook<string[]>;
 }
 
-declare module '@sewing-kit/types' {
+declare module '@sewing-kit/hooks' {
   interface TestProjectConfigurationCustomHooks extends BabelHooks {}
 
   interface BuildPackageConfigurationCustomHooks extends BabelHooks {}
@@ -29,10 +25,10 @@ const addBabelHooks = addHooks(() => ({
   ]),
 }));
 
-export default createPlugin(
-  {id: PLUGIN, target: PluginTarget.Root},
-  (tasks) => {
-    tasks.build.tap(PLUGIN, ({hooks}) => {
+export const babelProjectPlugin = createProjectPlugin({
+  id: PLUGIN,
+  run({build, test}) {
+    build.tap(PLUGIN, ({hooks}) => {
       hooks.package.tap(PLUGIN, ({hooks}) => {
         hooks.configure.tap(PLUGIN, addBabelHooks);
       });
@@ -46,10 +42,10 @@ export default createPlugin(
       });
     });
 
-    tasks.test.tap(PLUGIN, ({hooks}) => {
+    test.tap(PLUGIN, ({hooks}) => {
       hooks.project.tap(PLUGIN, ({hooks}) => {
         hooks.configure.tap(PLUGIN, addBabelHooks);
       });
     });
   },
-);
+});

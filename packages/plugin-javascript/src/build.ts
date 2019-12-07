@@ -13,13 +13,13 @@ function addBaseBabelPreset(babelConfig: BabelConfig) {
   });
 }
 
-function addJsExtensions(extensions: string[]) {
+function addJsExtensions(extensions: readonly string[]) {
   return ['.js', '.mjs', ...extensions];
 }
 
-export default function buildJavaScript({
+export function buildJavaScript({
   hooks,
-}: import('@sewing-kit/core').BuildTask) {
+}: import('@sewing-kit/tasks').BuildProjectTask) {
   hooks.package.tap(PLUGIN, ({hooks}) => {
     hooks.configure.tap(PLUGIN, (configurationHooks) => {
       configurationHooks.babelConfig?.tap(PLUGIN, addBaseBabelPreset);

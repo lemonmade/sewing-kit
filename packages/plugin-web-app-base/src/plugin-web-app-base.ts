@@ -1,21 +1,17 @@
-import {createPlugin, PluginTarget, lazy} from '@sewing-kit/plugin-utilities';
-
+import {createProjectPlugin, lazy} from '@sewing-kit/plugins';
 import {PLUGIN} from './common';
 
-export default createPlugin(
-  {id: PLUGIN, target: PluginTarget.Root},
-  (tasks) => {
-    tasks.discovery.tapPromise(
+export const webAppWebpackPlugin = createProjectPlugin({
+  id: PLUGIN,
+  run({build, dev}) {
+    build.tapPromise(
       PLUGIN,
-      lazy(() => import('./discovery')),
+      lazy(async () => (await import('./build')).buildWebApp),
     );
-    tasks.build.tapPromise(
+
+    dev.tapPromise(
       PLUGIN,
-      lazy(() => import('./build')),
-    );
-    tasks.dev.tapPromise(
-      PLUGIN,
-      lazy(() => import('./dev')),
+      lazy(async () => (await import('./dev')).devWebApp),
     );
   },
-);
+});

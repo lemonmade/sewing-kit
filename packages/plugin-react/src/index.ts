@@ -1,1 +1,1 @@
-export {default} from './plugin-react';
+export {reactProjectPlugin} from './plugin-react';

@@ -1,25 +1,45 @@
-import {createPlugin, PluginTarget, lazy} from '@sewing-kit/plugin-utilities';
+import {
+  lazy,
+  createProjectPlugin,
+  createWorkspacePlugin,
+} from '@sewing-kit/plugins';
 
 import {PLUGIN} from './common';
 
-export default createPlugin(
-  {id: PLUGIN, target: PluginTarget.Root},
-  (tasks) => {
-    tasks.test.tapPromise(
+export const typeScriptProjectPlugin = createProjectPlugin({
+  id: PLUGIN,
+  run({test, build}) {
+    test.tapPromise(
       PLUGIN,
-      lazy(() => import('./test')),
+      lazy(async () => (await import('./test')).testTypeScript),
     );
-    tasks.build.tapPromise(
+
+    build.tapPromise(
       PLUGIN,
-      lazy(() => import('./build')),
-    );
-    tasks.lint.tapPromise(
-      PLUGIN,
-      lazy(() => import('./lint')),
-    );
-    tasks.typeCheck.tapPromise(
-      PLUGIN,
-      lazy(() => import('./type-check')),
+      lazy(async () => (await import('./build')).buildTypeScript),
     );
   },
-);
+});
+
+export const typeScriptWorkspacePlugin = createWorkspacePlugin({
+  id: PLUGIN,
+  run({typeCheck, lint, build}) {
+    lint.tapPromise(
+      PLUGIN,
+      lazy(async () => (await import('./lint')).lintTypeScript),
+    );
+
+    build.tapPromise(
+      PLUGIN,
+      lazy(
+        async () =>
+          (await import('./type-check')).buildWorkspaceThroughTypeCheck,
+      ),
+    );
+
+    typeCheck.tapPromise(
+      PLUGIN,
+      lazy(async () => (await import('./type-check')).typeCheckTypeScript),
+    );
+  },
+});

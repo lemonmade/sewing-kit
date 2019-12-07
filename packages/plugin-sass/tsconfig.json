@@ -7,9 +7,9 @@
   },
   "include": ["src/**/*.ts"],
   "references": [
-    {"path": "../types"},
+    {"path": "../hooks"},
     {"path": "../core"},
-    {"path": "../plugin-utilities"},
+    {"path": "../plugins"},
     {"path": "../plugin-jest"},
     {"path": "../plugin-webpack"}
   ]

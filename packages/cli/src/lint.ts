@@ -16,10 +16,9 @@ export const lint = createCommand(
       '--skip-pre': skipPre,
       '--skip-post': skipPost,
     },
-    workspace,
-    runner,
+    context,
   ) => {
     const {runLint} = await import('@sewing-kit/core');
-    await runLint({fix, cache, skip, skipPre, skipPost}, workspace, runner);
+    await runLint(context, {fix, cache, skip, skipPre, skipPost});
   },
 );

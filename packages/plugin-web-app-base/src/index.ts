@@ -1,1 +1,1 @@
-export {default} from './plugin-web-app-base';
+export {webAppWebpackPlugin} from './plugin-web-app-base';

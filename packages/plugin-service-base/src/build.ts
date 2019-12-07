@@ -1,7 +1,6 @@
 import {join} from 'path';
 
 import {produce} from 'immer';
-import {BuildTask} from '@sewing-kit/core';
 import {
   changeBaseJavaScriptBabelPreset,
   BaseBabelPresetModule,
@@ -9,9 +8,14 @@ import {
 } from '@sewing-kit/plugin-javascript';
 import {} from '@sewing-kit/plugin-babel';
 
-import {PLUGIN} from './common';
+import {PLUGIN as BASE_PLUGIN} from './common';
 
-export default function buildService({hooks, workspace}: BuildTask) {
+const PLUGIN = `${BASE_PLUGIN}.build`;
+
+export function buildService({
+  hooks,
+  workspace,
+}: import('@sewing-kit/tasks').BuildProjectTask) {
   hooks.service.tap(PLUGIN, ({service, hooks}) => {
     const updatePreset = changeBaseJavaScriptBabelPreset({
       target: BaseBabelPresetTarget.Node,

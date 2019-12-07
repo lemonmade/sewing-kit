@@ -2,7 +2,9 @@
 /packages/*/build
 /packages/*/bin
 /packages/*/*.js
+!/packages/*/.eslintrc.js
 /packages/*/*.node
 /packages/*/*.d.ts
 /packages/*/*.esnext
+/packages/*/*.mjs
 /gems/sewing_kit/test/integration/fixtures

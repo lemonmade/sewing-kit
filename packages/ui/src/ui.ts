@@ -3,7 +3,8 @@ import {clearScreenDown, clearLine, moveCursor, cursorTo} from 'readline';
 import {link} from 'ansi-escapes';
 import chalk from 'chalk';
 import {supportsHyperlink} from 'supports-hyperlinks';
-import {LogLevel, LogOptions, Loggable, Formatter} from '@sewing-kit/types';
+
+import {LogLevel, LogOptions, Loggable, Formatter} from './types';
 
 interface Options {
   stdin: NodeJS.ReadStream;

@@ -1,7 +1,7 @@
 import {AsyncSeriesWaterfallHook} from 'tapable';
+
 import {createStep} from '@sewing-kit/ui';
-import {DevTask} from '@sewing-kit/core';
-import {addHooks} from '@sewing-kit/plugin-utilities';
+import {addHooks} from '@sewing-kit/plugins';
 import {} from '@sewing-kit/plugin-webpack';
 
 import {PLUGIN, createWebpackConfig} from './common';
@@ -11,7 +11,7 @@ interface AssetServer {
   port?: number;
 }
 
-declare module '@sewing-kit/types' {
+declare module '@sewing-kit/hooks' {
   interface DevWebAppConfigurationCustomHooks {
     readonly assetServer: AsyncSeriesWaterfallHook<AssetServer>;
   }
@@ -34,7 +34,10 @@ type State =
   | {status: BuildStatus.BuildError; stats: import('webpack').Stats}
   | {status: BuildStatus.Building};
 
-export default function devWebApp({hooks, workspace}: DevTask) {
+export function devWebApp({
+  hooks,
+  workspace,
+}: import('@sewing-kit/tasks').DevProjectTask) {
   hooks.webApp.tap(PLUGIN, ({webApp, hooks}) => {
     hooks.configure.tap(PLUGIN, addDevServerHooks);
 

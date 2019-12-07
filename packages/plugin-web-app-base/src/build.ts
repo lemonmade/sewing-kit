@@ -1,9 +1,8 @@
 import {join} from 'path';
 
 import {produce} from 'immer';
-import {Env} from '@sewing-kit/types';
 import {createStep} from '@sewing-kit/ui';
-import {BuildTask} from '@sewing-kit/core';
+import {Env} from '@sewing-kit/core';
 import {
   changeBaseJavaScriptBabelPreset,
   BaseBabelPresetModule,
@@ -12,7 +11,11 @@ import {} from '@sewing-kit/plugin-babel';
 
 import {PLUGIN, createWebpackConfig} from './common';
 
-export default function buildWebApp({hooks, workspace, options}: BuildTask) {
+export function buildWebApp({
+  hooks,
+  workspace,
+  options,
+}: import('@sewing-kit/tasks').BuildProjectTask) {
   hooks.webApp.tap(PLUGIN, ({webApp, hooks}) => {
     const updatePreset = changeBaseJavaScriptBabelPreset({
       modules: BaseBabelPresetModule.Preserve,

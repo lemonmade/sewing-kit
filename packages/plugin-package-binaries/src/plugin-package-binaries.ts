@@ -1,39 +1,20 @@
 import {relative, dirname} from 'path';
 
-import {Runtime} from '@sewing-kit/types';
-import {Package} from '@sewing-kit/core';
 import {createStep} from '@sewing-kit/ui';
-import {createPlugin, PluginTarget} from '@sewing-kit/plugin-utilities';
-import {} from '@sewing-kit/plugin-package-base';
+import {Package, Runtime} from '@sewing-kit/model';
+import {createProjectBuildPlugin} from '@sewing-kit/plugins';
 
 const PLUGIN = 'SewingKit.package-binaries';
 
-export default createPlugin(
-  {id: PLUGIN, target: PluginTarget.Root},
-  (tasks) => {
-    tasks.build.tap(PLUGIN, ({workspace, hooks}) => {
-      hooks.configure.tap(PLUGIN, (hooks) => {
-        hooks.packageBuildArtifacts?.tapPromise(PLUGIN, async (artifacts) => [
-          ...artifacts,
-          ...((
-            await Promise.all(
-              workspace.packages.map((pkg) =>
-                pkg.fs.hasDirectory('bin')
-                  ? pkg.fs.resolvePath('bin')
-                  : undefined,
-              ),
-            )
-          ).filter(Boolean) as string[]),
-        ]);
-      });
-
-      hooks.package.tap(PLUGIN, ({pkg, hooks}) => {
-        hooks.steps.tap(PLUGIN, (steps) =>
-          pkg.binaries.length > 0
-            ? [...steps, createWriteBinariesStep(pkg)]
-            : steps,
-        );
-      });
+export const packageCreateBinariesPlugin = createProjectBuildPlugin(
+  PLUGIN,
+  ({hooks}) => {
+    hooks.package.tap(PLUGIN, ({pkg, hooks}) => {
+      hooks.steps.tap(PLUGIN, (steps) =>
+        pkg.binaries.length > 0
+          ? [...steps, createWriteBinariesStep(pkg)]
+          : steps,
+      );
     });
   },
 );

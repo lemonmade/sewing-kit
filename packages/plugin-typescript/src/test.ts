@@ -6,9 +6,9 @@ import {PLUGIN} from './common';
 
 import {} from '@sewing-kit/plugin-jest';
 
-export default function testTypescript({
+export function testTypeScript({
   hooks,
-}: import('@sewing-kit/core').TestTask) {
+}: import('@sewing-kit/tasks').TestProjectTask) {
   hooks.project.tap(PLUGIN, ({hooks}) => {
     hooks.configure.tap(PLUGIN, (hooks) => {
       hooks.jestExtensions?.tap(PLUGIN, (extensions) => [

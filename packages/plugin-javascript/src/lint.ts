@@ -2,9 +2,9 @@ import {PLUGIN} from './common';
 
 import {} from '@sewing-kit/plugin-eslint';
 
-export default function lintJavaScript({
+export function lintJavaScript({
   hooks,
-}: import('@sewing-kit/core').LintTask) {
+}: import('@sewing-kit/tasks').LintWorkspaceTask) {
   hooks.configure.tap(PLUGIN, (hooks) => {
     hooks.eslintExtensions?.tap(PLUGIN, (extensions) => [
       ...extensions,

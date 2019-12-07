@@ -9,7 +9,7 @@
   "references": [
     {"path": "../ui"},
     {"path": "../core"},
-    {"path": "../plugin-utilities"},
+    {"path": "../plugins"},
     {"path": "../plugin-webpack"},
     {"path": "../plugin-eslint"},
     {"path": "../plugin-babel"},

@@ -7,10 +7,9 @@
   },
   "include": ["src/**/*.ts"],
   "references": [
-    {"path": "../types"},
-    {"path": "../plugin-utilities"},
+    {"path": "../hooks"},
+    {"path": "../plugins"},
     {"path": "../plugin-package-utilities"},
-    {"path": "../plugin-package-base"},
     {"path": "../plugin-javascript"},
     {"path": "../plugin-babel"}
   ]

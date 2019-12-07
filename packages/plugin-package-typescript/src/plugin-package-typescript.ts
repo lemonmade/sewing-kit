@@ -1,115 +1,150 @@
 import {resolve, relative} from 'path';
 
 import {copy, symlink, remove, utimes} from 'fs-extra';
-import {Package} from '@sewing-kit/core';
-import {createStep, DiagnosticError} from '@sewing-kit/ui';
-import {createPlugin, PluginTarget} from '@sewing-kit/plugin-utilities';
-import {} from '@sewing-kit/plugin-package-base';
+import {Package} from '@sewing-kit/model';
+import {createStep} from '@sewing-kit/ui';
 
-const PLUGIN = 'SewingKit.package-esnext';
-const VARIANT = 'esnext';
+import {createProjectBuildPlugin} from '@sewing-kit/plugins';
 
-declare module '@sewing-kit/types' {
-  interface BuildPackageOptions {
-    [VARIANT]: boolean;
-  }
-
-  interface PackageEntryCustomOptions {
-    readonly typesAtRoot: boolean;
-  }
-}
+const PLUGIN = 'SewingKit.package-typescript';
 
 enum EntryStrategy {
   Symlink,
   ReExport,
 }
 
-export default createPlugin(
-  {id: PLUGIN, target: PluginTarget.Root},
-  (tasks) => {
-    tasks.build.tap(PLUGIN, ({workspace, hooks}) => {
-      hooks.configure.tap(PLUGIN, (hooks) => {
-        hooks.packageBuildArtifacts?.tapPromise(PLUGIN, async (artifacts) => [
-          ...artifacts,
-          ...(
-            await Promise.all(
-              workspace.packages.map((pkg) => pkg.fs.glob('./*.d.ts')),
-            )
-          ).flat(),
-        ]);
-      });
+export interface Options {
+  readonly typesAtRoot?: boolean;
+}
 
-      // We don’t build TypeScript definitions for projects that also include
-      // web apps/ services.
-      if (workspace.private) {
-        return;
-      }
+export function createBuildPackageTsDefinitionsPlugin({
+  typesAtRoot = false,
+}: Options = {}) {
+  return createProjectBuildPlugin(PLUGIN, ({hooks, workspace}) => {
+    // We don’t build TypeScript definitions for projects that also include
+    // web apps/ services.
+    if (workspace.private) {
+      return;
+    }
 
-      hooks.package.tap(PLUGIN, ({pkg, hooks}) => {
-        hooks.steps.tap(PLUGIN, (steps) => [
-          ...steps,
-          createStep({label: 'Writing type definitions'}, async () => {
-            await Promise.all(
-              pkg.entries.map((entry) =>
-                remove(pkg.fs.resolvePath(`${entry.name || 'index'}.d.ts`)),
-              ),
+    hooks.package.tap(PLUGIN, ({pkg, hooks}) => {
+      hooks.steps.tap(PLUGIN, (steps) => [
+        ...steps,
+        createStep({label: 'Writing type definitions'}, async () => {
+          await Promise.all(
+            pkg.entries.map((entry) =>
+              remove(pkg.fs.resolvePath(`${entry.name || 'index'}.d.ts`)),
+            ),
+          );
+
+          if (typesAtRoot) {
+            const outputPath = await getOutputPath(pkg);
+            const files = await pkg.fs.glob(
+              pkg.fs.resolvePath(outputPath, '**/*.d.ts'),
             );
 
-            if (
-              pkg.entries.some(
-                (entry) => entry.options && entry.options.typesAtRoot,
-              )
-            ) {
-              const outputPath = await getOutputPath(pkg);
-              const files = await pkg.fs.glob(
-                pkg.fs.resolvePath(outputPath, '**/*.d.ts'),
-              );
-
-              await Promise.all(
-                files.map((file) =>
-                  copy(file, pkg.fs.resolvePath(relative(outputPath, file))),
-                ),
-              );
-            } else {
-              writeTypeScriptEntries(pkg, {strategy: EntryStrategy.ReExport});
-            }
-          }),
-        ]);
-      });
-
-      hooks.pre.tap(PLUGIN, (steps) => [
-        ...steps,
-        createStep(
-          {label: 'Compiling TypeScript definitions'},
-          async (step) => {
-            try {
-              await Promise.all(
-                workspace.packages.map((pkg) =>
-                  writeTypeScriptEntries(pkg, {
-                    strategy: EntryStrategy.Symlink,
-                  }),
-                ),
-              );
-              await step.exec(
-                'node_modules/.bin/tsc',
-                ['--build', '--pretty'],
-                {
-                  all: true,
-                  env: {FORCE_COLOR: '1'},
-                },
-              );
-            } catch (error) {
-              throw new DiagnosticError({
-                title: 'TypeScript found type errors',
-                content: error.all.trim(),
-              });
-            }
-          },
-        ),
+            await Promise.all(
+              files.map((file) =>
+                copy(file, pkg.fs.resolvePath(relative(outputPath, file))),
+              ),
+            );
+          } else {
+            writeTypeScriptEntries(pkg, {strategy: EntryStrategy.ReExport});
+          }
+        }),
       ]);
     });
-  },
-);
+  });
+}
+
+export const buildPackageTsDefinitionsPlugin = createBuildPackageTsDefinitionsPlugin();
+
+// export default createPlugin(
+//   {id: PLUGIN, target: PluginTarget.Root},
+//   (tasks) => {
+//     tasks.build.tap(PLUGIN, ({workspace, hooks}) => {
+//       hooks.configure.tap(PLUGIN, (hooks) => {
+//         hooks.packageBuildArtifacts?.tapPromise(PLUGIN, async (artifacts) => [
+//           ...artifacts,
+//           ...(
+//             await Promise.all(
+//               workspace.packages.map((pkg) => pkg.fs.glob('./*.d.ts')),
+//             )
+//           ).flat(),
+//         ]);
+//       });
+
+//       // We don’t build TypeScript definitions for projects that also include
+//       // web apps/ services.
+//       if (workspace.private) {
+//         return;
+//       }
+
+//       hooks.package.tap(PLUGIN, ({pkg, hooks}) => {
+//         hooks.steps.tap(PLUGIN, (steps) => [
+//           ...steps,
+//           createStep({label: 'Writing type definitions'}, async () => {
+//             await Promise.all(
+//               pkg.entries.map((entry) =>
+//                 remove(pkg.fs.resolvePath(`${entry.name || 'index'}.d.ts`)),
+//               ),
+//             );
+
+//             if (
+//               pkg.entries.some(
+//                 (entry) => entry.options && entry.options.typesAtRoot,
+//               )
+//             ) {
+//               const outputPath = await getOutputPath(pkg);
+//               const files = await pkg.fs.glob(
+//                 pkg.fs.resolvePath(outputPath, '**/*.d.ts'),
+//               );
+
+//               await Promise.all(
+//                 files.map((file) =>
+//                   copy(file, pkg.fs.resolvePath(relative(outputPath, file))),
+//                 ),
+//               );
+//             } else {
+//               writeTypeScriptEntries(pkg, {strategy: EntryStrategy.ReExport});
+//             }
+//           }),
+//         ]);
+//       });
+
+//       hooks.pre.tap(PLUGIN, (steps) => [
+//         ...steps,
+//         createStep(
+//           {label: 'Compiling TypeScript definitions'},
+//           async (step) => {
+//             try {
+//               await Promise.all(
+//                 workspace.packages.map((pkg) =>
+//                   writeTypeScriptEntries(pkg, {
+//                     strategy: EntryStrategy.Symlink,
+//                   }),
+//                 ),
+//               );
+//               await step.exec(
+//                 'node_modules/.bin/tsc',
+//                 ['--build', '--pretty'],
+//                 {
+//                   all: true,
+//                   env: {FORCE_COLOR: '1'},
+//                 },
+//               );
+//             } catch (error) {
+//               throw new DiagnosticError({
+//                 title: 'TypeScript found type errors',
+//                 content: error.all.trim(),
+//               });
+//             }
+//           },
+//         ),
+//       ]);
+//     });
+//   },
+// );
 
 async function writeTypeScriptEntries(
   pkg: Package,

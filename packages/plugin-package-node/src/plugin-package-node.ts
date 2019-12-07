@@ -1,6 +1,7 @@
 import {produce} from 'immer';
-import {Runtime} from '@sewing-kit/types';
-import {createPlugin, PluginTarget} from '@sewing-kit/plugin-utilities';
+
+import {Runtime} from '@sewing-kit/model';
+import {createProjectPlugin} from '@sewing-kit/plugins';
 import {createWriteEntriesStep} from '@sewing-kit/plugin-package-utilities';
 import {createCompileBabelStep} from '@sewing-kit/plugin-babel';
 import {
@@ -9,45 +10,21 @@ import {
   BaseBabelPresetTarget,
 } from '@sewing-kit/plugin-javascript';
 import {} from '@sewing-kit/plugin-jest';
-import {} from '@sewing-kit/plugin-package-base';
 
 const PLUGIN = 'SewingKit.package-node';
 const VARIANT = 'node';
 const EXTENSION = '.node';
 
-declare module '@sewing-kit/types' {
+declare module '@sewing-kit/hooks' {
   interface BuildPackageOptions {
     [VARIANT]: boolean;
   }
 }
 
-export default createPlugin(
-  {id: PLUGIN, target: PluginTarget.Root},
-  (tasks) => {
-    tasks.test.tap(PLUGIN, ({hooks}) => {
-      hooks.project.tap(PLUGIN, ({hooks}) => {
-        hooks.configure.tap(PLUGIN, (hooks) => {
-          hooks.jestExtensions?.tap(PLUGIN, (extensions) => [
-            EXTENSION,
-            ...extensions,
-          ]);
-        });
-      });
-    });
-
-    tasks.build.tap(PLUGIN, ({workspace, hooks}) => {
-      hooks.configure.tap(PLUGIN, (hooks) => {
-        hooks.packageBuildArtifacts?.tapPromise(PLUGIN, async (artifacts) => [
-          ...artifacts,
-          ...workspace.packages.map((pkg) => pkg.fs.buildPath('node')),
-          ...(
-            await Promise.all(
-              workspace.packages.map((pkg) => pkg.fs.glob(`./*${EXTENSION}`)),
-            )
-          ).flat(),
-        ]);
-      });
-
+export const packageCreateNodeOutputPlugin = createProjectPlugin({
+  id: PLUGIN,
+  run({build, test}, api) {
+    build.tap(PLUGIN, ({hooks}) => {
       hooks.package.tap(PLUGIN, ({pkg, hooks}) => {
         hooks.variants.tap(PLUGIN, (variants) => {
           // If all the entries already target node, there is no need to do a
@@ -86,7 +63,7 @@ export default createPlugin(
 
           return [
             ...steps,
-            createCompileBabelStep(pkg, workspace, config, {
+            createCompileBabelStep(pkg, api, config, {
               outputPath,
               configFile: 'babel.node.js',
             }),
@@ -101,5 +78,16 @@ export default createPlugin(
         });
       });
     });
+
+    test.tap(PLUGIN, ({hooks}) => {
+      hooks.project.tap(PLUGIN, ({hooks}) => {
+        hooks.configure.tap(PLUGIN, (hooks) => {
+          hooks.jestExtensions?.tap(PLUGIN, (extensions) => [
+            EXTENSION,
+            ...extensions,
+          ]);
+        });
+      });
+    });
   },
-);
+});

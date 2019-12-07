@@ -1,31 +1,26 @@
-import {Plugin, WebAppCreateOptions, WebAppOptions} from '@sewing-kit/types';
+import {ServiceWorkerOptions, WebAppOptions} from '@sewing-kit/model';
+import {BaseBuilder, ConfigurationKind} from './base';
 
-import {OptionBuilder} from './types';
-
-class WebAppCreator {
-  constructor(private readonly builder: OptionBuilder<WebAppCreateOptions>) {}
+class WebAppOptionBuilder extends BaseBuilder<WebAppOptions> {
+  constructor() {
+    super(ConfigurationKind.WebApp);
+  }
 
   entry(entry: string) {
-    this.builder.entry = entry;
+    this.options.entry = entry;
   }
 
-  options(options: WebAppOptions) {
-    this.builder.options = {...(this.builder.options ?? {}), ...options};
-  }
-
-  plugin(...plugins: Plugin[]) {
-    this.builder.plugins = this.builder.plugins ?? [];
-    this.builder.plugins.push(...plugins);
+  serviceWorker(serviceWorker: ServiceWorkerOptions) {
+    this.options.serviceWorker = serviceWorker;
   }
 }
 
 export function createWebApp(
-  create: (pkg: WebAppCreator) => void | Promise<void>,
+  create: (webApp: WebAppOptionBuilder) => void | Promise<void>,
 ) {
   return async () => {
-    const options: OptionBuilder<WebAppCreateOptions> = {};
-    const creator = new WebAppCreator(options);
-    await create(creator);
-    return options;
+    const builder = new WebAppOptionBuilder();
+    await create(builder);
+    return builder.toOptions();
   };
 }

@@ -1,21 +1,27 @@
-import {createPlugin, PluginTarget, lazy} from '@sewing-kit/plugin-utilities';
+import {
+  lazy,
+  createProjectPlugin,
+  createWorkspaceLintPlugin,
+} from '@sewing-kit/plugins';
 
 import {PLUGIN} from './common';
 
-export default createPlugin(
-  {id: PLUGIN, target: PluginTarget.Root},
-  (tasks) => {
-    tasks.test.tapPromise(
+export const javascriptProjectPlugin = createProjectPlugin({
+  id: PLUGIN,
+  run({test, build}) {
+    test.tapPromise(
       PLUGIN,
-      lazy(() => import('./test')),
+      lazy(async () => (await import('./test')).testJavaScript),
     );
-    tasks.build.tapPromise(
+
+    build.tapPromise(
       PLUGIN,
-      lazy(() => import('./build')),
-    );
-    tasks.lint.tapPromise(
-      PLUGIN,
-      lazy(() => import('./lint')),
+      lazy(async () => (await import('./build')).buildJavaScript),
     );
   },
+});
+
+export const javascriptWorkspacePlugin = createWorkspaceLintPlugin(
+  PLUGIN,
+  lazy(async () => (await import('./lint')).lintJavaScript),
 );

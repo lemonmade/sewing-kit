@@ -6,5 +6,9 @@
     "rootDir": "src"
   },
   "include": ["src/**/*.ts"],
-  "references": [{"path": "../ui"}, {"path": "../plugin-utilities"}, {"path": "../plugin-jest"}]
+  "references": [
+    {"path": "../ui"},
+    {"path": "../plugins"},
+    {"path": "../plugin-jest"}
+  ]
 }

@@ -1,6 +1,6 @@
-import {Step} from '@sewing-kit/types';
+import {Step} from './types';
 
-type Skipper = ((skipped: string[]) => boolean) | RegExp;
+type Skipper = ((skipped: readonly string[]) => boolean) | RegExp;
 
 const defaultSkip = () => false;
 
@@ -28,5 +28,6 @@ function normalizeOptions({
 function normalizeSkip(skipper: Skipper) {
   return typeof skipper === 'function'
     ? skipper
-    : (skipped: string[]) => skipped.some((skip) => skipper.test(skip));
+    : (skipped: readonly string[]) =>
+        skipped.some((skip) => skipper.test(skip));
 }

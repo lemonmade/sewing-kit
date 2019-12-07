@@ -1,2 +1,5 @@
-export {default} from './plugin-javascript';
+export {
+  javascriptProjectPlugin,
+  javascriptWorkspacePlugin,
+} from './plugin-javascript';
 export * from './utilities';

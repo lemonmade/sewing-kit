@@ -7,7 +7,7 @@ Almost everything that sewing-kit does is actually done by plugins. The core par
 The plugin system was designed with the following ideas in mind:
 
 1. **Plugins drive everything except for the core tasks and models.** Plugins determine every step for every task, but they are not capable of adding additional tasks. Likewise, plugins determine what projects make up a workspace, but the concept of a workspace and its sub-projects exists outside of plugins (both tasks and the workspace are described in `@sewing-kit/core`).
-1. **Plugins are type-safe.** Plugins can safely extend any type from `@sewing-kit/types` whose name ends in `CustomHooks`. These hooks will be assumed to be optionally available for all other plugins, which allows plugins to depend on additional hooks added by their dependencies in a type-safe way.
+1. **Plugins are type-safe.** Plugins can safely extend any type from `@sewing-kit/hooks` whose name ends in `CustomHooks`. These hooks will be assumed to be optionally available for all other plugins, which allows plugins to depend on additional hooks added by their dependencies in a type-safe way.
 1. **Plugins can defer code execution as late as possible.** This is done primarily by making all hooks asynchronous, which allows for dynamic code loading. This means that plugins can (and should!) avoid loading code and dependencies until the hook where they are needed.
 1. **Plugins can handle the entirety of their domain.** A given technology may need particular handling in tests, build, lint, etc. A single plugin is capable of dictating all of that behavior across tasks. This allows a plugin like `@sewing-kit/plugin-typescript` to define the basics of how TypeScript files are handled across the board, rather than needing additional plugins for every task/ tool combination.
 
@@ -21,7 +21,7 @@ Once plugins are called, they should make use of the many hooks provided by the 
 
 ## Tools
 
-The `@sewing-kit/plugin-utilities` library provides most of the helpers you’ll need to create a plugin. Most notably, this package exports the `createPlugin` and `PluginTarget` values, which are needed to define a valid plugin. `@sewing-kit/types` provides most of the hooks used in the various sewing-kit tasks. These types are generally unnecessary, but if you are adding additional hooks (for example, `@sewing-kit/plugin-webpack` adds additional hooks to some parts of the build task), you will need to [augment the `@sewing-kit/types` module](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation). `@sewing-kit/ui` is also typically needed for any plugin dealing with `Steps`, a key UI concept used by several different tasks.
+The `@sewing-kit/plugins` library provides most of the helpers you’ll need to create a plugin. Most notably, this package exports the `createPlugin` and `PluginTarget` values, which are needed to define a valid plugin. `@sewing-kit/hooks` provides most of the hooks used in the various sewing-kit tasks. These types are generally unnecessary, but if you are adding additional hooks (for example, `@sewing-kit/plugin-webpack` adds additional hooks to some parts of the build task), you will need to [augment the `@sewing-kit/hooks` module](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation). `@sewing-kit/ui` is also typically needed for any plugin dealing with `Steps`, a key UI concept used by several different tasks.
 
 ## Styleguide
 

@@ -7,7 +7,7 @@
   },
   "include": ["src/**/*.ts"],
   "references": [
-    {"path": "../plugin-utilities"},
+    {"path": "../plugins"},
     {"path": "../plugin-jest"},
     {"path": "../plugin-webpack"}
   ]

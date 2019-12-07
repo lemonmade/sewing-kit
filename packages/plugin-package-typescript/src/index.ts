@@ -1,1 +1,5 @@
-export {default} from './plugin-package-typescript';
+export {
+  Options,
+  buildPackageTsDefinitionsPlugin,
+  createBuildPackageTsDefinitionsPlugin,
+} from './plugin-package-typescript';

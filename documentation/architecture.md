@@ -2,9 +2,9 @@
 
 This document outlines the key moving pieces that make up `sewing-kit`
 
-## `@sewing-kit/types`
+## `@sewing-kit/hooks`
 
-This package defines most of the core types for sewing-kit. Of particular note, many of the hook objects used as part of various sewing-kit tasks rely on this package to give them the object shape. This separation is done so that plugins can "augment" the hook typings, allowing them to add additional hooks in a type-safe way. The `@sewing-kit/types` package is special in that it produces its type definitions to the root of the project, which allows plugins to define augmentations against `@sewing-kit/types` directly, rather than needing to augment a built definition file deeper in the package (e.g., `@sewing-kit/types/build/ts/index`).
+This package defines most of the core types for sewing-kit. Of particular note, many of the hook objects used as part of various sewing-kit tasks rely on this package to give them the object shape. This separation is done so that plugins can "augment" the hook typings, allowing them to add additional hooks in a type-safe way. The `@sewing-kit/hooks` package is special in that it produces its type definitions to the root of the project, which allows plugins to define augmentations against `@sewing-kit/hooks` directly, rather than needing to augment a built definition file deeper in the package (e.g., `@sewing-kit/hooks/build/ts/index`).
 
 ## `@sewing-kit/ui`
 

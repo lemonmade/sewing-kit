@@ -10,8 +10,8 @@
     {"path": "../core"},
     {"path": "../config"},
     {"path": "../ui"},
-    {"path": "../types"},
-    {"path": "../plugin-utilities"},
+    {"path": "../hooks"},
+    {"path": "../plugins"},
     {"path": "../plugin-babel"},
     {"path": "../plugin-javascript"},
     {"path": "../plugin-webpack"}

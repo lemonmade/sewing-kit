@@ -1,21 +1,18 @@
 import {cpus} from 'os';
 
 import {AsyncSeriesWaterfallHook} from 'tapable';
-import {
-  addHooks,
-  createPlugin,
-  PluginTarget,
-  MissingPluginError,
-} from '@sewing-kit/plugin-utilities';
-import {WebApp} from '@sewing-kit/core';
-import {BuildWebAppHooks} from '@sewing-kit/types';
+import {addHooks, createProjectPlugin} from '@sewing-kit/plugins';
 import {} from '@sewing-kit/plugin-jest';
 import {} from '@sewing-kit/plugin-webpack';
 
-declare module '@sewing-kit/types' {
+declare module '@sewing-kit/hooks' {
   interface BuildBrowserConfigurationCustomHooks {
     readonly sassIncludePaths: AsyncSeriesWaterfallHook<string[]>;
   }
+}
+
+interface Options {
+  readonly sassIncludes?: readonly string[];
 }
 
 const PLUGIN = 'SewingKit.sass';
@@ -25,40 +22,16 @@ const addSassHooks = addHooks(() => ({
   sassIncludePaths: new AsyncSeriesWaterfallHook(['sassIncludePaths']),
 }));
 
-export function createSassIncludesBuildProjectPlugin(include: string[]) {
-  const id = 'SewingKit.sassIncludes';
+export const createSassProjectPlugin = ({sassIncludes = []}: Options = {}) =>
+  createProjectPlugin({
+    id: PLUGIN,
+    run({build, test}) {
+      build.tap(PLUGIN, ({hooks, options: {sourceMaps}}) => {
+        hooks.webApp.tap(PLUGIN, ({hooks}) => {
+          hooks.configure.tap(PLUGIN, (configurationHooks) => {
+            addSassHooks(configurationHooks);
 
-  return createPlugin(
-    {id, target: PluginTarget.BuildProject},
-    ({project, hooks}) => {
-      if (!(project instanceof WebApp)) {
-        return;
-      }
-
-      (hooks as BuildWebAppHooks).configure.tap(id, (configurationHooks) => {
-        if (configurationHooks.sassIncludePaths == null) {
-          throw new MissingPluginError('@sewing-kit/plugin-styles');
-        }
-
-        configurationHooks.sassIncludePaths.tap(id, (paths) => [
-          ...paths,
-          ...include,
-        ]);
-      });
-    },
-  );
-}
-
-export default createPlugin(
-  {id: PLUGIN, target: PluginTarget.Root},
-  (tasks) => {
-    tasks.build.tap(PLUGIN, ({hooks, options: {sourceMaps = false}}) => {
-      hooks.webApp.tap(PLUGIN, ({hooks}) => {
-        hooks.configure.tap(PLUGIN, (configurationHooks) => {
-          addSassHooks(configurationHooks);
-
-          if (configurationHooks.webpackRules) {
-            configurationHooks.webpackRules.tap(PLUGIN, (rules) => [
+            configurationHooks.webpackRules?.tap(PLUGIN, (rules) => [
               ...rules,
               {
                 test: /\.scss$/,
@@ -66,15 +39,13 @@ export default createPlugin(
                 use: [`happypack/loader?id=${HAPPYPACK_ID}`],
               },
             ]);
-          }
 
-          if (configurationHooks.webpackPlugins) {
-            configurationHooks.webpackPlugins.tapPromise(
+            configurationHooks.webpackPlugins?.tapPromise(
               PLUGIN,
               async (plugins) => {
                 const {default: Happypack} = await import('happypack');
                 const sassIncludePaths = configurationHooks.sassIncludePaths!.promise(
-                  [],
+                  [...sassIncludes],
                 );
 
                 return [
@@ -123,20 +94,21 @@ export default createPlugin(
                 ];
               },
             );
-          }
+          });
         });
       });
-    });
 
-    tasks.test.tap(PLUGIN, ({hooks}) => {
-      hooks.project.tap(PLUGIN, ({hooks}) => {
-        hooks.configure.tap(PLUGIN, (hooks) => {
-          hooks.jestModuleMapper?.tap(PLUGIN, (moduleMapper) => ({
-            ...moduleMapper,
-            '\\.scss$': require.resolve('./jest-module-mapper'),
-          }));
+      test.tap(PLUGIN, ({hooks}) => {
+        hooks.project.tap(PLUGIN, ({hooks}) => {
+          hooks.configure.tap(PLUGIN, (hooks) => {
+            hooks.jestModuleMapper?.tap(PLUGIN, (moduleMapper) => ({
+              ...moduleMapper,
+              '\\.scss$': require.resolve('./jest-module-mapper'),
+            }));
+          });
         });
       });
-    });
-  },
-);
+    },
+  });
+
+export const sassProjectPlugin = createSassProjectPlugin();

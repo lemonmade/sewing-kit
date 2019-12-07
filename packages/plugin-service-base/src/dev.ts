@@ -2,12 +2,16 @@ import {join} from 'path';
 
 import Koa from 'koa';
 import {createStep} from '@sewing-kit/ui';
-import {DevTask} from '@sewing-kit/core';
 import {} from '@sewing-kit/plugin-webpack';
 
-import {PLUGIN, createWebpackConfig} from './common';
+import {PLUGIN as BASE_PLUGIN, createWebpackConfig} from './common';
 
-export default function devService({hooks, workspace}: DevTask) {
+const PLUGIN = `${BASE_PLUGIN}.build`;
+
+export function devService({
+  hooks,
+  workspace,
+}: import('@sewing-kit/tasks').DevProjectTask) {
   hooks.service.tap(PLUGIN, ({service, hooks}) => {
     hooks.steps.tap(PLUGIN, (steps, {config, buildConfig}) => {
       return [

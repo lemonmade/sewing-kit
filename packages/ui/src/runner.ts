@@ -5,8 +5,7 @@ import {
   Loggable,
   LogOptions,
   StepRunner as NestedStepRunner,
-} from '@sewing-kit/types';
-
+} from './types';
 import {Ui} from './ui';
 import {DiagnosticError} from './errors';
 
@@ -32,7 +31,7 @@ interface PersistentLineController {
 
 interface RunStepsOptions {
   readonly id: Loggable;
-  readonly skip?: string[];
+  readonly skip?: readonly string[];
   readonly separator?: boolean;
 }
 
@@ -53,9 +52,9 @@ interface Runner {
   separator(): void;
   epilogue(loggable: Loggable): void;
 
-  pre(steps: Step[], skip?: string[]): Promise<void>;
-  post(steps: Step[], skip?: string[]): Promise<void>;
-  steps(steps: Step[], options: RunStepsOptions): Promise<void>;
+  pre(steps: readonly Step[], skip?: readonly string[]): Promise<void>;
+  post(steps: readonly Step[], skip?: readonly string[]): Promise<void>;
+  steps(steps: readonly Step[], options: RunStepsOptions): Promise<void>;
   nested<T>(
     options: RunNestedOptions,
     run: (runner: StepsRunner) => Promise<T>,

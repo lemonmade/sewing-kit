@@ -14,10 +14,9 @@ export const dev = createCommand(
       '--skip-pre': skipPre,
       '--skip-post': skipPost,
     },
-    workspace,
-    runner,
+    context,
   ) => {
     const {runDev} = await import('@sewing-kit/core');
-    await runDev({sourceMaps, skip, skipPre, skipPost}, workspace, runner);
+    await runDev(context, {sourceMaps, skip, skipPre, skipPost});
   },
 );

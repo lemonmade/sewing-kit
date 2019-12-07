@@ -1,0 +1,18 @@
+{
+  "extends": "../../config/typescript/tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "build/ts",
+    "baseUrl": "src",
+    "rootDir": "src"
+  },
+  "include": ["src/**/*.ts"],
+  "references": [
+    {"path": "../plugins"},
+    {"path": "../plugin-package-node"},
+    {"path": "../plugin-package-typescript"},
+    {"path": "../plugin-package-binaries"},
+    {"path": "../plugin-package-commonjs"},
+    {"path": "../plugin-package-esnext"},
+    {"path": "../plugin-package-esmodules"}
+  ]
+}

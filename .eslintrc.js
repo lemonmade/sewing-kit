@@ -4,6 +4,10 @@ module.exports = {
     'plugin:@sewing-kit/node',
     'plugin:@sewing-kit/prettier',
   ],
+  rules: {
+    // TODO: remove
+    'import/no-extraneous-dependencies': 'off',
+  },
   overrides: [
     {
       files: ['*.test.ts', '*.test.tsx', './tests/**/*'],

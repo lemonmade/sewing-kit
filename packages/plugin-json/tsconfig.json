@@ -6,5 +6,5 @@
     "rootDir": "src"
   },
   "include": ["src/**/*.ts"],
-  "references": [{"path": "../plugin-utilities"}, {"path": "../plugin-jest"}]
+  "references": [{"path": "../plugins"}, {"path": "../plugin-jest"}]
 }

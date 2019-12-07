@@ -1,9 +1,9 @@
 import {resolve} from 'path';
 
 import {createStep} from '@sewing-kit/ui';
-import {BuildPackageConfigurationHooks} from '@sewing-kit/types';
-import {Workspace, Package} from '@sewing-kit/core';
-import {toArgs, MissingPluginError} from '@sewing-kit/plugin-utilities';
+import {BuildPackageConfigurationHooks} from '@sewing-kit/hooks';
+import {Package} from '@sewing-kit/model';
+import {toArgs, MissingPluginError, PluginApi} from '@sewing-kit/plugins';
 
 interface CompileBabelOptions {
   configFile: string;
@@ -12,14 +12,14 @@ interface CompileBabelOptions {
 
 export function createCompileBabelStep(
   pkg: Package,
-  workspace: Workspace,
+  api: PluginApi,
   config: BuildPackageConfigurationHooks,
   options: CompileBabelOptions,
 ) {
   return createStep(async (step) => {
     const {configFile = 'babel.js', outputPath} = options;
 
-    const babelConfigPath = workspace.internal.configPath(
+    const babelConfigPath = api.configPath(
       `build/packages/${pkg.name}/${configFile}`,
     );
 
@@ -32,7 +32,7 @@ export function createCompileBabelStep(
       config.babelIgnorePatterns.promise([]),
     ]);
 
-    await workspace.internal.write(
+    await api.write(
       babelConfigPath,
       `module.exports=${JSON.stringify(babelConfig)};`,
     );

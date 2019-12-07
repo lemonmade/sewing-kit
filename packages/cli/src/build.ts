@@ -14,22 +14,16 @@ export const build = createCommand(
       '--skip-pre': skipPre,
       '--skip-post': skipPost,
     },
-    workspace,
-    runner,
+    context,
   ) => {
-    const {Env} = await import('@sewing-kit/types');
-    const {runBuild} = await import('@sewing-kit/core');
-    await runBuild(
-      {
-        env: Env.Development,
-        simulateEnv: Env.Development,
-        sourceMaps,
-        skip,
-        skipPre,
-        skipPost,
-      },
-      workspace,
-      runner,
-    );
+    const {runBuild, Env} = await import('@sewing-kit/core');
+    await runBuild(context, {
+      env: Env.Development,
+      simulateEnv: Env.Development,
+      sourceMaps,
+      skip,
+      skipPre,
+      skipPost,
+    });
   },
 );

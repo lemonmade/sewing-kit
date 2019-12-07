@@ -1,1 +1,1 @@
-export {default} from './plugin-package-esmodules';
+export {packageCreateEsModulesOutputPlugin} from './plugin-package-esmodules';

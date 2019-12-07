@@ -1,0 +1,12 @@
+{
+  "name": "@sewing-kit/plugins",
+  "version": "0.0.0",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "@sewing-kit:registry": "https://registry.npmjs.org"
+  },
+  "dependencies": {
+    "change-case": "^4.1.0"
+  }
+}

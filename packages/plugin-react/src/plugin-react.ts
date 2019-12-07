@@ -1,24 +1,14 @@
 import {produce} from 'immer';
-import {Env} from '@sewing-kit/types';
-import {createPlugin, PluginTarget} from '@sewing-kit/plugin-utilities';
+import {Env} from '@sewing-kit/tasks';
+import {createProjectPlugin} from '@sewing-kit/plugins';
 import {BabelConfig} from '@sewing-kit/plugin-babel';
 
 const PLUGIN = 'SewingKit.react';
 
-function createBabelConfigAdjuster({development = false} = {}) {
-  return produce((babelConfig: BabelConfig) => {
-    babelConfig.presets = babelConfig.presets ?? [];
-    babelConfig.presets.push([
-      '@babel/preset-react',
-      {development, useBuiltIns: true},
-    ]);
-  });
-}
-
-export default createPlugin(
-  {id: PLUGIN, target: PluginTarget.Root},
-  (tasks) => {
-    tasks.build.tap(PLUGIN, ({hooks, options}) => {
+export const reactProjectPlugin = createProjectPlugin({
+  id: PLUGIN,
+  run({build, test}) {
+    build.tap(PLUGIN, ({hooks, options}) => {
       const addReactBabelConfig = createBabelConfigAdjuster({
         development: options.simulateEnv !== Env.Development,
       });
@@ -48,7 +38,7 @@ export default createPlugin(
       });
     });
 
-    tasks.test.tap(PLUGIN, ({hooks}) => {
+    test.tap(PLUGIN, ({hooks}) => {
       const addBabelPreset = createBabelConfigAdjuster({development: true});
 
       hooks.project.tap(PLUGIN, ({hooks}) => {
@@ -58,4 +48,14 @@ export default createPlugin(
       });
     });
   },
-);
+});
+
+function createBabelConfigAdjuster({development = false} = {}) {
+  return produce((babelConfig: BabelConfig) => {
+    babelConfig.presets = babelConfig.presets ?? [];
+    babelConfig.presets.push([
+      '@babel/preset-react',
+      {development, useBuiltIns: true},
+    ]);
+  });
+}

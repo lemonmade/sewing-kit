@@ -1,23 +1,20 @@
-import {withWorkspace as withBaseWorkspace} from '../../../tests/utilities';
-
-const withWorkspace = withBaseWorkspace.extend(async (workspace) => {
-  await workspace.writeConfig(`
-    import {createWorkspace} from '@sewing-kit/config';
-
-    import babel from '@sewing-kit/plugin-babel';
-    import javascript from '@sewing-kit/plugin-javascript';
-    import packageBase from '@sewing-kit/plugin-package-base';
-    import packageEsm from '@sewing-kit/plugin-package-esmodules';
-
-    export default createWorkspace((workspace) => {
-      workspace.plugin(babel, javascript, packageBase, packageEsm);
-    });
-  `);
-});
+import {withWorkspace} from '../../../tests/utilities';
 
 describe('@sewing-kit/plugin-package-esmodules', () => {
   it('builds a package at root while preserving ES import/ exports', async () => {
     await withWorkspace('simple-package', async (workspace) => {
+      await workspace.writeConfig(`
+        import {createPackage} from '@sewing-kit/config';
+
+        import {babelProjectPlugin} from '@sewing-kit/plugin-babel';
+        import {javascriptProjectPlugin} from '@sewing-kit/plugin-javascript';
+        import {packageCreateEsModulesOutputPlugin} from '@sewing-kit/plugin-package-esmodules';
+
+        export default createPackage((pkg) => {
+          pkg.plugins(babelProjectPlugin, javascriptProjectPlugin, packageCreateEsModulesOutputPlugin);
+        });
+      `);
+
       await workspace.writeFile(
         'src/index.js',
         `
@@ -29,6 +26,9 @@ describe('@sewing-kit/plugin-package-esmodules', () => {
 
       await workspace.run('build');
 
+      expect(await workspace.contents('index.mjs')).toContain(
+        'export * from "./build/esm/index"',
+      );
       expect(await workspace.contents('build/esm/index.js')).toContain(
         'export function pkg(',
       );
@@ -37,15 +37,27 @@ describe('@sewing-kit/plugin-package-esmodules', () => {
 
   it('builds packages in a monorepo', async () => {
     await withWorkspace('monorepo-package', async (workspace) => {
-      await workspace.writeFile(
-        'packages/one/src/index.js',
-        `export function one() {}`,
-      );
+      for (const pkg of ['one', 'two']) {
+        await workspace.writeFile(
+          `packages/${pkg}/src/index.js`,
+          `export function ${pkg}() {}`,
+        );
 
-      await workspace.writeFile(
-        'packages/two/src/index.js',
-        `export function two() {}`,
-      );
+        await workspace.writeFile(
+          `packages/${pkg}/sewing-kit.config.ts`,
+          `
+            import {createPackage} from '@sewing-kit/config';
+
+            import {babelProjectPlugin} from '@sewing-kit/plugin-babel';
+            import {javascriptProjectPlugin} from '@sewing-kit/plugin-javascript';
+            import {packageCreateEsModulesOutputPlugin} from '@sewing-kit/plugin-package-esmodules';
+
+            export default createPackage((pkg) => {
+              pkg.plugins(babelProjectPlugin, javascriptProjectPlugin, packageCreateEsModulesOutputPlugin);
+            });
+          `,
+        );
+      }
 
       await workspace.run('build');
 
@@ -60,9 +72,9 @@ describe('@sewing-kit/plugin-package-esmodules', () => {
   });
 
   it('builds customized entry points', async () => {
-    await withWorkspace('simple-package', async (workspace) => {
+    await withWorkspace('custom-entry', async (workspace) => {
       await workspace.writeFile(
-        'packages/one/src/custom.js',
+        'src/custom.js',
         `
           export function pkg(greet) {
             console.log(\`Hello, \${greet}!\`);
@@ -70,20 +82,22 @@ describe('@sewing-kit/plugin-package-esmodules', () => {
         `,
       );
 
-      await workspace.writeFile(
-        'packages/one/sewing-kit.config.js',
-        `
-          import {createPackage} from '@sewing-kit/config';
+      await workspace.writeConfig(`
+        import {createPackage} from '@sewing-kit/config';
 
-          export default createPackage((pkg) => {
-            pkg.entry({root: '/src/custom'});
-          });
-        `,
-      );
+        import {babelProjectPlugin} from '@sewing-kit/plugin-babel';
+        import {javascriptProjectPlugin} from '@sewing-kit/plugin-javascript';
+        import {packageCreateEsModulesOutputPlugin} from '@sewing-kit/plugin-package-esmodules';
+
+        export default createPackage((pkg) => {
+          pkg.entry({root: '/src/custom'});
+          pkg.plugins(babelProjectPlugin, javascriptProjectPlugin, packageCreateEsModulesOutputPlugin);
+        });
+      `);
 
       await workspace.run('build');
 
-      expect(await workspace.contents('packages/one/index.mjs')).toContain(
+      expect(await workspace.contents('index.mjs')).toContain(
         'export * from "./build/esm/custom";',
       );
     });

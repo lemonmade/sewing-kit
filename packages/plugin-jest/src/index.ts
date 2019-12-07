@@ -1,1 +1,1 @@
-export {default} from './plugin-jest';
+export {jestProjectPlugin, jestWorkspacePlugin} from './plugin-jest';
