@@ -1,15 +1,15 @@
 {
   "name": "@sewing-kit/plugin-jest",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/core": "^0.0.13",
-    "@sewing-kit/plugin-babel": "^0.0.14",
-    "@sewing-kit/ui": "^0.0.11",
+    "@sewing-kit/core": "^0.0.14",
+    "@sewing-kit/plugin-babel": "^0.0.15",
+    "@sewing-kit/ui": "^0.0.12",
     "@types/jest": "^24.0.23",
     "babel-jest": "^24.9.0",
     "jest": "^24.9.0",

@@ -1,15 +1,15 @@
 {
   "name": "@sewing-kit/plugin-package-esmodules",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/plugin-babel": "^0.0.14",
-    "@sewing-kit/plugin-javascript": "^0.0.15",
-    "@sewing-kit/plugin-package-utilities": "^0.0.10",
+    "@sewing-kit/plugin-babel": "^0.0.15",
+    "@sewing-kit/plugin-javascript": "^0.0.16",
+    "@sewing-kit/plugin-package-utilities": "^0.0.11",
     "immer": "^5.0.0"
   }
 }
