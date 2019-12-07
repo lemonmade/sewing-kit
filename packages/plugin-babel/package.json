@@ -1,6 +1,6 @@
 {
   "name": "@sewing-kit/plugin-babel",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -9,10 +9,10 @@
   "dependencies": {
     "@babel/cli": "^7.7.4",
     "@babel/core": "^7.7.4",
-    "@sewing-kit/hooks": "^0.0.8",
-    "@sewing-kit/model": "^0.0.1",
-    "@sewing-kit/plugins": "^0.0.2",
-    "@sewing-kit/ui": "^0.0.13",
+    "@sewing-kit/hooks": "^0.0.9",
+    "@sewing-kit/model": "^0.0.2",
+    "@sewing-kit/plugins": "^0.0.3",
+    "@sewing-kit/ui": "^0.0.14",
     "@types/babel__core": "^7.1.3",
     "tapable": "^1.1.3"
   }
