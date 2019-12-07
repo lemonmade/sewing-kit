@@ -23,9 +23,7 @@ export function buildService({
     });
 
     hooks.configure.tap(PLUGIN, (configurationHooks) => {
-      if (configurationHooks.babelConfig) {
-        configurationHooks.babelConfig.tap(PLUGIN, produce(updatePreset));
-      }
+      configurationHooks.babelConfig?.tap(PLUGIN, produce(updatePreset));
 
       configurationHooks.output.tap(PLUGIN, () =>
         workspace.fs.buildPath('service'),

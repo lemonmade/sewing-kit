@@ -5,5 +5,14 @@
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
+  },
+  "dependencies": {
+    "@sewing-kit/plugin-package-binaries": "^0.0.16",
+    "@sewing-kit/plugin-package-commonjs": "^0.0.16",
+    "@sewing-kit/plugin-package-esmodules": "^0.0.16",
+    "@sewing-kit/plugin-package-esnext": "^0.0.16",
+    "@sewing-kit/plugin-package-node": "^0.0.16",
+    "@sewing-kit/plugin-package-typescript": "^0.0.18",
+    "@sewing-kit/plugins": "^0.0.1"
   }
 }

@@ -1,9 +1,9 @@
 import {resolve, relative} from 'path';
 
 import {copy, symlink, remove, utimes} from 'fs-extra';
+
 import {Package} from '@sewing-kit/model';
 import {createStep} from '@sewing-kit/ui';
-
 import {createProjectBuildPlugin} from '@sewing-kit/plugins';
 
 const PLUGIN = 'SewingKit.package-typescript';

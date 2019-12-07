@@ -7,9 +7,9 @@
   },
   "include": ["src/**/*.ts"],
   "references": [
-    {"path": "../core"},
     {"path": "../ui"},
     {"path": "../hooks"},
+    {"path": "../model"},
     {"path": "../plugins"}
   ]
 }

@@ -1,10 +1,11 @@
-import {Configuration} from 'webpack';
 import {Workspace, Service} from '@sewing-kit/model';
 import {BuildServiceConfigurationHooks} from '@sewing-kit/hooks';
 import {MissingPluginError} from '@sewing-kit/plugins';
 import {} from '@sewing-kit/plugin-webpack';
 
 export const PLUGIN = 'SewingKit.web-app-base';
+
+type Configuration = import('webpack').Configuration;
 
 export async function createWebpackConfig(
   buildHooks: BuildServiceConfigurationHooks,

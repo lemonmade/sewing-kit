@@ -9,6 +9,8 @@
   "dependencies": {
     "@babel/preset-react": "^7.7.4",
     "@sewing-kit/plugin-babel": "^0.0.15",
+    "@sewing-kit/plugins": "^0.0.1",
+    "@sewing-kit/tasks": "^0.0.1",
     "immer": "^5.0.0"
   }
 }

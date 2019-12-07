@@ -7,6 +7,9 @@
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "change-case": "^4.1.0"
+    "@sewing-kit/tasks": "^0.0.1",
+    "@sewing-kit/ui": "^0.0.12",
+    "change-case": "^4.1.0",
+    "tapable": "^1.1.3"
   }
 }

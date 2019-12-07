@@ -1,10 +1,11 @@
-import {Configuration} from 'webpack';
 import {Workspace, WebApp} from '@sewing-kit/model';
 import {BuildBrowserConfigurationHooks} from '@sewing-kit/hooks';
 import {MissingPluginError} from '@sewing-kit/plugins';
 import {} from '@sewing-kit/plugin-webpack';
 
 export const PLUGIN = 'SewingKit.web-app-base';
+
+type Configuration = import('webpack').Configuration;
 
 export async function createWebpackConfig(
   buildHooks: BuildBrowserConfigurationHooks,

@@ -7,9 +7,10 @@
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/babel-preset": "^0.0.3",
+    "@sewing-kit/hooks": "^0.0.7",
     "@sewing-kit/plugin-babel": "^0.0.15",
     "@sewing-kit/plugin-javascript": "^0.0.16",
+    "@sewing-kit/plugins": "^0.0.1",
     "immer": "^5.0.0"
   }
 }

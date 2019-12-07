@@ -6,5 +6,12 @@
     "rootDir": "src"
   },
   "include": ["src/**/*.ts"],
-  "references": [{"path": "../ui"}, {"path": "../config"}, {"path": "../hooks"}]
+  "references": [
+    {"path": "../ui"},
+    {"path": "../config"},
+    {"path": "../plugins"},
+    {"path": "../hooks"},
+    {"path": "../model"},
+    {"path": "../tasks"}
+  ]
 }

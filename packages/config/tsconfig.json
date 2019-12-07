@@ -7,8 +7,10 @@
   },
   "include": ["src/**/*.ts"],
   "references": [
-    {"path": "../hooks"},
     {"path": "../ui"},
+    {"path": "../hooks"},
+    {"path": "../model"},
+    {"path": "../plugins"},
     {"path": "../babel-preset"}
   ]
 }

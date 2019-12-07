@@ -6,5 +6,5 @@
     "rootDir": "src"
   },
   "include": ["src/**/*.ts"],
-  "references": [{"path": "../hooks"}, {"path": "../model"}]
+  "references": [{"path": "../hooks"}, {"path": "../model"}, {"path": "../ui"}]
 }

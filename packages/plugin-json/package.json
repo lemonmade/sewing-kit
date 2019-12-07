@@ -7,6 +7,9 @@
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/plugin-jest": "^0.0.16"
+    "@sewing-kit/plugins": "^0.0.1"
+  },
+  "optionalDependencies": {
+    "@sewing-kit/plugin-jest": "*"
   }
 }

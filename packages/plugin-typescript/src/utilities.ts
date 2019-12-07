@@ -1,8 +1,9 @@
 import {resolve, relative} from 'path';
-import {produce} from 'immer';
-import {BabelConfig} from '@sewing-kit/plugin-babel';
 
+import {produce} from 'immer';
 import {symlink, utimes} from 'fs-extra';
+
+import {BabelConfig} from '@sewing-kit/plugin-babel';
 import {Package} from '@sewing-kit/model';
 
 export const addTypeScriptBabelConfig = produce((babelConfig: BabelConfig) => {

@@ -8,8 +8,7 @@
   "include": ["src/**/*.ts"],
   "references": [
     {"path": "../ui"},
-    {"path": "../core"},
-    {"path": "../hooks"},
+    {"path": "../model"},
     {"path": "../plugins"}
   ]
 }

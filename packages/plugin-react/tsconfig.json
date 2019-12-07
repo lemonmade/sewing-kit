@@ -7,7 +7,7 @@
   },
   "include": ["src/**/*.ts"],
   "references": [
-    {"path": "../hooks"},
+    {"path": "../tasks"},
     {"path": "../plugins"},
     {"path": "../plugin-babel"}
   ]

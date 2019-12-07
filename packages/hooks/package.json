@@ -7,6 +7,7 @@
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
+    "@sewing-kit/ui": "^0.0.12",
     "@types/tapable": "^1.0.4",
     "tapable": "^1.1.3"
   }

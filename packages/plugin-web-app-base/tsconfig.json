@@ -7,10 +7,12 @@
   },
   "include": ["src/**/*.ts"],
   "references": [
-    {"path": "../core"},
-    {"path": "../config"},
     {"path": "../ui"},
+    {"path": "../core"},
     {"path": "../hooks"},
+    {"path": "../model"},
+    {"path": "../tasks"},
+    {"path": "../config"},
     {"path": "../plugins"},
     {"path": "../plugin-babel"},
     {"path": "../plugin-webpack"}

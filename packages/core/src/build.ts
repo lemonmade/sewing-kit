@@ -13,13 +13,14 @@ import {
   BuildProjectTaskHooks,
 } from '@sewing-kit/tasks';
 import {run, createStep, Step, Loggable, LogLevel} from '@sewing-kit/ui';
-import {ArrayElement} from '@shopify/useful-types';
 
 import {
   TaskContext,
   createWorkspaceTasksAndApplyPlugins,
   createProjectTasksAndApplyPlugins,
 } from './common';
+
+type ArrayElement<T> = T extends (infer U)[] ? U : never;
 
 export async function runBuild(
   {workspace, delegate, ui}: TaskContext,

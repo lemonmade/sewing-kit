@@ -2,7 +2,7 @@ import {join} from 'path';
 
 import {produce} from 'immer';
 import {createStep} from '@sewing-kit/ui';
-import {Env} from '@sewing-kit/core';
+import {Env} from '@sewing-kit/tasks';
 import {
   changeBaseJavaScriptBabelPreset,
   BaseBabelPresetModule,

@@ -1,6 +1,8 @@
-import {FirstArgument} from '@shopify/useful-types';
-
 import {Ui} from './ui';
+
+type FirstArgument<T> = T extends (arg: infer U, ...rest: any[]) => any
+  ? U
+  : never;
 
 interface DiagnosticErrorOptions {
   title?: string;
