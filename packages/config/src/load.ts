@@ -1,3 +1,5 @@
+import {dirname, basename} from 'path';
+
 import {pathExists} from 'fs-extra';
 import {DiagnosticError} from '@sewing-kit/ui';
 import {Target as BabelTarget} from '@sewing-kit/babel-preset';
@@ -10,7 +12,18 @@ import {
 
 export {ConfigurationKind, ConfigurationBuilderResult};
 
-export async function loadConfig<T = unknown>(file: string) {
+const DIRECTORIES_NOT_TO_USE_FOR_NAME = new Set([
+  'src',
+  'lib',
+  'server',
+  'app',
+  'client',
+  'ui',
+]);
+
+export async function loadConfig<
+  T extends {name: string; root: string} = {name: string; root: string}
+>(file: string) {
   if (!(await pathExists(file))) {
     throw new DiagnosticError({
       title: `No config file found at ${file}`,
@@ -53,7 +66,7 @@ export async function loadConfig<T = unknown>(file: string) {
   return loadConfigFile<T>(file);
 }
 
-async function loadConfigFile<T = unknown>(
+async function loadConfigFile<T extends {name: string; root: string}>(
   file: string,
 ): Promise<ConfigurationBuilderResult<T> & {readonly file: string}> {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -86,12 +99,22 @@ async function loadConfigFile<T = unknown>(
     });
   }
 
-  return {...result, file};
+  const configDir = dirname(file);
+  const configDirName = basename(configDir);
+  const name = DIRECTORIES_NOT_TO_USE_FOR_NAME.has(configDirName)
+    ? basename(dirname(configDir))
+    : configDirName;
+
+  return {
+    ...result,
+    file,
+    options: {root: configDir, name, ...(result.options as any)},
+  };
 }
 
 function looksLikeValidConfigurationObject(
   value: unknown,
-): value is ConfigurationBuilderResult<unknown> {
+): value is ConfigurationBuilderResult {
   return (
     typeof value === 'object' && value != null && BUILDER_RESULT_MARKER in value
   );

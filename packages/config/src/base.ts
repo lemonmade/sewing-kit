@@ -7,8 +7,10 @@ import {
 } from '@sewing-kit/plugins';
 import {DiagnosticError} from '@sewing-kit/ui';
 
+type WritableValue<T> = T extends readonly (infer U)[] ? U[] : T;
+
 type Writable<T> = {
-  -readonly [K in keyof T]: T[K] extends readonly (infer U)[] ? U[] : T[K];
+  -readonly [K in keyof T]: WritableValue<T[K]>;
 };
 
 export enum ConfigurationKind {
@@ -20,7 +22,12 @@ export enum ConfigurationKind {
 
 export const BUILDER_RESULT_MARKER = Symbol('SewingKit.BuilderResult');
 
-export interface ConfigurationBuilderResult<T> {
+export interface ConfigurationBuilderResult<
+  T extends {readonly name: string; readonly root: string} = {
+    readonly name: string;
+    readonly root: string;
+  }
+> {
   readonly kind: ConfigurationKind;
   readonly options: Partial<Writable<T>>;
   readonly workspacePlugins: readonly WorkspacePlugin[];
@@ -29,7 +36,10 @@ export interface ConfigurationBuilderResult<T> {
 }
 
 export class BaseBuilder<
-  T extends {readonly name: string; readonly root: string}
+  T extends {readonly name: string; readonly root: string} = {
+    readonly name: string;
+    readonly root: string;
+  }
 > {
   protected readonly options: Partial<Writable<T>> = {};
   private readonly workspacePlugins = new Set<WorkspacePlugin>();

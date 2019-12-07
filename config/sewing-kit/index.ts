@@ -1,18 +1,28 @@
-import {createComposedProjectPlugin} from '@sewing-kit/plugins';
+import {
+  createComposedProjectPlugin,
+  createProjectTestPlugin,
+} from '@sewing-kit/plugins';
 import {babelProjectPlugin} from '@sewing-kit/plugin-babel';
 import {jestProjectPlugin} from '@sewing-kit/plugin-jest';
 import {javascriptProjectPlugin} from '@sewing-kit/plugin-javascript';
 import {typeScriptProjectPlugin} from '@sewing-kit/plugin-typescript';
 import {createPackageFlexibleOutputsPlugin} from '@sewing-kit/plugin-package-flexible-outputs';
 
+const jestRemoveBabelPresetModuleMapperPlugin = createRemoveSourceMappingPlugin();
+
 export const createSewingKitPackagePlugin = ({typesAtRoot = false} = {}) =>
   createComposedProjectPlugin('SewingKit.InternalPackage', [
     babelProjectPlugin,
     jestProjectPlugin,
+    jestRemoveBabelPresetModuleMapperPlugin,
     javascriptProjectPlugin,
     typeScriptProjectPlugin,
     createPackageFlexibleOutputsPlugin({
       node: false,
+      esmodules: false,
+      esnext: false,
+      commonjs: true,
+      binaries: true,
       typescript: {typesAtRoot},
     }),
   ]);
@@ -27,18 +37,17 @@ export const createSewingKitPackagePlugin = ({typesAtRoot = false} = {}) =>
 // just removes the name mapping so any references to this package
 // point at the compiled output, which is a sloppy but workable solution.
 
-// function createRemoveSourceMappingPlugin() {
-//   return createProjectTestPlugin(REMOVE_SOURCE_MAPPING_PLUGIN, ({hooks}) => {
-//     hooks.project.tap(REMOVE_SOURCE_MAPPING_PLUGIN, ({hooks}) => {
-//       hooks.configure.tap(
-//         REMOVE_SOURCE_MAPPING_PLUGIN,
-//         ({jestModuleMapper}) => {
-//           jestModuleMapper?.tap(
-//             REMOVE_SOURCE_MAPPING_PLUGIN,
-//             ({'@sewing-kit/babel-preset$': _, ...rest}) => rest,
-//           );
-//         },
-//       );
-//     });
-//   });
-// }
+function createRemoveSourceMappingPlugin() {
+  const plugin = 'SewingKit.InternalRemoveBabelPresetJestModuleMapper';
+
+  return createProjectTestPlugin(plugin, ({hooks}) => {
+    hooks.project.tap(plugin, ({hooks}) => {
+      hooks.configure.tap(plugin, ({jestModuleMapper}) => {
+        jestModuleMapper?.tap(
+          plugin,
+          ({'@sewing-kit/babel-preset$': _, ...rest}) => rest,
+        );
+      });
+    });
+  });
+}
