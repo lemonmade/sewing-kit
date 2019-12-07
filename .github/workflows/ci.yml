@@ -36,9 +36,9 @@ jobs:
       name: Restore TypeScript cache
       with:
         path: .sewing-kit/cache/typescript/
-        key: ${{ runner.os }}-typescript
+        key: ${{ runner.os }}-typescript-${{ github.sha }}
         restore-keys: |
-          ${{ runner.os }}-typescript
+          ${{ runner.os }}-typescript-
 
     - name: Type check
       run: yarn type-check
@@ -76,9 +76,9 @@ jobs:
       name: Restore jest cache
       with:
         path: .sewing-kit/cache/jest/
-        key: ${{ runner.os }}-jest
+        key: ${{ runner.os }}-jest-${{ github.sha }}
         restore-keys: |
-          ${{ runner.os }}-jest
+          ${{ runner.os }}-jest-
 
     - name: Test
       run: yarn test
@@ -116,9 +116,9 @@ jobs:
       name: Restore ESLint cache
       with:
         path: .sewing-kit/cache/eslint
-        key: ${{ runner.os }}-eslint
+        key: ${{ runner.os }}-eslint-${{ github.sha }}
         restore-keys: |
-          ${{ runner.os }}-eslint
+          ${{ runner.os }}-eslint-
 
     - name: Lint
       run: yarn lint
