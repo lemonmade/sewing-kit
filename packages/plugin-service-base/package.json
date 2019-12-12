@@ -1,13 +1,13 @@
 {
   "name": "@sewing-kit/plugin-service-base",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/config": "^0.0.15",
+    "@sewing-kit/config": "^0.0.16",
     "@sewing-kit/hooks": "^0.0.9",
     "@sewing-kit/model": "^0.0.2",
     "@sewing-kit/plugin-javascript": "^0.0.20",

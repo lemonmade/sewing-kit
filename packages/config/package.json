@@ -1,6 +1,6 @@
 {
   "name": "@sewing-kit/config",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
