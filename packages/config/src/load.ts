@@ -21,6 +21,9 @@ const DIRECTORIES_NOT_TO_USE_FOR_NAME = new Set([
   'ui',
 ]);
 
+const IS_TSX = /.tsx?$/;
+const IS_MJS = /.mjs$/;
+
 export async function loadConfig<
   T extends {name: string; root: string} = {name: string; root: string}
 >(file: string) {
@@ -32,7 +35,7 @@ export async function loadConfig<
     });
   }
 
-  if (/.tsx?$/.test(file)) {
+  if (IS_TSX.test(file)) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     require('@babel/register')({
       extensions: ['.mjs', '.js', '.ts', '.tsx'],
@@ -48,7 +51,7 @@ export async function loadConfig<
     return loadConfigFile<T>(file);
   }
 
-  if (/.mjs$/.test(file)) {
+  if (IS_MJS.test(file)) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     require('@babel/register')({
       extensions: ['.mjs', '.js'],

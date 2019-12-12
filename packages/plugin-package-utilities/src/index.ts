@@ -49,7 +49,7 @@ export function createWriteEntriesStep(
           `module.exports = require(${JSON.stringify(relativeFromRoot)});`,
         );
 
-        return;
+        continue;
       }
 
       let hasDefault = true;
