@@ -1,6 +1,6 @@
 {
   "name": "@sewing-kit/plugin-package-node",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -9,8 +9,8 @@
   "dependencies": {
     "@sewing-kit/hooks": "^0.0.9",
     "@sewing-kit/model": "^0.0.2",
-    "@sewing-kit/plugin-babel": "^0.0.18",
-    "@sewing-kit/plugin-javascript": "^0.0.19",
+    "@sewing-kit/plugin-babel": "^0.0.19",
+    "@sewing-kit/plugin-javascript": "^0.0.20",
     "@sewing-kit/plugin-package-utilities": "^0.0.14",
     "@sewing-kit/plugins": "^0.0.3",
     "immer": "^5.0.0"
