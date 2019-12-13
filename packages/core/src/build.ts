@@ -83,12 +83,7 @@ export async function runBuild(
       const stepsForVariant = async (
         variant: ArrayElement<typeof variants>,
       ) => {
-        const configurationHooks: BuildBrowserConfigurationHooks = {
-          entries: new AsyncSeriesWaterfallHook(['entries']),
-          extensions: new AsyncSeriesWaterfallHook(['extensions', 'options']),
-          filename: new AsyncSeriesWaterfallHook(['filename']),
-          output: new AsyncSeriesWaterfallHook(['output']),
-        };
+        const configurationHooks: BuildBrowserConfigurationHooks = {};
 
         await hooks.configure.promise(configurationHooks, variant);
         await hooks.configureBrowser.promise(configurationHooks, variant);
@@ -153,12 +148,7 @@ export async function runBuild(
       await buildTaskHooks.project.promise({project: service, hooks});
       await buildTaskHooks.service.promise({service, hooks});
 
-      const configurationHooks: BuildServiceConfigurationHooks = {
-        entries: new AsyncSeriesWaterfallHook(['entries']),
-        extensions: new AsyncSeriesWaterfallHook(['extensions', 'options']),
-        filename: new AsyncSeriesWaterfallHook(['filename']),
-        output: new AsyncSeriesWaterfallHook(['output']),
-      };
+      const configurationHooks: BuildServiceConfigurationHooks = {};
 
       await hooks.configure.promise(configurationHooks);
 
@@ -204,9 +194,7 @@ export async function runBuild(
 
       const steps = await Promise.all(
         variants.map(async (variant) => {
-          const configurationHooks: BuildPackageConfigurationHooks = {
-            extensions: new AsyncSeriesWaterfallHook(['extensions']),
-          };
+          const configurationHooks: BuildPackageConfigurationHooks = {};
 
           await hooks.configure.promise(configurationHooks, variant);
 

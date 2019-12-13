@@ -44,6 +44,10 @@ export function devWebApp({
     hooks.configure.tap(PLUGIN, (hooks) => {
       addDevServerHooks(hooks);
 
+      hooks.webpackOutputDirectory?.tap(PLUGIN, () =>
+        workspace.fs.buildPath('apps'),
+      );
+
       hooks.babelConfig?.tap(
         PLUGIN,
         produce(

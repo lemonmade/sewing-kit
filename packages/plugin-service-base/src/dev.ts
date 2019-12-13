@@ -27,6 +27,11 @@ export function devService({
           }),
         ),
       );
+
+      hooks.webpackOutputFilename?.tap(PLUGIN, () => 'main.js');
+      hooks.webpackOutputDirectory?.tap(PLUGIN, () =>
+        workspace.fs.buildPath('services'),
+      );
     });
 
     hooks.steps.tap(PLUGIN, (steps, {config}) => {

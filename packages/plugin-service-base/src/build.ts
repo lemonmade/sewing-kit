@@ -26,7 +26,7 @@ export function buildService({
       configurationHooks.babelConfig?.tap(PLUGIN, produce(updatePreset));
 
       configurationHooks.webpackOutputDirectory?.tap(PLUGIN, () =>
-        workspace.fs.buildPath('service'),
+        workspace.fs.buildPath('services'),
       );
 
       configurationHooks.webpackOutputFilename?.tap(PLUGIN, (filename) =>

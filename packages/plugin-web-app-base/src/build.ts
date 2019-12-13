@@ -34,7 +34,7 @@ export function buildWebApp({
       configurationHooks.babelConfig?.tap(PLUGIN, produce(updatePreset));
 
       configurationHooks.webpackOutputDirectory?.tap(PLUGIN, () =>
-        workspace.fs.buildPath('browser'),
+        workspace.fs.buildPath('apps'),
       );
 
       configurationHooks.webpackOutputFilename?.tap(PLUGIN, (filename) =>
