@@ -1,13 +1,13 @@
 {
   "name": "@sewing-kit/plugins",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/tasks": "^0.0.4",
+    "@sewing-kit/tasks": "^0.0.5",
     "@sewing-kit/ui": "^0.0.14",
     "change-case": "^4.1.0",
     "tapable": "^1.1.3"
