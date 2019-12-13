@@ -1,6 +1,6 @@
 {
   "name": "@sewing-kit/plugin-react",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -8,9 +8,9 @@
   },
   "dependencies": {
     "@babel/preset-react": "^7.7.4",
-    "@sewing-kit/plugin-babel": "^0.0.21",
-    "@sewing-kit/plugins": "^0.0.5",
-    "@sewing-kit/tasks": "^0.0.5",
+    "@sewing-kit/plugin-babel": "^0.0.22",
+    "@sewing-kit/plugins": "^0.0.6",
+    "@sewing-kit/tasks": "^0.0.6",
     "immer": "^5.0.0"
   }
 }
