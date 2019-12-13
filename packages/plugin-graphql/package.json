@@ -1,18 +1,18 @@
 {
   "name": "@sewing-kit/plugin-graphql",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/plugins": "^0.0.3",
+    "@sewing-kit/plugins": "^0.0.4",
     "graphql-mini-transforms": "^1.0.4",
     "tapable": "^1.1.3"
   },
   "optionalDependencies": {
-    "@sewing-kit/plugin-jest": "^0.0.18",
-    "@sewing-kit/plugin-webpack": "^0.0.15"
+    "@sewing-kit/plugin-jest": "^0.0.19",
+    "@sewing-kit/plugin-webpack": "^0.0.16"
   }
 }

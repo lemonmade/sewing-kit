@@ -1,6 +1,6 @@
 {
   "name": "@sewing-kit/plugin-differential-serving",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -8,9 +8,9 @@
   },
   "dependencies": {
     "@sewing-kit/hooks": "^0.0.9",
-    "@sewing-kit/plugin-babel": "^0.0.19",
-    "@sewing-kit/plugin-javascript": "^0.0.20",
-    "@sewing-kit/plugins": "^0.0.3",
+    "@sewing-kit/plugin-babel": "^0.0.20",
+    "@sewing-kit/plugin-javascript": "^0.0.21",
+    "@sewing-kit/plugins": "^0.0.4",
     "immer": "^5.0.0"
   }
 }

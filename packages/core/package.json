@@ -1,17 +1,17 @@
 {
   "name": "@sewing-kit/core",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/config": "^0.0.16",
+    "@sewing-kit/config": "^0.0.17",
     "@sewing-kit/hooks": "^0.0.9",
-    "@sewing-kit/model": "^0.0.2",
-    "@sewing-kit/plugins": "^0.0.3",
-    "@sewing-kit/tasks": "^0.0.3",
+    "@sewing-kit/model": "^0.0.3",
+    "@sewing-kit/plugins": "^0.0.4",
+    "@sewing-kit/tasks": "^0.0.4",
     "@sewing-kit/ui": "^0.0.14",
     "tapable": "^1.1.3"
   }

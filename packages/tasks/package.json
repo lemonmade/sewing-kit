@@ -1,6 +1,6 @@
 {
   "name": "@sewing-kit/tasks",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@sewing-kit/hooks": "^0.0.9",
-    "@sewing-kit/model": "^0.0.2",
+    "@sewing-kit/model": "^0.0.3",
     "@sewing-kit/ui": "^0.0.14",
     "tapable": "^1.1.3"
   }
