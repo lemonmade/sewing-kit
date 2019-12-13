@@ -8,7 +8,7 @@ import {PLUGIN} from './common';
 
 export const typeScriptProjectPlugin = createProjectPlugin({
   id: PLUGIN,
-  run({test, build}) {
+  run({test, build, dev}) {
     test.tapPromise(
       PLUGIN,
       lazy(async () => (await import('./test')).testTypeScript),
@@ -17,6 +17,11 @@ export const typeScriptProjectPlugin = createProjectPlugin({
     build.tapPromise(
       PLUGIN,
       lazy(async () => (await import('./build')).buildTypeScript),
+    );
+
+    dev.tapPromise(
+      PLUGIN,
+      lazy(async () => (await import('./dev')).devTypeScript),
     );
   },
 });

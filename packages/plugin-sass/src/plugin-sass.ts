@@ -9,6 +9,10 @@ declare module '@sewing-kit/hooks' {
   interface BuildBrowserConfigurationCustomHooks {
     readonly sassIncludePaths: AsyncSeriesWaterfallHook<string[]>;
   }
+
+  interface DevWebAppConfigurationCustomHooks {
+    readonly sassIncludePaths: AsyncSeriesWaterfallHook<string[]>;
+  }
 }
 
 interface Options {

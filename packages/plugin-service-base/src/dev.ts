@@ -1,7 +1,12 @@
 import {join} from 'path';
-
 import Koa from 'koa';
+import {produce} from 'immer';
+
 import {createStep} from '@sewing-kit/ui';
+import {
+  changeBaseJavaScriptBabelPreset,
+  BaseBabelPresetTarget,
+} from '@sewing-kit/plugin-javascript';
 import {} from '@sewing-kit/plugin-webpack';
 
 import {PLUGIN as BASE_PLUGIN, createWebpackConfig} from './common';
@@ -13,7 +18,18 @@ export function devService({
   workspace,
 }: import('@sewing-kit/tasks').DevProjectTask) {
   hooks.service.tap(PLUGIN, ({service, hooks}) => {
-    hooks.steps.tap(PLUGIN, (steps, {config, buildConfig}) => {
+    hooks.configure.tap(PLUGIN, (hooks) => {
+      hooks.babelConfig?.tap(
+        PLUGIN,
+        produce(
+          changeBaseJavaScriptBabelPreset({
+            target: BaseBabelPresetTarget.Node,
+          }),
+        ),
+      );
+    });
+
+    hooks.steps.tap(PLUGIN, (steps, {config}) => {
       return [
         ...steps,
         createStep(
@@ -27,7 +43,7 @@ export function devService({
             ]);
 
             const webpackConfig = await createWebpackConfig(
-              buildConfig,
+              config,
               service,
               workspace,
               {

@@ -2,24 +2,15 @@ import {AsyncSeriesWaterfallHook, AsyncSeriesHook} from 'tapable';
 import {
   DevServiceHooks,
   DevServiceConfigurationHooks,
-  BuildServiceHooks,
-  BuildServiceConfigurationHooks,
   DevWebAppHooks,
   DevWebAppConfigurationHooks,
-  BuildWebAppHooks,
-  BuildBrowserConfigurationHooks,
   DevPackageHooks,
   DevPackageConfigurationHooks,
-  BuildPackageHooks,
-  BuildPackageConfigurationHooks,
 } from '@sewing-kit/hooks';
 import {
-  Env,
   DevTaskOptions,
   DevProjectTaskHooks,
   DevWorkspaceTaskHooks,
-  BuildProjectTaskHooks,
-  BuildWorkspaceTaskHooks,
 } from '@sewing-kit/tasks';
 import {run} from '@sewing-kit/ui';
 
@@ -33,18 +24,9 @@ export async function runDev(
   {workspace, delegate, ui}: TaskContext,
   options: DevTaskOptions,
 ) {
-  const {build, dev} = await createWorkspaceTasksAndApplyPlugins(
-    workspace,
-    delegate,
-  );
+  const {dev} = await createWorkspaceTasksAndApplyPlugins(workspace, delegate);
 
   const devTaskHooks: DevWorkspaceTaskHooks = {
-    configure: new AsyncSeriesHook(['hooks']),
-    pre: new AsyncSeriesWaterfallHook(['steps', 'details']),
-    post: new AsyncSeriesWaterfallHook(['steps', 'details']),
-  };
-
-  const buildTaskHooks: BuildWorkspaceTaskHooks = {
     configure: new AsyncSeriesHook(['hooks']),
     pre: new AsyncSeriesWaterfallHook(['steps', 'details']),
     post: new AsyncSeriesWaterfallHook(['steps', 'details']),
@@ -56,46 +38,22 @@ export async function runDev(
     workspace,
   });
 
-  const buildOptions = {
-    ...options,
-    env: Env.Development,
-    simulateEnv: Env.Development,
-  };
-
-  await build.promise({
-    hooks: buildTaskHooks,
-    options: buildOptions,
-    workspace,
-  });
-
   const webAppSteps = await Promise.all(
     workspace.webApps.map(async (webApp) => {
-      const {dev, build} = await createProjectTasksAndApplyPlugins(
+      const {dev} = await createProjectTasksAndApplyPlugins(
         webApp,
         workspace,
         delegate,
       );
 
       const devTaskHooks: DevProjectTaskHooks = {
-        project: new AsyncSeriesHook(['project', 'projectBuildHooks']),
-        package: new AsyncSeriesHook(['pkg', 'packageBuildHooks']),
-        webApp: new AsyncSeriesHook(['app', 'webAppBuildHooks']),
-        service: new AsyncSeriesHook(['service', 'serviceBuildHooks']),
-      };
-
-      const buildTaskHooks: BuildProjectTaskHooks = {
-        project: new AsyncSeriesHook(['project', 'projectBuildHooks']),
-        package: new AsyncSeriesHook(['pkg', 'packageBuildHooks']),
-        webApp: new AsyncSeriesHook(['app', 'webAppBuildHooks']),
-        service: new AsyncSeriesHook(['service', 'serviceBuildHooks']),
+        project: new AsyncSeriesHook(['project', 'projectDevHooks']),
+        package: new AsyncSeriesHook(['pkg', 'packageDevHooks']),
+        webApp: new AsyncSeriesHook(['app', 'webAppDevHooks']),
+        service: new AsyncSeriesHook(['service', 'serviceDevHooks']),
       };
 
       await dev.promise({options, hooks: devTaskHooks, workspace});
-      await build.promise({
-        options: buildOptions,
-        hooks: buildTaskHooks,
-        workspace,
-      });
 
       const hooks: DevWebAppHooks = {
         details: new AsyncSeriesHook(['details']),
@@ -103,42 +61,14 @@ export async function runDev(
         steps: new AsyncSeriesWaterfallHook(['steps', 'details']),
       };
 
-      const buildHooks: BuildWebAppHooks = {
-        variants: new AsyncSeriesWaterfallHook(['variants']),
-        steps: new AsyncSeriesWaterfallHook(['steps', 'options']),
-        configure: new AsyncSeriesHook(['configuration', 'variant']),
-        configureBrowser: new AsyncSeriesHook(['configuration', 'variant']),
-        configureServiceWorker: new AsyncSeriesHook([
-          'configuration',
-          'variant',
-        ]),
-      };
-
       await devTaskHooks.project.promise({project: webApp, hooks});
       await devTaskHooks.webApp.promise({webApp, hooks});
-      await buildTaskHooks.project.promise({
-        project: webApp,
-        hooks: buildHooks,
-      });
-      await buildTaskHooks.webApp.promise({webApp, hooks: buildHooks});
 
       const configurationHooks: DevWebAppConfigurationHooks = {};
       await hooks.configure.promise(configurationHooks);
 
-      const buildConfigurationHooks: BuildBrowserConfigurationHooks = {
-        entries: new AsyncSeriesWaterfallHook(['entries']),
-        extensions: new AsyncSeriesWaterfallHook(['extensions', 'options']),
-        filename: new AsyncSeriesWaterfallHook(['filename']),
-        output: new AsyncSeriesWaterfallHook(['output']),
-      };
-
-      await buildHooks.configure.promise(buildConfigurationHooks, {});
-      await buildHooks.configureBrowser.promise(buildConfigurationHooks, {});
-
       const details = {
         config: configurationHooks,
-        buildBrowserConfig: buildConfigurationHooks,
-        buildServiceWorkerConfig: buildConfigurationHooks,
       };
 
       await hooks.details.promise(details);
@@ -150,32 +80,20 @@ export async function runDev(
 
   const serviceSteps = await Promise.all(
     workspace.services.map(async (service) => {
-      const {dev, build} = await createProjectTasksAndApplyPlugins(
+      const {dev} = await createProjectTasksAndApplyPlugins(
         service,
         workspace,
         delegate,
       );
 
       const devTaskHooks: DevProjectTaskHooks = {
-        project: new AsyncSeriesHook(['project', 'projectBuildHooks']),
-        package: new AsyncSeriesHook(['pkg', 'packageBuildHooks']),
-        webApp: new AsyncSeriesHook(['app', 'webAppBuildHooks']),
-        service: new AsyncSeriesHook(['service', 'serviceBuildHooks']),
-      };
-
-      const buildTaskHooks: BuildProjectTaskHooks = {
-        project: new AsyncSeriesHook(['project', 'projectBuildHooks']),
-        package: new AsyncSeriesHook(['pkg', 'packageBuildHooks']),
-        webApp: new AsyncSeriesHook(['app', 'webAppBuildHooks']),
-        service: new AsyncSeriesHook(['service', 'serviceBuildHooks']),
+        project: new AsyncSeriesHook(['project', 'projectDevHooks']),
+        package: new AsyncSeriesHook(['pkg', 'packageDevHooks']),
+        webApp: new AsyncSeriesHook(['app', 'webAppDevHooks']),
+        service: new AsyncSeriesHook(['service', 'serviceDevHooks']),
       };
 
       await dev.promise({options, hooks: devTaskHooks, workspace});
-      await build.promise({
-        options: buildOptions,
-        hooks: buildTaskHooks,
-        workspace,
-      });
 
       const hooks: DevServiceHooks = {
         configure: new AsyncSeriesHook(['configuration']),
@@ -183,19 +101,8 @@ export async function runDev(
         steps: new AsyncSeriesWaterfallHook(['steps', 'details']),
       };
 
-      const buildHooks: BuildServiceHooks = {
-        steps: new AsyncSeriesWaterfallHook(['steps', 'options']),
-        configure: new AsyncSeriesHook(['configuration']),
-      };
-
       await devTaskHooks.project.promise({project: service, hooks});
       await devTaskHooks.service.promise({service, hooks});
-
-      await buildTaskHooks.project.promise({
-        project: service,
-        hooks: buildHooks,
-      });
-      await buildTaskHooks.service.promise({service, hooks: buildHooks});
 
       const configurationHooks: DevServiceConfigurationHooks = {
         ip: new AsyncSeriesWaterfallHook(['ip']),
@@ -203,18 +110,8 @@ export async function runDev(
       };
       await hooks.configure.promise(configurationHooks);
 
-      const buildConfigurationHooks: BuildServiceConfigurationHooks = {
-        entries: new AsyncSeriesWaterfallHook(['entries']),
-        extensions: new AsyncSeriesWaterfallHook(['extensions', 'options']),
-        filename: new AsyncSeriesWaterfallHook(['filename']),
-        output: new AsyncSeriesWaterfallHook(['output']),
-      };
-
-      await buildHooks.configure.promise(buildConfigurationHooks);
-
       const details = {
         config: configurationHooks,
-        buildConfig: buildConfigurationHooks,
       };
 
       await hooks.details.promise(details);
@@ -229,32 +126,20 @@ export async function runDev(
     : (
         await Promise.all(
           workspace.packages.map(async (pkg) => {
-            const {dev, build} = await createProjectTasksAndApplyPlugins(
+            const {dev} = await createProjectTasksAndApplyPlugins(
               pkg,
               workspace,
               delegate,
             );
 
             const devTaskHooks: DevProjectTaskHooks = {
-              project: new AsyncSeriesHook(['project', 'projectBuildHooks']),
-              package: new AsyncSeriesHook(['pkg', 'packageBuildHooks']),
-              webApp: new AsyncSeriesHook(['app', 'webAppBuildHooks']),
-              service: new AsyncSeriesHook(['service', 'serviceBuildHooks']),
-            };
-
-            const buildTaskHooks: BuildProjectTaskHooks = {
-              project: new AsyncSeriesHook(['project', 'projectBuildHooks']),
-              package: new AsyncSeriesHook(['pkg', 'packageBuildHooks']),
-              webApp: new AsyncSeriesHook(['app', 'webAppBuildHooks']),
-              service: new AsyncSeriesHook(['service', 'serviceBuildHooks']),
+              project: new AsyncSeriesHook(['project', 'projectDevHooks']),
+              package: new AsyncSeriesHook(['pkg', 'packageDevHooks']),
+              webApp: new AsyncSeriesHook(['app', 'webAppDevHooks']),
+              service: new AsyncSeriesHook(['service', 'serviceDevHooks']),
             };
 
             await dev.promise({options, hooks: devTaskHooks, workspace});
-            await build.promise({
-              options: buildOptions,
-              hooks: buildTaskHooks,
-              workspace,
-            });
 
             const hooks: DevPackageHooks = {
               configure: new AsyncSeriesHook(['buildTarget', 'options']),
@@ -262,32 +147,14 @@ export async function runDev(
               steps: new AsyncSeriesWaterfallHook(['steps', 'details']),
             };
 
-            const buildHooks: BuildPackageHooks = {
-              variants: new AsyncSeriesWaterfallHook(['variants']),
-              steps: new AsyncSeriesWaterfallHook(['steps', 'options']),
-              configure: new AsyncSeriesHook(['buildTarget', 'options']),
-            };
-
             await devTaskHooks.project.promise({project: pkg, hooks});
             await devTaskHooks.package.promise({pkg, hooks});
-
-            await buildTaskHooks.project.promise({
-              project: pkg,
-              hooks: buildHooks,
-            });
-            await buildTaskHooks.package.promise({pkg, hooks: buildHooks});
 
             const configurationHooks: DevPackageConfigurationHooks = {};
             await hooks.configure.promise(configurationHooks);
 
-            const buildConfigurationHooks: BuildPackageConfigurationHooks = {
-              extensions: new AsyncSeriesWaterfallHook(['extensions']),
-            };
-            await buildHooks.configure.promise(buildConfigurationHooks);
-
             const details = {
               config: configurationHooks,
-              buildConfig: buildConfigurationHooks,
             };
 
             await hooks.details.promise(details);
@@ -309,7 +176,7 @@ export async function runDev(
   const {skip, skipPre, skipPost} = options;
 
   await run(ui, async (runner) => {
-    runner.title('build');
+    runner.title('dev');
 
     await runner.pre(pre, skipPre);
 
@@ -329,6 +196,6 @@ export async function runDev(
 
     await runner.post(post, skipPost);
 
-    runner.epilogue((fmt) => fmt`{success build completed successfully!}`);
+    runner.epilogue((fmt) => fmt`{success dev completed successfully!}`);
   });
 }

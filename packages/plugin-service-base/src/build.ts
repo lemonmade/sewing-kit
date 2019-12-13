@@ -25,11 +25,11 @@ export function buildService({
     hooks.configure.tap(PLUGIN, (configurationHooks) => {
       configurationHooks.babelConfig?.tap(PLUGIN, produce(updatePreset));
 
-      configurationHooks.output.tap(PLUGIN, () =>
+      configurationHooks.webpackOutputDirectory?.tap(PLUGIN, () =>
         workspace.fs.buildPath('service'),
       );
 
-      configurationHooks.filename.tap(PLUGIN, (filename) =>
+      configurationHooks.webpackOutputFilename?.tap(PLUGIN, (filename) =>
         workspace.services.length > 1 ? join(service.name, filename) : filename,
       );
     });

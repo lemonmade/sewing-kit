@@ -1,1 +1,1 @@
-export {webpackProjectBuildPlugin} from './plugin-webpack';
+export {webpackProjectPlugin} from './plugin-webpack';

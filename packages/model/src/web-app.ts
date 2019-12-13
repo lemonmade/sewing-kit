@@ -13,12 +13,12 @@ export class ServiceWorker {
 }
 
 export interface WebAppOptions extends BaseOptions {
-  readonly entry: string;
+  readonly entry?: string;
   readonly serviceWorker?: ServiceWorkerOptions;
 }
 
 export class WebApp extends Base {
-  readonly entry: string;
+  readonly entry?: string;
   readonly serviceWorker?: ServiceWorker;
 
   get id() {

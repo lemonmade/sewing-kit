@@ -1,7 +1,9 @@
 import {AsyncSeriesWaterfallHook} from 'tapable';
+import {produce} from 'immer';
 
 import {createStep} from '@sewing-kit/ui';
 import {addHooks} from '@sewing-kit/plugins';
+import {changeBaseJavaScriptBabelPreset} from '@sewing-kit/plugin-javascript';
 import {} from '@sewing-kit/plugin-webpack';
 
 import {PLUGIN, createWebpackConfig} from './common';
@@ -39,9 +41,28 @@ export function devWebApp({
   workspace,
 }: import('@sewing-kit/tasks').DevProjectTask) {
   hooks.webApp.tap(PLUGIN, ({webApp, hooks}) => {
-    hooks.configure.tap(PLUGIN, addDevServerHooks);
+    hooks.configure.tap(PLUGIN, (hooks) => {
+      addDevServerHooks(hooks);
 
-    hooks.steps.tap(PLUGIN, (steps, {config, buildBrowserConfig}) => {
+      hooks.babelConfig?.tap(
+        PLUGIN,
+        produce(
+          changeBaseJavaScriptBabelPreset({
+            target: [
+              'last 1 chrome versions',
+              'last 1 chromeandroid versions',
+              'last 1 firefox versions',
+              'last 1 opera versions',
+              'last 1 edge versions',
+              'safari >= 11',
+              'ios >= 11',
+            ],
+          }),
+        ),
+      );
+    });
+
+    hooks.steps.tap(PLUGIN, (steps, {config}) => {
       return [
         ...steps,
         createStep({indefinite: true}, async () => {
@@ -58,13 +79,13 @@ export function devWebApp({
             status: BuildStatus.Building,
           });
 
-          buildBrowserConfig.webpackPublicPath!.tap(
+          config.webpackPublicPath!.tap(
             PLUGIN,
             () => `http://${ip}:${port}/assets`,
           );
 
           const webpackConfig = await createWebpackConfig(
-            buildBrowserConfig,
+            config,
             webApp,
             workspace,
             {

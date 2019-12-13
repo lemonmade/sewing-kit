@@ -17,16 +17,9 @@ function addJsExtensions(extensions: readonly string[]) {
   return ['.js', '.mjs', ...extensions];
 }
 
-export function buildJavaScript({
+export function devJavaScript({
   hooks,
-}: import('@sewing-kit/tasks').BuildProjectTask) {
-  hooks.package.tap(PLUGIN, ({hooks}) => {
-    hooks.configure.tap(PLUGIN, (configurationHooks) => {
-      configurationHooks.babelConfig?.tap(PLUGIN, addBaseBabelPreset);
-      configurationHooks.babelExtensions?.tap(PLUGIN, addJsExtensions);
-    });
-  });
-
+}: import('@sewing-kit/tasks').DevProjectTask) {
   hooks.webApp.tap(PLUGIN, ({hooks}) => {
     hooks.configure.tap(PLUGIN, (configurationHooks) => {
       configurationHooks.webpackExtensions?.tap(PLUGIN, addJsExtensions);

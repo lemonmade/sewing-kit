@@ -6,6 +6,7 @@ import {createProjectBuildPlugin} from '@sewing-kit/plugins';
 import {changeBaseJavaScriptBabelPreset} from '@sewing-kit/plugin-javascript';
 
 import {} from '@sewing-kit/plugin-babel';
+import {} from '@sewing-kit/plugin-webpack';
 
 declare module '@sewing-kit/hooks' {
   interface BuildWebAppOptions {
@@ -46,12 +47,12 @@ export const createDifferentialServingPlugin = ({
         ),
       ]);
 
-      hooks.configure.tap(PLUGIN, (configuration, {browserTarget}) => {
+      hooks.configureBrowser.tap(PLUGIN, (configuration, {browserTarget}) => {
         if (browserTarget == null) {
           return;
         }
 
-        configuration.filename.tap(PLUGIN, (filename) => {
+        configuration.webpackOutputFilename?.tap(PLUGIN, (filename) => {
           return join(dirname(filename), browserTarget, basename(filename));
         });
 

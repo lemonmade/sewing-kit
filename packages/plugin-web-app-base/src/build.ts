@@ -33,11 +33,11 @@ export function buildWebApp({
     hooks.configure.tap(PLUGIN, (configurationHooks) => {
       configurationHooks.babelConfig?.tap(PLUGIN, produce(updatePreset));
 
-      configurationHooks.output.tap(PLUGIN, () =>
+      configurationHooks.webpackOutputDirectory?.tap(PLUGIN, () =>
         workspace.fs.buildPath('browser'),
       );
 
-      configurationHooks.filename.tap(PLUGIN, (filename) =>
+      configurationHooks.webpackOutputFilename?.tap(PLUGIN, (filename) =>
         workspace.webApps.length > 1 ? join(webApp.name, filename) : filename,
       );
     });

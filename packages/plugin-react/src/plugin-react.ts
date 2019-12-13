@@ -8,7 +8,7 @@ const PLUGIN = 'SewingKit.react';
 
 export const reactProjectPlugin = createProjectPlugin({
   id: PLUGIN,
-  run({build, test}) {
+  run({build, test, dev}) {
     build.tap(PLUGIN, ({hooks, options}) => {
       const addReactBabelConfig = createBabelConfigAdjuster({
         development: options.simulateEnv !== Env.Development,
@@ -16,25 +16,43 @@ export const reactProjectPlugin = createProjectPlugin({
 
       hooks.package.tap(PLUGIN, ({hooks}) => {
         hooks.configure.tap(PLUGIN, (configurationHooks) => {
-          if (configurationHooks.babelConfig) {
-            configurationHooks.babelConfig.tap(PLUGIN, addReactBabelConfig);
-          }
+          configurationHooks.babelConfig?.tap(PLUGIN, addReactBabelConfig);
         });
       });
 
       hooks.webApp.tap(PLUGIN, ({hooks}) => {
         hooks.configure.tap(PLUGIN, (configurationHooks) => {
-          if (configurationHooks.babelConfig) {
-            configurationHooks.babelConfig.tap(PLUGIN, addReactBabelConfig);
-          }
+          configurationHooks.babelConfig?.tap(PLUGIN, addReactBabelConfig);
         });
       });
 
       hooks.service.tap(PLUGIN, ({hooks}) => {
         hooks.configure.tap(PLUGIN, (configurationHooks) => {
-          if (configurationHooks.babelConfig) {
-            configurationHooks.babelConfig.tap(PLUGIN, addReactBabelConfig);
-          }
+          configurationHooks.babelConfig?.tap(PLUGIN, addReactBabelConfig);
+        });
+      });
+    });
+
+    dev.tap(PLUGIN, ({hooks}) => {
+      const addReactBabelConfig = createBabelConfigAdjuster({
+        development: true,
+      });
+
+      hooks.package.tap(PLUGIN, ({hooks}) => {
+        hooks.configure.tap(PLUGIN, (configurationHooks) => {
+          configurationHooks.babelConfig?.tap(PLUGIN, addReactBabelConfig);
+        });
+      });
+
+      hooks.webApp.tap(PLUGIN, ({hooks}) => {
+        hooks.configure.tap(PLUGIN, (configurationHooks) => {
+          configurationHooks.babelConfig?.tap(PLUGIN, addReactBabelConfig);
+        });
+      });
+
+      hooks.service.tap(PLUGIN, ({hooks}) => {
+        hooks.configure.tap(PLUGIN, (configurationHooks) => {
+          configurationHooks.babelConfig?.tap(PLUGIN, addReactBabelConfig);
         });
       });
     });

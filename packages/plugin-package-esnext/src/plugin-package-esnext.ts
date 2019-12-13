@@ -9,6 +9,7 @@ import {
   changeBaseJavaScriptBabelPreset,
   BaseBabelPresetModule,
 } from '@sewing-kit/plugin-javascript';
+import {} from '@sewing-kit/plugin-webpack';
 
 const PLUGIN = 'SewingKit.package-esnext';
 const VARIANT = 'esnext';
@@ -29,13 +30,13 @@ export const packageCreateEsNextOutputPlugin = createProjectBuildPlugin(
 
     hooks.webApp.tap(PLUGIN, ({hooks}) => {
       hooks.configure.tap(PLUGIN, (configurationHooks) => {
-        configurationHooks.extensions.tap(PLUGIN, prefixExtension);
+        configurationHooks.webpackExtensions?.tap(PLUGIN, prefixExtension);
       });
     });
 
     hooks.service.tap(PLUGIN, ({hooks}) => {
       hooks.configure.tap(PLUGIN, (configurationHooks) => {
-        configurationHooks.extensions.tap(PLUGIN, prefixExtension);
+        configurationHooks.webpackExtensions?.tap(PLUGIN, prefixExtension);
       });
     });
 

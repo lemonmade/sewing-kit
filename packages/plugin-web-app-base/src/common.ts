@@ -1,5 +1,5 @@
 import {Workspace, WebApp} from '@sewing-kit/model';
-import {BuildBrowserConfigurationHooks} from '@sewing-kit/hooks';
+import {DevWebAppConfigurationHooks} from '@sewing-kit/hooks';
 import {MissingPluginError} from '@sewing-kit/plugins';
 import {} from '@sewing-kit/plugin-webpack';
 
@@ -8,29 +8,28 @@ export const PLUGIN = 'SewingKit.web-app-base';
 type Configuration = import('webpack').Configuration;
 
 export async function createWebpackConfig(
-  buildHooks: BuildBrowserConfigurationHooks,
+  hooks: DevWebAppConfigurationHooks,
   webApp: WebApp,
   workspace: Workspace,
   explicitConfig: Configuration = {},
 ) {
-  if (
-    buildHooks.webpackConfig == null ||
-    buildHooks.webpackPlugins == null ||
-    buildHooks.webpackRules == null ||
-    buildHooks.webpackPublicPath == null
-  ) {
+  if (hooks.webpackConfig == null) {
     throw new MissingPluginError('@sewing-kit/plugin-webpack');
   }
 
-  const rules = await buildHooks.webpackRules.promise([]);
-  const plugins = await buildHooks.webpackPlugins.promise([]);
-  const extensions = await buildHooks.extensions.promise([]);
-  const outputPath = await buildHooks.output.promise(workspace.fs.buildPath());
-  const filename = await buildHooks.filename.promise('[name].js');
-  const publicPath = await buildHooks.webpackPublicPath.promise('/assets');
+  const rules = await hooks.webpackRules!.promise([]);
+  const plugins = await hooks.webpackPlugins!.promise([]);
+  const extensions = await hooks.webpackExtensions!.promise([]);
+  const outputPath = await hooks.webpackOutputDirectory!.promise(
+    workspace.fs.buildPath(),
+  );
+  const filename = await hooks.webpackOutputFilename!.promise('[name].js');
+  const publicPath = await hooks.webpackPublicPath!.promise('/assets');
 
-  return buildHooks.webpackConfig.promise({
-    entry: (await buildHooks.entries.promise([webApp.entry])) as string[],
+  return hooks.webpackConfig.promise({
+    entry: (await hooks.webpackEntries!.promise(
+      webApp.entry ? [webApp.fs.resolvePath(webApp.entry)] : [],
+    )) as string[],
     resolve: {extensions: extensions as string[]},
     module: {rules: rules as any[]},
     output: {

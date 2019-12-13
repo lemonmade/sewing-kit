@@ -11,9 +11,7 @@ export interface BuildPackageOptions {}
 
 export interface BuildPackageConfigurationCustomHooks {}
 
-export interface BuildPackageConfigurationCoreHooks {
-  readonly extensions: AsyncSeriesWaterfallHook<readonly string[]>;
-}
+export interface BuildPackageConfigurationCoreHooks {}
 
 export interface BuildPackageConfigurationHooks
   extends BuildPackageConfigurationCoreHooks,
@@ -42,12 +40,7 @@ export interface BuildPackageHooks {
 
 export interface BuildServiceConfigurationCustomHooks {}
 
-export interface BuildServiceConfigurationCoreHooks {
-  readonly output: AsyncSeriesWaterfallHook<string>;
-  readonly entries: AsyncSeriesWaterfallHook<readonly string[]>;
-  readonly extensions: AsyncSeriesWaterfallHook<readonly string[]>;
-  readonly filename: AsyncSeriesWaterfallHook<string>;
-}
+export interface BuildServiceConfigurationCoreHooks {}
 
 export interface BuildServiceConfigurationHooks
   extends BuildServiceConfigurationCoreHooks,
@@ -68,12 +61,7 @@ export interface BuildServiceHooks {
 
 export interface BuildWebAppOptions {}
 
-export interface BuildBrowserConfigurationCoreHooks {
-  readonly output: AsyncSeriesWaterfallHook<string>;
-  readonly entries: AsyncSeriesWaterfallHook<readonly string[]>;
-  readonly extensions: AsyncSeriesWaterfallHook<readonly string[]>;
-  readonly filename: AsyncSeriesWaterfallHook<string>;
-}
+export interface BuildBrowserConfigurationCoreHooks {}
 
 export interface BuildBrowserConfigurationCustomHooks {}
 
@@ -142,7 +130,6 @@ export interface DevPackageConfigurationHooks
 export interface DevPackageStepCustomDetails {}
 export interface DevPackageStepCoreDetails {
   readonly config: DevPackageConfigurationHooks;
-  readonly buildConfig: BuildPackageConfigurationHooks;
 }
 
 export interface DevPackageStepDetails
@@ -171,7 +158,6 @@ export interface DevServiceConfigurationHooks
 export interface DevServiceStepCustomDetails {}
 export interface DevServiceStepCoreDetails {
   readonly config: DevServiceConfigurationHooks;
-  readonly buildConfig: BuildServiceConfigurationHooks;
 }
 
 export interface DevServiceStepDetails
@@ -198,8 +184,6 @@ export interface DevWebAppConfigurationHooks
 export interface DevWebAppStepCustomDetails {}
 export interface DevWebAppStepCoreDetails {
   readonly config: DevWebAppConfigurationHooks;
-  readonly buildBrowserConfig: BuildBrowserConfigurationHooks;
-  readonly buildServiceWorkerConfig: BuildServiceWorkerConfigurationHooks;
 }
 
 export interface DevWebAppStepDetails
