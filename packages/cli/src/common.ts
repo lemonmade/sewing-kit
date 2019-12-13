@@ -49,7 +49,7 @@ export function createCommand<Flags extends {[key: string]: any}>(
 
       const configFiles = glob('**/sewing-kit.config.*', {
         cwd: root as string,
-        ignore: ['**/node_modules/**'],
+        ignore: ['**/node_modules/**', '**/build/**'],
         absolute: true,
       });
 
