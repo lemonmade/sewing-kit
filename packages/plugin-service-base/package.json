@@ -1,18 +1,18 @@
 {
   "name": "@sewing-kit/plugin-service-base",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/config": "^0.0.19",
-    "@sewing-kit/hooks": "^0.0.10",
+    "@sewing-kit/config": "^0.0.20",
+    "@sewing-kit/hooks": "^0.0.11",
     "@sewing-kit/model": "^0.0.5",
-    "@sewing-kit/plugin-javascript": "^0.0.23",
-    "@sewing-kit/plugins": "^0.0.6",
-    "@sewing-kit/tasks": "^0.0.6",
+    "@sewing-kit/plugin-javascript": "^0.0.24",
+    "@sewing-kit/plugins": "^0.0.7",
+    "@sewing-kit/tasks": "^0.0.7",
     "@sewing-kit/ui": "^0.0.14",
     "@types/execa": "^2.0.0",
     "@types/koa": "^2.11.0",
@@ -26,6 +26,6 @@
     "@sewing-kit/plugin-webpack": "^0.0.13"
   },
   "optionalDependencies": {
-    "@sewing-kit/plugin-babel": "^0.0.22"
+    "@sewing-kit/plugin-babel": "^0.0.23"
   }
 }

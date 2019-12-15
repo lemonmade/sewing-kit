@@ -1,13 +1,13 @@
 {
   "name": "@sewing-kit/tasks",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/hooks": "^0.0.10",
+    "@sewing-kit/hooks": "^0.0.11",
     "@sewing-kit/model": "^0.0.5",
     "@sewing-kit/ui": "^0.0.14",
     "tapable": "^1.1.3"

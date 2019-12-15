@@ -1,15 +1,15 @@
 {
   "name": "@sewing-kit/plugin-webpack",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/hooks": "^0.0.10",
+    "@sewing-kit/hooks": "^0.0.11",
     "@sewing-kit/model": "^0.0.5",
-    "@sewing-kit/plugins": "^0.0.6",
+    "@sewing-kit/plugins": "^0.0.7",
     "@types/webpack": "^4.41.0",
     "tapable": "^1.1.3",
     "webpack": "^4.41.2"
