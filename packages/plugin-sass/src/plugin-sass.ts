@@ -6,7 +6,7 @@ import {} from '@sewing-kit/plugin-jest';
 import {} from '@sewing-kit/plugin-webpack';
 
 declare module '@sewing-kit/hooks' {
-  interface BuildBrowserConfigurationCustomHooks {
+  interface BuildWebAppConfigurationCustomHooks {
     readonly sassIncludePaths: AsyncSeriesWaterfallHook<string[]>;
   }
 

@@ -47,7 +47,7 @@ export const createDifferentialServingPlugin = ({
         ),
       ]);
 
-      hooks.configureBrowser.tap(PLUGIN, (configuration, {browserTarget}) => {
+      hooks.configure.tap(PLUGIN, (configuration, {browserTarget}) => {
         if (browserTarget == null) {
           return;
         }

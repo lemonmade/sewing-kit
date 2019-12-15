@@ -17,6 +17,13 @@ export interface BuildPackageConfigurationHooks
   extends BuildPackageConfigurationCoreHooks,
     Partial<BuildPackageConfigurationCustomHooks> {}
 
+export interface BuildPackageStepContext {}
+
+export interface BuildPackageStepDetails {
+  readonly variant: Partial<BuildPackageOptions>;
+  readonly config: BuildPackageConfigurationHooks;
+}
+
 export interface BuildPackageHooks {
   readonly variants: AsyncSeriesWaterfallHook<
     readonly Partial<BuildPackageOptions>[]
@@ -27,12 +34,12 @@ export interface BuildPackageHooks {
     Partial<BuildPackageOptions>
   >;
 
+  readonly context: AsyncSeriesWaterfallHook<Partial<BuildPackageStepContext>>;
+
   readonly steps: AsyncSeriesWaterfallHook<
     readonly Step[],
-    {
-      readonly variant: Partial<BuildPackageOptions>;
-      readonly config: BuildPackageConfigurationHooks;
-    }
+    BuildPackageStepDetails,
+    Partial<BuildPackageStepContext>
   >;
 }
 
@@ -46,14 +53,21 @@ export interface BuildServiceConfigurationHooks
   extends BuildServiceConfigurationCoreHooks,
     Partial<BuildServiceConfigurationCustomHooks> {}
 
+export interface BuildServiceStepContext {}
+
+export interface BuildServiceStepDetails {
+  readonly config: BuildServiceConfigurationHooks;
+}
+
 export interface BuildServiceHooks {
   readonly configure: AsyncSeriesHook<BuildServiceConfigurationHooks>;
 
+  readonly context: AsyncSeriesWaterfallHook<Partial<BuildServiceStepContext>>;
+
   readonly steps: AsyncSeriesWaterfallHook<
     readonly Step[],
-    {
-      readonly config: BuildServiceConfigurationHooks;
-    }
+    BuildServiceStepDetails,
+    Partial<BuildServiceStepContext>
   >;
 }
 
@@ -61,47 +75,35 @@ export interface BuildServiceHooks {
 
 export interface BuildWebAppOptions {}
 
-export interface BuildBrowserConfigurationCoreHooks {}
+export interface BuildWebAppConfigurationCoreHooks {}
 
-export interface BuildBrowserConfigurationCustomHooks {}
+export interface BuildWebAppConfigurationCustomHooks {}
 
-export interface BuildBrowserConfigurationHooks
-  extends BuildBrowserConfigurationCoreHooks,
-    Partial<BuildBrowserConfigurationCustomHooks> {}
+export interface BuildWebAppConfigurationHooks
+  extends BuildWebAppConfigurationCoreHooks,
+    Partial<BuildWebAppConfigurationCustomHooks> {}
 
-export interface BuildServiceWorkerConfigurationCoreHooks
-  extends BuildBrowserConfigurationCoreHooks {}
+export interface BuildWebAppStepContext {}
 
-export interface BuildServiceWorkerConfigurationCustomHooks
-  extends BuildBrowserConfigurationCustomHooks {}
-
-export interface BuildServiceWorkerConfigurationHooks
-  extends BuildServiceWorkerConfigurationCoreHooks,
-    Partial<BuildServiceWorkerConfigurationCustomHooks> {}
+export interface BuildWebAppStepDetails {
+  readonly variant: Partial<BuildWebAppOptions>;
+  readonly config: BuildWebAppConfigurationHooks;
+}
 
 export interface BuildWebAppHooks {
   readonly variants: AsyncSeriesWaterfallHook<Partial<BuildWebAppOptions>[]>;
 
   readonly configure: AsyncSeriesHook<
-    BuildBrowserConfigurationHooks | BuildServiceWorkerConfigurationHooks,
-    Partial<BuildWebAppOptions>
-  >;
-  readonly configureBrowser: AsyncSeriesHook<
-    BuildBrowserConfigurationHooks,
-    Partial<BuildWebAppOptions>
-  >;
-  readonly configureServiceWorker: AsyncSeriesHook<
-    BuildBrowserConfigurationHooks,
+    BuildWebAppConfigurationHooks,
     Partial<BuildWebAppOptions>
   >;
 
+  readonly context: AsyncSeriesWaterfallHook<Partial<BuildWebAppStepContext>>;
+
   readonly steps: AsyncSeriesWaterfallHook<
     readonly Step[],
-    {
-      readonly variant: Partial<BuildWebAppOptions>;
-      readonly browserConfig: BuildBrowserConfigurationHooks;
-      readonly serviceWorkerConfig: BuildServiceWorkerConfigurationHooks;
-    }
+    BuildWebAppStepDetails,
+    Partial<BuildWebAppStepContext>
   >;
 }
 
@@ -127,19 +129,20 @@ export interface DevPackageConfigurationHooks
   extends DevPackageConfigurationCoreHooks,
     Partial<DevPackageConfigurationCustomHooks> {}
 
-export interface DevPackageStepCustomDetails {}
-export interface DevPackageStepCoreDetails {
+export interface DevPackageStepDetails {
   readonly config: DevPackageConfigurationHooks;
 }
 
-export interface DevPackageStepDetails
-  extends DevPackageStepCoreDetails,
-    Partial<DevPackageStepCustomDetails> {}
+export interface DevPackageStepContext {}
 
 export interface DevPackageHooks {
   readonly configure: AsyncSeriesHook<DevPackageConfigurationHooks>;
-  readonly details: AsyncSeriesHook<DevPackageStepDetails>;
-  readonly steps: AsyncSeriesWaterfallHook<Step[], DevPackageStepDetails>;
+  readonly context: AsyncSeriesWaterfallHook<Partial<DevPackageStepContext>>;
+  readonly steps: AsyncSeriesWaterfallHook<
+    Step[],
+    DevPackageStepDetails,
+    Partial<DevPackageStepContext>
+  >;
 }
 
 // SERVICE
@@ -155,21 +158,19 @@ export interface DevServiceConfigurationHooks
   extends DevServiceConfigurationCoreHooks,
     Partial<DevServiceConfigurationCustomHooks> {}
 
-export interface DevServiceStepCustomDetails {}
-export interface DevServiceStepCoreDetails {
+export interface DevServiceStepDetails {
   readonly config: DevServiceConfigurationHooks;
 }
 
-export interface DevServiceStepDetails
-  extends DevServiceStepCoreDetails,
-    Partial<DevServiceStepCustomDetails> {}
+export interface DevServiceStepContext {}
 
 export interface DevServiceHooks {
   readonly configure: AsyncSeriesHook<DevServiceConfigurationHooks>;
-  readonly details: AsyncSeriesHook<DevServiceStepDetails>;
+  readonly context: AsyncSeriesWaterfallHook<Partial<DevServiceStepContext>>;
   readonly steps: AsyncSeriesWaterfallHook<
     readonly Step[],
-    DevServiceStepDetails
+    DevServiceStepDetails,
+    Partial<DevServiceStepContext>
   >;
 }
 
@@ -181,19 +182,20 @@ export interface DevWebAppConfigurationHooks
   extends DevWebAppConfigurationCoreHooks,
     Partial<DevWebAppConfigurationCustomHooks> {}
 
-export interface DevWebAppStepCustomDetails {}
-export interface DevWebAppStepCoreDetails {
+export interface DevWebAppStepDetails {
   readonly config: DevWebAppConfigurationHooks;
 }
 
-export interface DevWebAppStepDetails
-  extends DevWebAppStepCoreDetails,
-    Partial<DevWebAppStepCustomDetails> {}
+export interface DevWebAppStepContext {}
 
 export interface DevWebAppHooks {
   readonly configure: AsyncSeriesHook<DevWebAppConfigurationHooks>;
-  readonly details: AsyncSeriesHook<DevWebAppStepDetails>;
-  readonly steps: AsyncSeriesWaterfallHook<Step[], DevWebAppStepDetails>;
+  readonly context: AsyncSeriesWaterfallHook<Partial<DevWebAppStepContext>>;
+  readonly steps: AsyncSeriesWaterfallHook<
+    Step[],
+    DevWebAppStepDetails,
+    Partial<DevWebAppStepContext>
+  >;
 }
 
 // WORKSPACE

@@ -4,6 +4,7 @@ import {
   Plugin as WebpackPlugin,
 } from 'webpack';
 import {addHooks, createProjectPlugin} from '@sewing-kit/plugins';
+import {Project} from '@sewing-kit/model';
 
 interface WebpackHooks {
   readonly webpackRules: AsyncSeriesWaterfallHook<readonly any[]>;
@@ -19,15 +20,28 @@ interface WebpackHooks {
   readonly webpackExtensions: AsyncSeriesWaterfallHook<readonly string[]>;
 }
 
+interface WebpackDevContext {
+  readonly webpackBuildManager: BuildManager;
+}
+
+interface WebpackBuildContext {
+  readonly webpackBuildManager: BuildManager;
+}
+
 declare module '@sewing-kit/hooks' {
-  interface BuildBrowserConfigurationCustomHooks extends WebpackHooks {}
-  interface BuildServiceWorkerConfigurationCustomHooks extends WebpackHooks {}
+  interface BuildWebAppConfigurationCustomHooks extends WebpackHooks {}
   interface BuildServiceConfigurationCustomHooks
     extends Omit<WebpackHooks, 'webpackPublicPath'> {}
 
   interface DevWebAppConfigurationCustomHooks extends WebpackHooks {}
   interface DevServiceConfigurationCustomHooks
     extends Omit<WebpackHooks, 'webpackPublicPath'> {}
+
+  interface BuildWebAppStepContext extends WebpackBuildContext {}
+  interface BuildServiceStepContext extends WebpackBuildContext {}
+
+  interface DevWebAppStepContext extends WebpackDevContext {}
+  interface DevServiceStepContext extends WebpackDevContext {}
 }
 
 const PLUGIN = 'SewingKit.webpack';
@@ -52,22 +66,65 @@ export const webpackProjectPlugin = createProjectPlugin({
   run({build, dev}) {
     build.tap(PLUGIN, ({hooks}) => {
       hooks.webApp.tap(PLUGIN, ({hooks}) => {
+        hooks.context.tap(PLUGIN, (context) => ({
+          ...context,
+          webpackBuildManager: new BuildManager(),
+        }));
+
         hooks.configure.tap(PLUGIN, addWebpackHooks);
       });
 
       hooks.service.tap(PLUGIN, ({hooks}) => {
+        hooks.context.tap(PLUGIN, (context) => ({
+          ...context,
+          webpackBuildManager: new BuildManager(),
+        }));
+
         hooks.configure.tap(PLUGIN, addWebpackHooks);
       });
     });
 
     dev.tap(PLUGIN, ({hooks}) => {
       hooks.webApp.tap(PLUGIN, ({hooks}) => {
+        hooks.context.tap(PLUGIN, (context) => ({
+          ...context,
+          webpackBuildManager: new BuildManager(),
+        }));
+
         hooks.configure.tap(PLUGIN, addWebpackHooks);
       });
 
       hooks.service.tap(PLUGIN, ({hooks}) => {
+        hooks.context.tap(PLUGIN, (context) => ({
+          ...context,
+          webpackBuildManager: new BuildManager(),
+        }));
+
         hooks.configure.tap(PLUGIN, addWebpackHooks);
       });
     });
   },
 });
+
+type Handler = (stats: import('webpack').Stats) => any;
+
+export class BuildManager {
+  private readonly listeners = new Map<Project, Set<Handler>>();
+
+  on(project: Project, handler: Handler) {
+    const listeners = this.listeners.get(project) ?? new Set();
+    listeners.add(handler);
+    this.listeners.set(project, listeners);
+    return () => listeners.delete(handler);
+  }
+
+  emit(project: Project, stats: import('webpack').Stats) {
+    const listeners = this.listeners.get(project);
+
+    if (listeners == null) return;
+
+    for (const listener of listeners) {
+      listener(stats);
+    }
+  }
+}

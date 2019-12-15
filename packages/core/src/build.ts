@@ -3,7 +3,7 @@ import {
   BuildServiceHooks,
   BuildServiceConfigurationHooks,
   BuildWebAppHooks,
-  BuildBrowserConfigurationHooks,
+  BuildWebAppConfigurationHooks,
   BuildPackageHooks,
   BuildPackageConfigurationHooks,
 } from '@sewing-kit/hooks';
@@ -67,12 +67,8 @@ export async function runBuild(
       const hooks: BuildWebAppHooks = {
         variants: new AsyncSeriesWaterfallHook(['variants']),
         steps: new AsyncSeriesWaterfallHook(['steps', 'options']),
+        context: new AsyncSeriesWaterfallHook(['context']),
         configure: new AsyncSeriesHook(['configuration', 'variant']),
-        configureBrowser: new AsyncSeriesHook(['configuration', 'variant']),
-        configureServiceWorker: new AsyncSeriesHook([
-          'configuration',
-          'variant',
-        ]),
       };
 
       await buildTaskHooks.project.promise({project: webApp, hooks});
@@ -83,16 +79,21 @@ export async function runBuild(
       const stepsForVariant = async (
         variant: ArrayElement<typeof variants>,
       ) => {
-        const configurationHooks: BuildBrowserConfigurationHooks = {};
+        const configurationHooks: BuildWebAppConfigurationHooks = {};
 
         await hooks.configure.promise(configurationHooks, variant);
-        await hooks.configureBrowser.promise(configurationHooks, variant);
 
-        return hooks.steps.promise([], {
-          variant,
-          browserConfig: configurationHooks,
-          serviceWorkerConfig: configurationHooks,
-        });
+        const context = {};
+        await hooks.context.promise(context);
+
+        return hooks.steps.promise(
+          [],
+          {
+            variant,
+            config: configurationHooks,
+          },
+          context,
+        );
       };
 
       const steps =
@@ -142,6 +143,7 @@ export async function runBuild(
 
       const hooks: BuildServiceHooks = {
         steps: new AsyncSeriesWaterfallHook(['steps', 'options']),
+        context: new AsyncSeriesWaterfallHook(['context']),
         configure: new AsyncSeriesHook(['configuration']),
       };
 
@@ -152,9 +154,16 @@ export async function runBuild(
 
       await hooks.configure.promise(configurationHooks);
 
-      const steps = await hooks.steps.promise([], {
-        config: configurationHooks,
-      });
+      const context = {};
+      await hooks.context.promise(context);
+
+      const steps = await hooks.steps.promise(
+        [],
+        {
+          config: configurationHooks,
+        },
+        context,
+      );
 
       return {service, steps};
     }),
@@ -184,6 +193,7 @@ export async function runBuild(
       const hooks: BuildPackageHooks = {
         variants: new AsyncSeriesWaterfallHook(['variants']),
         steps: new AsyncSeriesWaterfallHook(['steps', 'options']),
+        context: new AsyncSeriesWaterfallHook(['context']),
         configure: new AsyncSeriesHook(['buildTarget', 'options']),
       };
 
@@ -198,10 +208,17 @@ export async function runBuild(
 
           await hooks.configure.promise(configurationHooks, variant);
 
-          const steps = await hooks.steps.promise([], {
-            variant,
-            config: configurationHooks,
-          });
+          const context = {};
+          await hooks.context.promise(context);
+
+          const steps = await hooks.steps.promise(
+            [],
+            {
+              variant,
+              config: configurationHooks,
+            },
+            context,
+          );
 
           return createStepFromNestedSteps({
             steps,

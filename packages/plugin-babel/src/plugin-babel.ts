@@ -17,7 +17,7 @@ declare module '@sewing-kit/hooks' {
 
   interface BuildPackageConfigurationCustomHooks
     extends BabelPackageBuildHooks {}
-  interface BuildBrowserConfigurationCustomHooks extends BabelHooks {}
+  interface BuildWebAppConfigurationCustomHooks extends BabelHooks {}
   interface BuildServiceConfigurationCustomHooks extends BabelHooks {}
 
   interface DevPackageConfigurationCustomHooks extends BabelHooks {}

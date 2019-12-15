@@ -42,13 +42,15 @@ export function buildWebApp({
       );
     });
 
-    hooks.steps.tap(PLUGIN, (steps, {browserConfig}) => {
+    hooks.steps.tap(PLUGIN, (steps, {config}, {webpackBuildManager}) => {
       const step = createStep({}, async () => {
-        await buildWebpack(
-          await createWebpackConfig(browserConfig, webApp, workspace, {
+        const stats = await buildWebpack(
+          await createWebpackConfig(config, webApp, workspace, {
             mode: toMode(options.simulateEnv),
           }),
         );
+
+        webpackBuildManager?.emit(webApp, stats);
       });
 
       return [...steps, step];
@@ -70,14 +72,14 @@ async function buildWebpack(config: import('webpack').Configuration) {
   const {default: webpack} = await import('webpack');
   const compiler = webpack(config);
 
-  return new Promise((resolve, reject) => {
+  return new Promise<import('webpack').Stats>((resolve, reject) => {
     compiler.run((error, stats) => {
       if (error) {
         reject(new Error(stats.toString('errors-warnings')));
         return;
       }
 
-      resolve();
+      resolve(stats);
     });
   });
 }

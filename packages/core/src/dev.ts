@@ -56,7 +56,7 @@ export async function runDev(
       await dev.promise({options, hooks: devTaskHooks, workspace});
 
       const hooks: DevWebAppHooks = {
-        details: new AsyncSeriesHook(['details']),
+        context: new AsyncSeriesWaterfallHook(['context']),
         configure: new AsyncSeriesHook(['configuration']),
         steps: new AsyncSeriesWaterfallHook(['steps', 'details']),
       };
@@ -67,12 +67,14 @@ export async function runDev(
       const configurationHooks: DevWebAppConfigurationHooks = {};
       await hooks.configure.promise(configurationHooks);
 
-      const details = {
-        config: configurationHooks,
-      };
+      const context = {};
+      await hooks.context.promise(context);
 
-      await hooks.details.promise(details);
-      const steps = await hooks.steps.promise([], details);
+      const steps = await hooks.steps.promise(
+        [],
+        {config: configurationHooks},
+        context,
+      );
 
       return {steps, webApp};
     }),
@@ -97,7 +99,7 @@ export async function runDev(
 
       const hooks: DevServiceHooks = {
         configure: new AsyncSeriesHook(['configuration']),
-        details: new AsyncSeriesHook(['details']),
+        context: new AsyncSeriesWaterfallHook(['context']),
         steps: new AsyncSeriesWaterfallHook(['steps', 'details']),
       };
 
@@ -110,12 +112,16 @@ export async function runDev(
       };
       await hooks.configure.promise(configurationHooks);
 
-      const details = {
-        config: configurationHooks,
-      };
+      const context = {};
+      await hooks.context.promise(context);
 
-      await hooks.details.promise(details);
-      const steps = await hooks.steps.promise([], details);
+      const steps = await hooks.steps.promise(
+        [],
+        {
+          config: configurationHooks,
+        },
+        context,
+      );
 
       return {service, steps};
     }),
@@ -143,7 +149,7 @@ export async function runDev(
 
             const hooks: DevPackageHooks = {
               configure: new AsyncSeriesHook(['buildTarget', 'options']),
-              details: new AsyncSeriesHook(['details']),
+              context: new AsyncSeriesWaterfallHook(['context']),
               steps: new AsyncSeriesWaterfallHook(['steps', 'details']),
             };
 
@@ -153,12 +159,16 @@ export async function runDev(
             const configurationHooks: DevPackageConfigurationHooks = {};
             await hooks.configure.promise(configurationHooks);
 
-            const details = {
-              config: configurationHooks,
-            };
+            const context = {};
+            await hooks.context.promise(context);
 
-            await hooks.details.promise(details);
-            const steps = await hooks.steps.promise([], details);
+            const steps = await hooks.steps.promise(
+              [],
+              {
+                config: configurationHooks,
+              },
+              context,
+            );
 
             return {pkg, steps};
           }),

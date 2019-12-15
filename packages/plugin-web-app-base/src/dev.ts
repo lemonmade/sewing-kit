@@ -66,7 +66,7 @@ export function devWebApp({
       );
     });
 
-    hooks.steps.tap(PLUGIN, (steps, {config}) => {
+    hooks.steps.tap(PLUGIN, (steps, {config}, {webpackBuildManager}) => {
       return [
         ...steps,
         createStep({indefinite: true}, async () => {
@@ -104,6 +104,8 @@ export function devWebApp({
           });
 
           compiler.hooks.done.tap(PLUGIN, (stats) => {
+            webpackBuildManager?.emit(webApp, stats);
+
             if (stats.hasErrors()) {
               store.set({status: BuildStatus.BuildError, stats});
             } else {

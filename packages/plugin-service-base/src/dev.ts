@@ -34,7 +34,7 @@ export function devService({
       );
     });
 
-    hooks.steps.tap(PLUGIN, (steps, {config}) => {
+    hooks.steps.tap(PLUGIN, (steps, {config}, {webpackBuildManager}) => {
       return [
         ...steps,
         createStep(
@@ -119,7 +119,8 @@ export function devService({
               store.subscribe(updateServers);
               await updateServers();
 
-              compiler.hooks.done.tap(PLUGIN, () => {
+              compiler.hooks.done.tap(PLUGIN, (stats) => {
+                webpackBuildManager?.emit(service, stats);
                 store.set(true);
               });
 
