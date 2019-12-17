@@ -1,5 +1,6 @@
 {
   "name": "@sewing-kit/plugin-package-flexible-outputs",
+  "license": "MIT",
   "version": "0.0.12",
   "sideEffects": false,
   "publishConfig": {

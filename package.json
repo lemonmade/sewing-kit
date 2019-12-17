@@ -1,5 +1,6 @@
 {
   "name": "sewing-kit-next",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "bootstrap:to-source": "babel-node --extensions .ts,.tsx,.mjs,.js ./scripts/bootstrap",

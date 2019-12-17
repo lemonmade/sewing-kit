@@ -1,5 +1,6 @@
 {
   "name": "@sewing-kit/plugin-package-utilities",
+  "license": "MIT",
   "version": "0.0.19",
   "sideEffects": false,
   "publishConfig": {

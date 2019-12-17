@@ -1,5 +1,6 @@
 {
   "name": "@sewing-kit/plugin-package-esmodules",
+  "license": "MIT",
   "version": "0.0.27",
   "sideEffects": false,
   "publishConfig": {

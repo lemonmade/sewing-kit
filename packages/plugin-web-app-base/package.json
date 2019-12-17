@@ -1,5 +1,6 @@
 {
   "name": "@sewing-kit/plugin-web-app-base",
+  "license": "MIT",
   "version": "0.0.28",
   "sideEffects": false,
   "publishConfig": {

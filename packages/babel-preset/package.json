@@ -1,5 +1,6 @@
 {
   "name": "@sewing-kit/babel-preset",
+  "license": "MIT",
   "version": "0.0.6",
   "sideEffects": false,
   "publishConfig": {

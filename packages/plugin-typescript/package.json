@@ -1,5 +1,6 @@
 {
   "name": "@sewing-kit/plugin-typescript",
+  "license": "MIT",
   "version": "0.0.26",
   "sideEffects": false,
   "publishConfig": {
