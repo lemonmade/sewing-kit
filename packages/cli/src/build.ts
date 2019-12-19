@@ -3,12 +3,14 @@ import {createCommand} from './common';
 export const build = createCommand(
   {
     '--source-maps': Boolean,
+    '--env': String,
     '--skip': [String],
     '--skip-pre': [String],
     '--skip-post': [String],
   },
   async (
     {
+      '--env': rawEnv,
       '--source-maps': sourceMaps,
       '--skip': skip,
       '--skip-pre': skipPre,
@@ -17,9 +19,11 @@ export const build = createCommand(
     context,
   ) => {
     const {runBuild, Env} = await import('@sewing-kit/core');
+    const env = normalizeEnv(rawEnv, Env);
+
     await runBuild(context, {
-      env: Env.Development,
-      simulateEnv: Env.Development,
+      env,
+      simulateEnv: env,
       sourceMaps,
       skip,
       skipPre,
@@ -27,3 +31,14 @@ export const build = createCommand(
     });
   },
 );
+
+function normalizeEnv(
+  rawEnv: string | undefined,
+  Env: typeof import('@sewing-kit/tasks').Env,
+) {
+  if (rawEnv == null) {
+    return Env.Production;
+  }
+
+  return /prod(?:uction)?/i.test(rawEnv) ? Env.Production : Env.Development;
+}
