@@ -1,5 +1,8 @@
 import {produce} from 'immer';
-import {createProjectBuildPlugin} from '@sewing-kit/plugins';
+import {
+  createProjectPlugin,
+  createProjectBuildPlugin,
+} from '@sewing-kit/plugins';
 import {
   createWriteEntriesStep,
   ExportStyle,
@@ -67,3 +70,42 @@ export const packageCreateEsModulesOutputPlugin = createProjectBuildPlugin(
     });
   },
 );
+
+const USER_PLUGIN = `${Plugin}.Consumer`;
+
+function addExtension(extensions: readonly string[]): readonly string[] {
+  return ['.mjs', ...extensions];
+}
+
+export const useEsModulesPlugin = createProjectPlugin({
+  id: USER_PLUGIN,
+  run({build, dev}) {
+    build.tap(USER_PLUGIN, ({hooks}) => {
+      hooks.service.tap(USER_PLUGIN, ({hooks}) => {
+        hooks.configure.tap(USER_PLUGIN, (configure) => {
+          configure.webpackExtensions?.tap(USER_PLUGIN, addExtension);
+        });
+      });
+
+      hooks.webApp.tap(USER_PLUGIN, ({hooks}) => {
+        hooks.configure.tap(USER_PLUGIN, (configure) => {
+          configure.webpackExtensions?.tap(USER_PLUGIN, addExtension);
+        });
+      });
+    });
+
+    dev.tap(USER_PLUGIN, ({hooks}) => {
+      hooks.service.tap(USER_PLUGIN, ({hooks}) => {
+        hooks.configure.tap(USER_PLUGIN, (configure) => {
+          configure.webpackExtensions?.tap(USER_PLUGIN, addExtension);
+        });
+      });
+
+      hooks.webApp.tap(USER_PLUGIN, ({hooks}) => {
+        hooks.configure.tap(USER_PLUGIN, (configure) => {
+          configure.webpackExtensions?.tap(USER_PLUGIN, addExtension);
+        });
+      });
+    });
+  },
+});

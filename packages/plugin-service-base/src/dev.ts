@@ -6,6 +6,7 @@ import {createStep} from '@sewing-kit/ui';
 import {
   changeBaseJavaScriptBabelPreset,
   BaseBabelPresetTarget,
+  BaseBabelPresetModule,
 } from '@sewing-kit/plugin-javascript';
 import {} from '@sewing-kit/plugin-webpack';
 
@@ -24,6 +25,7 @@ export function devService({
         produce(
           changeBaseJavaScriptBabelPreset({
             target: BaseBabelPresetTarget.Node,
+            modules: BaseBabelPresetModule.Preserve,
           }),
         ),
       );
@@ -106,6 +108,11 @@ export function devService({
                 });
 
                 server!.stdout!.on('data', (chunk) => {
+                  // eslint-disable-next-line no-console
+                  console.log(chunk.toString().trim());
+                });
+
+                server!.stderr!.on('data', (chunk) => {
                   // eslint-disable-next-line no-console
                   console.log(chunk.toString().trim());
                 });

@@ -1,1 +1,4 @@
-export {packageCreateEsNextOutputPlugin} from './plugin-package-esnext';
+export {
+  useEsNextPlugin,
+  packageCreateEsNextOutputPlugin,
+} from './plugin-package-esnext';

@@ -23,7 +23,7 @@ export function buildService({
   hooks.service.tap(PLUGIN, ({service, hooks}) => {
     const updatePreset = changeBaseJavaScriptBabelPreset({
       target: BaseBabelPresetTarget.Node,
-      modules: BaseBabelPresetModule.CommonJs,
+      modules: BaseBabelPresetModule.Preserve,
     });
 
     hooks.configure.tap(PLUGIN, (configurationHooks) => {
