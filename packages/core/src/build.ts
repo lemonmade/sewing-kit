@@ -282,18 +282,23 @@ function createStepFromNestedSteps({
   readonly label: Loggable;
 }) {
   return createStep({label}, async (stepRunner) => {
-    for (const step of steps) {
-      if (step.label) {
-        stepRunner.log((fmt) => fmt`starting sub-step: {info ${step.label!}}`, {
-          level: LogLevel.Debug,
-        });
-      } else {
-        stepRunner.log(`starting unlabeled sub-step`, {
-          level: LogLevel.Debug,
-        });
-      }
+    await Promise.all(
+      steps.map(async (step) => {
+        if (step.label) {
+          stepRunner.log(
+            (fmt) => fmt`starting sub-step: {info ${step.label!}}`,
+            {
+              level: LogLevel.Debug,
+            },
+          );
+        } else {
+          stepRunner.log(`starting unlabeled sub-step`, {
+            level: LogLevel.Debug,
+          });
+        }
 
-      await step.run(stepRunner);
-    }
+        await step.run(stepRunner);
+      }),
+    );
   });
 }
