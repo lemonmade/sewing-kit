@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/plugin-package-esmodules",
   "license": "MIT",
-  "version": "0.0.28",
+  "version": "0.0.29",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -9,10 +9,10 @@
   },
   "dependencies": {
     "@sewing-kit/hooks": "^0.0.13",
-    "@sewing-kit/plugin-babel": "^0.0.25",
-    "@sewing-kit/plugin-javascript": "^0.0.26",
+    "@sewing-kit/plugin-babel": "^0.0.26",
+    "@sewing-kit/plugin-javascript": "^0.0.27",
     "@sewing-kit/plugin-package-utilities": "^0.0.20",
-    "@sewing-kit/plugins": "^0.0.9",
+    "@sewing-kit/plugins": "^0.0.10",
     "immer": "^5.0.0"
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/plugin-package-binaries",
   "license": "MIT",
-  "version": "0.0.24",
+  "version": "0.0.25",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@sewing-kit/model": "^0.0.7",
-    "@sewing-kit/plugins": "^0.0.9",
+    "@sewing-kit/plugins": "^0.0.10",
     "@sewing-kit/ui": "^0.0.16"
   }
 }

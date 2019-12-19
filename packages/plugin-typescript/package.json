@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/plugin-typescript",
   "license": "MIT",
-  "version": "0.0.27",
+  "version": "0.0.28",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -11,8 +11,8 @@
     "@babel/plugin-proposal-decorators": "^7.7.4",
     "@babel/preset-typescript": "^7.7.4",
     "@sewing-kit/model": "^0.0.7",
-    "@sewing-kit/plugin-babel": "^0.0.25",
-    "@sewing-kit/plugins": "^0.0.9",
+    "@sewing-kit/plugin-babel": "^0.0.26",
+    "@sewing-kit/plugins": "^0.0.10",
     "@sewing-kit/ui": "^0.0.16",
     "fs-extra": "^8.1.0",
     "immer": "^5.0.0",
@@ -20,8 +20,8 @@
     "typescript": "^3.7.3"
   },
   "optionalDependencies": {
-    "@sewing-kit/plugin-eslint": "^0.0.21",
-    "@sewing-kit/plugin-jest": "^0.0.24",
-    "@sewing-kit/plugin-webpack": "^0.0.21"
+    "@sewing-kit/plugin-eslint": "^0.0.22",
+    "@sewing-kit/plugin-jest": "^0.0.25",
+    "@sewing-kit/plugin-webpack": "^0.0.22"
   }
 }
