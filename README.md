@@ -10,8 +10,9 @@ Understanding the architecture about this project is mostly about understanding 
 
 ## TODO
 
-- [ ] Get rid of discovery. Discovery should just be looking for every `sewing-kit.config.*`, running it, and collecting the results to form the project.
+- [x] Get rid of discovery. Discovery should just be looking for every `sewing-kit.config.*`, running it, and collecting the results to form the project.
 - [ ] Find a way to help avoid issues where re-export of a type leads to an unresolvable export once compiled from TS to another format (the re-export of the type can remain because babel doesn’t know it has to be removed)
+- [ ] Work on better API for what hooks get and how they declare steps. Right now steps are too dumb because they don't understand dependencies between steps, resource utilization, pausing/ unpausing of work, etc. Additionally, the hooks API is dumb because some stuff comes as part of that first argument to hooks, and some stuff comes in as a random "special" argument.
 
 ## Ideal at Shopify
 

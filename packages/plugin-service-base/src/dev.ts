@@ -76,14 +76,21 @@ export function devService({
             const updateServers = async (ready = false) => {
               if (warmupServer != null && ready) {
                 await new Promise((resolve, reject) =>
-                  warmupServer!.close((error) =>
-                    error ? reject(error) : resolve(),
-                  ),
+                  warmupServer!.close((error) => {
+                    if (error) {
+                      reject(error);
+                      return;
+                    }
+
+                    warmupServer = undefined;
+                    resolve();
+                  }),
                 );
               }
 
               if (server != null && !ready) {
                 server.kill();
+                server = undefined;
               }
 
               if (ready) {

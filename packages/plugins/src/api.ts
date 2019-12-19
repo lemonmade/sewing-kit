@@ -4,4 +4,5 @@ export interface PluginApi {
   resolvePath(...parts: string[]): string;
   configPath(...parts: string[]): string;
   cachePath(...parts: string[]): string;
+  tmpPath(...parts: string[]): string;
 }

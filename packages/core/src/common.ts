@@ -92,5 +92,6 @@ function createPluginApi(workspace: Workspace): PluginApi {
     write: (path, contents) => workspace.fs.write(resolvePath(path), contents),
     configPath: (...parts) => resolvePath('config', ...parts),
     cachePath: (...parts) => resolvePath('cache', ...parts),
+    tmpPath: (...parts) => resolvePath('tmp', ...parts),
   };
 }
