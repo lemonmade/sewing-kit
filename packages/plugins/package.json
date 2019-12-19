@@ -1,15 +1,15 @@
 {
   "name": "@sewing-kit/plugins",
   "license": "MIT",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/tasks": "^0.0.8",
-    "@sewing-kit/ui": "^0.0.15",
+    "@sewing-kit/tasks": "^0.0.9",
+    "@sewing-kit/ui": "^0.0.16",
     "change-case": "^4.1.0",
     "tapable": "^1.1.3"
   }
