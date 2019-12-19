@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/cli",
   "license": "MIT",
-  "version": "0.0.28",
+  "version": "0.0.29",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@sewing-kit/config": "^0.0.22",
-    "@sewing-kit/core": "^0.0.26",
+    "@sewing-kit/core": "^0.0.27",
     "@sewing-kit/model": "^0.0.7",
     "@sewing-kit/plugins": "^0.0.9",
     "@sewing-kit/ui": "^0.0.16",
