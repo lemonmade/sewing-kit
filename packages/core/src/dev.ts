@@ -58,7 +58,7 @@ export async function runDev(
       const hooks: DevWebAppHooks = {
         context: new AsyncSeriesWaterfallHook(['context']),
         configure: new AsyncSeriesHook(['configuration']),
-        steps: new AsyncSeriesWaterfallHook(['steps', 'details']),
+        steps: new AsyncSeriesWaterfallHook(['steps', 'details', 'context']),
       };
 
       await devTaskHooks.project.promise({project: webApp, hooks});
@@ -67,8 +67,7 @@ export async function runDev(
       const configurationHooks: DevWebAppConfigurationHooks = {};
       await hooks.configure.promise(configurationHooks);
 
-      const context = {};
-      await hooks.context.promise(context);
+      const context = await hooks.context.promise({});
 
       const steps = await hooks.steps.promise(
         [],
@@ -100,7 +99,7 @@ export async function runDev(
       const hooks: DevServiceHooks = {
         configure: new AsyncSeriesHook(['configuration']),
         context: new AsyncSeriesWaterfallHook(['context']),
-        steps: new AsyncSeriesWaterfallHook(['steps', 'details']),
+        steps: new AsyncSeriesWaterfallHook(['steps', 'details', 'context']),
       };
 
       await devTaskHooks.project.promise({project: service, hooks});
@@ -112,8 +111,7 @@ export async function runDev(
       };
       await hooks.configure.promise(configurationHooks);
 
-      const context = {};
-      await hooks.context.promise(context);
+      const context = await hooks.context.promise({});
 
       const steps = await hooks.steps.promise(
         [],
@@ -150,7 +148,11 @@ export async function runDev(
             const hooks: DevPackageHooks = {
               configure: new AsyncSeriesHook(['buildTarget', 'options']),
               context: new AsyncSeriesWaterfallHook(['context']),
-              steps: new AsyncSeriesWaterfallHook(['steps', 'details']),
+              steps: new AsyncSeriesWaterfallHook([
+                'steps',
+                'details',
+                'context',
+              ]),
             };
 
             await devTaskHooks.project.promise({project: pkg, hooks});
@@ -159,8 +161,7 @@ export async function runDev(
             const configurationHooks: DevPackageConfigurationHooks = {};
             await hooks.configure.promise(configurationHooks);
 
-            const context = {};
-            await hooks.context.promise(context);
+            const context = await hooks.context.promise({});
 
             const steps = await hooks.steps.promise(
               [],

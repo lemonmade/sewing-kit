@@ -66,7 +66,7 @@ export async function runBuild(
 
       const hooks: BuildWebAppHooks = {
         variants: new AsyncSeriesWaterfallHook(['variants']),
-        steps: new AsyncSeriesWaterfallHook(['steps', 'options']),
+        steps: new AsyncSeriesWaterfallHook(['steps', 'details', 'context']),
         context: new AsyncSeriesWaterfallHook(['context']),
         configure: new AsyncSeriesHook(['configuration', 'variant']),
       };
@@ -83,8 +83,7 @@ export async function runBuild(
 
         await hooks.configure.promise(configurationHooks, variant);
 
-        const context = {};
-        await hooks.context.promise(context);
+        const context = await hooks.context.promise({});
 
         return hooks.steps.promise(
           [],
@@ -142,7 +141,7 @@ export async function runBuild(
       });
 
       const hooks: BuildServiceHooks = {
-        steps: new AsyncSeriesWaterfallHook(['steps', 'options']),
+        steps: new AsyncSeriesWaterfallHook(['steps', 'details', 'context']),
         context: new AsyncSeriesWaterfallHook(['context']),
         configure: new AsyncSeriesHook(['configuration']),
       };
@@ -154,8 +153,7 @@ export async function runBuild(
 
       await hooks.configure.promise(configurationHooks);
 
-      const context = {};
-      await hooks.context.promise(context);
+      const context = await hooks.context.promise({});
 
       const steps = await hooks.steps.promise(
         [],
@@ -192,9 +190,9 @@ export async function runBuild(
 
       const hooks: BuildPackageHooks = {
         variants: new AsyncSeriesWaterfallHook(['variants']),
-        steps: new AsyncSeriesWaterfallHook(['steps', 'options']),
+        steps: new AsyncSeriesWaterfallHook(['steps', 'details', 'context']),
         context: new AsyncSeriesWaterfallHook(['context']),
-        configure: new AsyncSeriesHook(['buildTarget', 'options']),
+        configure: new AsyncSeriesHook(['buildTarget', 'variant']),
       };
 
       await buildTaskHooks.project.promise({project: pkg, hooks});
@@ -208,8 +206,7 @@ export async function runBuild(
 
           await hooks.configure.promise(configurationHooks, variant);
 
-          const context = {};
-          await hooks.context.promise(context);
+          const context = await hooks.context.promise({});
 
           const steps = await hooks.steps.promise(
             [],
