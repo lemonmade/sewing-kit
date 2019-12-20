@@ -14,7 +14,7 @@ function addBaseBabelPreset(babelConfig: BabelConfig) {
 }
 
 function addJsExtensions(extensions: readonly string[]) {
-  return ['.js', '.mjs', ...extensions];
+  return ['.mjs', '.js', ...extensions];
 }
 
 export function buildJavaScript({
