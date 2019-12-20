@@ -1,1 +1,4 @@
-export {serviceWebpackPlugin} from './plugin-service-base';
+export {
+  serviceWebpackPlugin,
+  createDevServerConnectionPlugin,
+} from './plugin-service-base';

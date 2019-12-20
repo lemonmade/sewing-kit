@@ -1,16 +1,14 @@
 import {AsyncSeriesWaterfallHook} from 'tapable';
-import {
-  Configuration as WebpackConfiguration,
-  Plugin as WebpackPlugin,
-} from 'webpack';
 import {addHooks, createProjectPlugin} from '@sewing-kit/plugins';
 import {Project} from '@sewing-kit/model';
 
 interface WebpackHooks {
   readonly webpackRules: AsyncSeriesWaterfallHook<readonly any[]>;
-  readonly webpackPlugins: AsyncSeriesWaterfallHook<readonly WebpackPlugin[]>;
+  readonly webpackPlugins: AsyncSeriesWaterfallHook<
+    readonly import('webpack').Plugin[]
+  >;
   readonly webpackConfig: AsyncSeriesWaterfallHook<
-    Readonly<WebpackConfiguration>
+    Readonly<import('webpack').Configuration>
   >;
   readonly webpackPublicPath: AsyncSeriesWaterfallHook<string>;
 
@@ -105,6 +103,89 @@ export const webpackProjectPlugin = createProjectPlugin({
     });
   },
 });
+
+interface WebpackConfigurationChangePluginOptions {
+  dev?: boolean;
+  build?: boolean;
+}
+
+export function noopModuleWithWebpack(
+  module: RegExp,
+  options?: WebpackConfigurationChangePluginOptions,
+) {
+  return addWebpackPlugin(
+    async () =>
+      new (await import('webpack')).NormalModuleReplacementPlugin(
+        module,
+        require.resolve('./noop'),
+      ),
+    options,
+  );
+}
+
+type ValueOrArray<Value> = Value | Value[];
+type ValueOrGetter<Value> = Value | (() => Value | Promise<Value>);
+type PluginsOrPluginGetter = ValueOrGetter<
+  ValueOrArray<import('webpack').Plugin>
+>;
+
+export function addWebpackPlugin(
+  pluginGetter: PluginsOrPluginGetter,
+  {
+    dev: applyToDev = true,
+    build: applyToBuild = true,
+  }: WebpackConfigurationChangePluginOptions = {},
+) {
+  const pluginId = `${PLUGIN}.AddWebpackPlugin`;
+
+  async function addPlugins(existingPlugins: readonly any[]) {
+    const pluginOrPlugins =
+      typeof pluginGetter === 'function' ? await pluginGetter() : pluginGetter;
+
+    const plugins = Array.isArray(pluginOrPlugins)
+      ? pluginOrPlugins
+      : [pluginOrPlugins];
+
+    return [...existingPlugins, ...plugins];
+  }
+
+  return createProjectPlugin({
+    id: pluginId,
+    run({build, dev}) {
+      if (applyToBuild) {
+        build.tap(pluginId, ({hooks}) => {
+          hooks.webApp.tap(pluginId, ({hooks}) => {
+            hooks.configure.tap(pluginId, (configure) => {
+              configure.webpackPlugins?.tapPromise(pluginId, addPlugins);
+            });
+          });
+
+          hooks.service.tap(pluginId, ({hooks}) => {
+            hooks.configure.tap(pluginId, (configure) => {
+              configure.webpackPlugins?.tapPromise(pluginId, addPlugins);
+            });
+          });
+        });
+      }
+
+      if (applyToDev) {
+        dev.tap(pluginId, ({hooks}) => {
+          hooks.webApp.tap(pluginId, ({hooks}) => {
+            hooks.configure.tap(pluginId, (configure) => {
+              configure.webpackPlugins?.tapPromise(pluginId, addPlugins);
+            });
+          });
+
+          hooks.service.tap(pluginId, ({hooks}) => {
+            hooks.configure.tap(pluginId, (configure) => {
+              configure.webpackPlugins?.tapPromise(pluginId, addPlugins);
+            });
+          });
+        });
+      }
+    },
+  });
+}
 
 type Handler = (stats: import('webpack').Stats) => any;
 

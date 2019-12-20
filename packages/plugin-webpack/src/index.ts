@@ -1,1 +1,6 @@
-export {webpackProjectPlugin, BuildManager} from './plugin-webpack';
+export {
+  BuildManager,
+  webpackProjectPlugin,
+  addWebpackPlugin,
+  noopModuleWithWebpack,
+} from './plugin-webpack';
