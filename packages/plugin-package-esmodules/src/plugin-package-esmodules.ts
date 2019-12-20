@@ -13,6 +13,7 @@ import {
   BaseBabelPresetModule,
 } from '@sewing-kit/plugin-javascript';
 import {} from '@sewing-kit/hooks';
+import {} from '@sewing-kit/plugin-webpack';
 
 const PLUGIN = 'SewingKit.package-esmodules';
 const VARIANT = 'esmodules';
@@ -71,7 +72,7 @@ export const packageCreateEsModulesOutputPlugin = createProjectBuildPlugin(
   },
 );
 
-const USER_PLUGIN = `${Plugin}.Consumer`;
+const USER_PLUGIN = `${PLUGIN}.Consumer`;
 
 function addExtension(extensions: readonly string[]): readonly string[] {
   return ['.mjs', ...extensions];

@@ -27,19 +27,15 @@ declare module '@sewing-kit/hooks' {
 export const packageCreateEsNextOutputPlugin = createProjectBuildPlugin(
   PLUGIN,
   ({hooks}, api) => {
-    function prefixExtension(extensions: readonly string[]) {
-      return [EXTENSION, ...extensions];
-    }
-
     hooks.webApp.tap(PLUGIN, ({hooks}) => {
       hooks.configure.tap(PLUGIN, (configurationHooks) => {
-        configurationHooks.webpackExtensions?.tap(PLUGIN, prefixExtension);
+        configurationHooks.webpackExtensions?.tap(PLUGIN, addExtension);
       });
     });
 
     hooks.service.tap(PLUGIN, ({hooks}) => {
       hooks.configure.tap(PLUGIN, (configurationHooks) => {
-        configurationHooks.webpackExtensions?.tap(PLUGIN, prefixExtension);
+        configurationHooks.webpackExtensions?.tap(PLUGIN, addExtension);
       });
     });
 
@@ -91,10 +87,10 @@ export const packageCreateEsNextOutputPlugin = createProjectBuildPlugin(
   },
 );
 
-const USER_PLUGIN = `${Plugin}.Consumer`;
+const USER_PLUGIN = `${PLUGIN}.Consumer`;
 
 function addExtension(extensions: readonly string[]): readonly string[] {
-  return ['.mjs', ...extensions];
+  return [EXTENSION, ...extensions];
 }
 
 export const useEsNextPlugin = createProjectPlugin({
