@@ -72,3 +72,29 @@ export const createPackageFlexibleOutputsPlugin = ({
   });
 
 export const packageFlexibleOutputsPlugin = createPackageFlexibleOutputsPlugin();
+
+export interface ConsumerOptions
+  extends Pick<Options, 'esnext' | 'esmodules'> {}
+
+export const createPackageFlexibleOutputsConsumerPlugin = ({
+  esmodules = true,
+  esnext = true,
+}: ConsumerOptions = {}) =>
+  createComposedProjectPlugin(PLUGIN, async (composer) => {
+    const composed = await Promise.all([
+      esmodules
+        ? import('@sewing-kit/plugin-package-esmodules').then(
+            ({useEsModulesPlugin}) => useEsModulesPlugin,
+          )
+        : emptyPromise,
+      esnext
+        ? import('@sewing-kit/plugin-package-esnext').then(
+            ({useEsNextPlugin}) => useEsNextPlugin,
+          )
+        : emptyPromise,
+    ]);
+
+    composer.use(...(composed.filter(Boolean) as ProjectPlugin[]));
+  });
+
+export const packageFlexibleOutputsConsumerPlugin = createPackageFlexibleOutputsPlugin();
