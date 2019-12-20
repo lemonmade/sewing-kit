@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/plugin-package-commonjs",
   "license": "MIT",
-  "version": "0.0.30",
+  "version": "0.0.31",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -11,7 +11,7 @@
     "@sewing-kit/hooks": "^0.0.13",
     "@sewing-kit/model": "^0.0.7",
     "@sewing-kit/plugin-babel": "^0.0.26",
-    "@sewing-kit/plugin-javascript": "^0.0.28",
+    "@sewing-kit/plugin-javascript": "^0.0.29",
     "@sewing-kit/plugin-package-utilities": "^0.0.20",
     "@sewing-kit/plugins": "^0.0.10",
     "immer": "^5.0.0"
