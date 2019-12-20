@@ -105,6 +105,7 @@ export const webpackProjectPlugin = createProjectPlugin({
 });
 
 interface WebpackConfigurationChangePluginOptions {
+  id?: string;
   dev?: boolean;
   build?: boolean;
 }
@@ -132,12 +133,11 @@ type PluginsOrPluginGetter = ValueOrGetter<
 export function addWebpackPlugin(
   pluginGetter: PluginsOrPluginGetter,
   {
+    id: pluginId = `${PLUGIN}.AddWebpackPlugin`,
     dev: applyToDev = true,
     build: applyToBuild = true,
   }: WebpackConfigurationChangePluginOptions = {},
 ) {
-  const pluginId = `${PLUGIN}.AddWebpackPlugin`;
-
   async function addPlugins(existingPlugins: readonly any[]) {
     const pluginOrPlugins =
       typeof pluginGetter === 'function' ? await pluginGetter() : pluginGetter;
