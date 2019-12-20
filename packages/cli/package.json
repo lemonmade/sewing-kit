@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/cli",
   "license": "MIT",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -12,10 +12,10 @@
     "sk": "./bin/sk"
   },
   "dependencies": {
-    "@sewing-kit/config": "^0.0.23",
-    "@sewing-kit/core": "^0.0.28",
+    "@sewing-kit/config": "^0.0.24",
+    "@sewing-kit/core": "^0.0.29",
     "@sewing-kit/model": "^0.0.7",
-    "@sewing-kit/plugins": "^0.0.10",
+    "@sewing-kit/plugins": "^0.0.11",
     "@sewing-kit/ui": "^0.0.16",
     "arg": "^4.1.2",
     "core-js": ">=3.0.0 <4.0.0",
