@@ -21,13 +21,12 @@ export const serviceWebpackPlugin = createProjectPlugin({
   },
 });
 
-export function createDevServerConnectionPlugin({
-  ip = 'localhost',
-  port,
-}: {
+export interface DevServerOptions {
   ip?: string;
   port: number;
-}) {
+}
+
+export function configureDevServer({ip = 'localhost', port}: DevServerOptions) {
   const pluginId = `${PLUGIN}.DevServerConnection`;
   return createProjectDevPlugin(pluginId, ({hooks}) => {
     hooks.service.tap(PLUGIN, ({hooks}) => {

@@ -43,7 +43,7 @@ export function createProjectPlugin(
 export function createComposedProjectPlugin(
   id: BasePlugin['id'],
   pluginsOrCompose:
-    | readonly ProjectPlugin[]
+    | readonly (ProjectPlugin | false | null | undefined)[]
     | NonNullable<ProjectPlugin['compose']>,
 ) {
   const compose: NonNullable<ProjectPlugin['compose']> =
@@ -51,7 +51,7 @@ export function createComposedProjectPlugin(
       ? pluginsOrCompose
       : (composer) => {
           for (const plugin of pluginsOrCompose) {
-            composer.use(plugin);
+            if (plugin) composer.use(plugin);
           }
         };
 
