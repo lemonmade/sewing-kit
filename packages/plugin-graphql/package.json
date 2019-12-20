@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/plugin-graphql",
   "license": "MIT",
-  "version": "0.0.23",
+  "version": "0.0.24",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -14,6 +14,6 @@
   },
   "optionalDependencies": {
     "@sewing-kit/plugin-jest": "^0.0.25",
-    "@sewing-kit/plugin-webpack": "^0.0.22"
+    "@sewing-kit/plugin-webpack": "^0.0.23"
   }
 }
