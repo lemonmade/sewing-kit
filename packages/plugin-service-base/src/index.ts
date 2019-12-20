@@ -1,4 +1,5 @@
 export {
   serviceWebpackPlugin,
-  createDevServerConnectionPlugin,
+  configureDevServer,
+  DevServerOptions,
 } from './plugin-service-base';
