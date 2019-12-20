@@ -14,6 +14,8 @@ Understanding the architecture about this project is mostly about understanding 
 - [ ] Find a way to help avoid issues where re-export of a type leads to an unresolvable export once compiled from TS to another format (the re-export of the type can remain because babel doesn’t know it has to be removed)
 - [ ] Work on better API for what hooks get and how they declare steps. Right now steps are too dumb because they don't understand dependencies between steps, resource utilization, pausing/ unpausing of work, etc. Additionally, the hooks API is dumb because some stuff comes as part of that first argument to hooks, and some stuff comes in as a random "special" argument.
 - [ ] Better experience with unknown flags for CLI commands
+- [ ] Get off of tapable, make our own simple version that just has the async hooks we actually use
+- [ ] Order is too important for plugins right now. This is primarily because of the `configure` hooks, plugins that add hooks need to come before those that use them (e.g., `plugin-javascript` after `plugin-babel`). If we moved all "hook augmentation" stuff to a dedicated hook, order would be a lot more intuitive (e.g., just put the plugin whose config you most want to "win" latest).
 
 ## Ideal at Shopify
 
