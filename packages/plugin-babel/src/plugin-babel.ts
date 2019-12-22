@@ -82,3 +82,69 @@ export const babelProjectPlugin = createProjectPlugin({
     });
   },
 });
+
+export function addBabelPlugin(plugin: string | [string, object]) {
+  const id = `${PLUGIN}.AddBabelPlugin`;
+
+  return createProjectPluginTargettingAllConfigurationHooks(id, (hooks) => {
+    hooks.babelConfig?.tap(id, (config) => ({
+      ...config,
+      plugins: [...(config.plugins ?? []), plugin],
+    }));
+  });
+}
+
+export function addBabelPreset(preset: string | [string, object]) {
+  const id = `${PLUGIN}.AddBabelPreset`;
+
+  return createProjectPluginTargettingAllConfigurationHooks(id, (hooks) => {
+    hooks.babelConfig?.tap(id, (config) => ({
+      ...config,
+      presets: [...(config.presets ?? []), preset],
+    }));
+  });
+}
+
+function createProjectPluginTargettingAllConfigurationHooks(
+  id: string,
+  configurator: (hooks: Partial<BabelHooks>) => void,
+) {
+  return createProjectPlugin({
+    id,
+    run({build, test, dev}) {
+      build.tap(id, ({hooks}) => {
+        hooks.package.tap(id, ({hooks}) => {
+          hooks.configure.tap(id, configurator);
+        });
+
+        hooks.webApp.tap(id, ({hooks}) => {
+          hooks.configure.tap(id, configurator);
+        });
+
+        hooks.service.tap(id, ({hooks}) => {
+          hooks.configure.tap(id, configurator);
+        });
+      });
+
+      dev.tap(id, ({hooks}) => {
+        hooks.package.tap(id, ({hooks}) => {
+          hooks.configure.tap(id, configurator);
+        });
+
+        hooks.webApp.tap(id, ({hooks}) => {
+          hooks.configure.tap(id, configurator);
+        });
+
+        hooks.service.tap(id, ({hooks}) => {
+          hooks.configure.tap(id, configurator);
+        });
+      });
+
+      test.tap(id, ({hooks}) => {
+        hooks.project.tap(id, ({hooks}) => {
+          hooks.configure.tap(id, configurator);
+        });
+      });
+    },
+  });
+}

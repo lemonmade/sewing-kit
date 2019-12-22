@@ -16,6 +16,7 @@ interface WebpackHooks {
   readonly webpackOutputFilename: AsyncSeriesWaterfallHook<string>;
   readonly webpackEntries: AsyncSeriesWaterfallHook<readonly string[]>;
   readonly webpackExtensions: AsyncSeriesWaterfallHook<readonly string[]>;
+  readonly webpackAliases: AsyncSeriesWaterfallHook<{[key: string]: string}>;
 }
 
 interface WebpackDevContext {
@@ -57,6 +58,7 @@ const addWebpackHooks = addHooks<Partial<WebpackHooks>>(() => ({
   ]),
   webpackEntries: new AsyncSeriesWaterfallHook(['webpackEntries']),
   webpackExtensions: new AsyncSeriesWaterfallHook(['webpackExtensions']),
+  webpackAliases: new AsyncSeriesWaterfallHook(['webpackAliases']),
 }));
 
 export const webpackProjectPlugin = createProjectPlugin({
@@ -179,6 +181,61 @@ export function addWebpackPlugin(
           hooks.service.tap(pluginId, ({hooks}) => {
             hooks.configure.tap(pluginId, (configure) => {
               configure.webpackPlugins?.tapPromise(pluginId, addPlugins);
+            });
+          });
+        });
+      }
+    },
+  });
+}
+
+type AliasesOrAliasGetter = ValueOrGetter<{[key: string]: string}>;
+
+export function addWebpackAliases(
+  aliasGetter: AliasesOrAliasGetter,
+  {
+    id: pluginId = `${PLUGIN}.AddWebpackPlugin`,
+    dev: applyToDev = true,
+    build: applyToBuild = true,
+  }: WebpackConfigurationChangePluginOptions = {},
+) {
+  async function addAliases(existingAliases: {[key: string]: string}) {
+    const aliases =
+      typeof aliasGetter === 'function' ? await aliasGetter() : aliasGetter;
+
+    return {...existingAliases, ...aliases};
+  }
+
+  return createProjectPlugin({
+    id: pluginId,
+    run({build, dev}) {
+      if (applyToBuild) {
+        build.tap(pluginId, ({hooks}) => {
+          hooks.webApp.tap(pluginId, ({hooks}) => {
+            hooks.configure.tap(pluginId, (configure) => {
+              configure.webpackAliases?.tapPromise(pluginId, addAliases);
+            });
+          });
+
+          hooks.service.tap(pluginId, ({hooks}) => {
+            hooks.configure.tap(pluginId, (configure) => {
+              configure.webpackAliases?.tapPromise(pluginId, addAliases);
+            });
+          });
+        });
+      }
+
+      if (applyToDev) {
+        dev.tap(pluginId, ({hooks}) => {
+          hooks.webApp.tap(pluginId, ({hooks}) => {
+            hooks.configure.tap(pluginId, (configure) => {
+              configure.webpackAliases?.tapPromise(pluginId, addAliases);
+            });
+          });
+
+          hooks.service.tap(pluginId, ({hooks}) => {
+            hooks.configure.tap(pluginId, (configure) => {
+              configure.webpackAliases?.tapPromise(pluginId, addAliases);
             });
           });
         });

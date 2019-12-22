@@ -16,6 +16,8 @@ Understanding the architecture about this project is mostly about understanding 
 - [ ] Better experience with unknown flags for CLI commands
 - [ ] Get off of tapable, make our own simple version that just has the async hooks we actually use
 - [ ] Order is too important for plugins right now. This is primarily because of the `configure` hooks, plugins that add hooks need to come before those that use them (e.g., `plugin-javascript` after `plugin-babel`). If we moved all "hook augmentation" stuff to a dedicated hook, order would be a lot more intuitive (e.g., just put the plugin whose config you most want to "win" latest).
+- [ ] Hooks are organized so it should be possible for any given message to see what plugin did it and what the "plugin hierarchy" was (what parents, if any, and what project/ workspace it was for)
+- [ ] It's super annoying when writing custom plugins that I need to specify service/ webapp. Maybe that could be inferred from a generic on the plugin, which could be helped along by the argument type of `createX` correctly indicating what types of plugins are allowed? E.g., `ProjectPlugin<Project>` is default, `ProjectPlugin<Service>` would be expected as a type for all plugins in a service, providing that type and some other indication at the call site will then scope the hooks to only those that project type (or, for all project types, but the typings for that are annoying if they don't all share at least some subset of hooks). Actually — might not need to provide any other indication at the callsite — types can be the things that help you out, and then at runtime, we just pass the project through to the plugin without checking anything, we assume types ensured the plugin can handle that project type.
 
 ## Ideal at Shopify
 
