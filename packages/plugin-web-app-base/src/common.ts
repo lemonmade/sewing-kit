@@ -36,6 +36,7 @@ export async function createWebpackConfig(
       path: outputPath,
       filename,
       publicPath,
+      globalObject: 'self',
     },
     plugins: plugins as any[],
     ...explicitConfig,

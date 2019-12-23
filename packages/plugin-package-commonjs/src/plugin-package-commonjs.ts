@@ -11,6 +11,7 @@ import {
   changeBaseJavaScriptBabelPreset,
   BaseBabelPresetModule,
   BaseBabelPresetTarget,
+  BaseBabelPresetPolyfill,
 } from '@sewing-kit/plugin-javascript';
 
 const PLUGIN = 'SewingKit.package-commonjs';
@@ -24,10 +25,12 @@ declare module '@sewing-kit/hooks' {
 
 const setCommonJsModules = changeBaseJavaScriptBabelPreset({
   modules: BaseBabelPresetModule.CommonJs,
+  polyfill: BaseBabelPresetPolyfill.Usage,
 });
 
 const setNodeTarget = changeBaseJavaScriptBabelPreset({
   target: BaseBabelPresetTarget.Node,
+  polyfill: BaseBabelPresetPolyfill.Usage,
 });
 
 export const packageCreateCommonJsOutputPlugin = createProjectBuildPlugin(
@@ -44,21 +47,19 @@ export const packageCreateCommonJsOutputPlugin = createProjectBuildPlugin(
           return;
         }
 
-        if (configurationHooks.babelConfig) {
-          configurationHooks.babelConfig.tap(PLUGIN, (babelConfig) => {
-            const allEntriesAreNode = pkg.entries.every(
-              ({runtime}) => runtime === Runtime.Node,
-            );
+        configurationHooks.babelConfig?.tap(PLUGIN, (babelConfig) => {
+          const allEntriesAreNode = pkg.entries.every(
+            ({runtime}) => runtime === Runtime.Node,
+          );
 
-            return produce(babelConfig, (babelConfig) => {
-              if (allEntriesAreNode) {
-                setNodeTarget(babelConfig);
-              }
+          return produce(babelConfig, (babelConfig) => {
+            if (allEntriesAreNode) {
+              setNodeTarget(babelConfig);
+            }
 
-              setCommonJsModules(babelConfig);
-            });
+            setCommonJsModules(babelConfig);
           });
-        }
+        });
       });
 
       hooks.steps.tap(PLUGIN, (steps, {config, variant: {commonjs}}) => {

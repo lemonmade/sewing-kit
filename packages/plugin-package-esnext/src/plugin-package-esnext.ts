@@ -27,18 +27,6 @@ declare module '@sewing-kit/hooks' {
 export const packageCreateEsNextOutputPlugin = createProjectBuildPlugin(
   PLUGIN,
   ({hooks}, api) => {
-    hooks.webApp.tap(PLUGIN, ({hooks}) => {
-      hooks.configure.tap(PLUGIN, (configurationHooks) => {
-        configurationHooks.webpackExtensions?.tap(PLUGIN, addExtension);
-      });
-    });
-
-    hooks.service.tap(PLUGIN, ({hooks}) => {
-      hooks.configure.tap(PLUGIN, (configurationHooks) => {
-        configurationHooks.webpackExtensions?.tap(PLUGIN, addExtension);
-      });
-    });
-
     hooks.package.tap(PLUGIN, ({pkg, hooks}) => {
       hooks.variants.tap(PLUGIN, (variants) => {
         return [...variants, {[VARIANT]: true}];
@@ -98,30 +86,45 @@ export const useEsNextPlugin = createProjectPlugin({
   run({build, dev}) {
     build.tap(USER_PLUGIN, ({hooks}) => {
       hooks.service.tap(USER_PLUGIN, ({hooks}) => {
-        hooks.configure.tap(USER_PLUGIN, (configure) => {
-          configure.webpackExtensions?.tap(USER_PLUGIN, addExtension);
-        });
+        hooks.configure.tap(USER_PLUGIN, useEsNext);
       });
 
       hooks.webApp.tap(USER_PLUGIN, ({hooks}) => {
-        hooks.configure.tap(USER_PLUGIN, (configure) => {
-          configure.webpackExtensions?.tap(USER_PLUGIN, addExtension);
-        });
+        hooks.configure.tap(USER_PLUGIN, useEsNext);
       });
     });
 
     dev.tap(USER_PLUGIN, ({hooks}) => {
       hooks.service.tap(USER_PLUGIN, ({hooks}) => {
-        hooks.configure.tap(USER_PLUGIN, (configure) => {
-          configure.webpackExtensions?.tap(USER_PLUGIN, addExtension);
-        });
+        hooks.configure.tap(USER_PLUGIN, useEsNext);
       });
 
       hooks.webApp.tap(USER_PLUGIN, ({hooks}) => {
-        hooks.configure.tap(USER_PLUGIN, (configure) => {
-          configure.webpackExtensions?.tap(USER_PLUGIN, addExtension);
-        });
+        hooks.configure.tap(USER_PLUGIN, useEsNext);
       });
     });
   },
 });
+
+function useEsNext(
+  configure:
+    | import('@sewing-kit/hooks').BuildServiceConfigurationHooks
+    | import('@sewing-kit/hooks').BuildWebAppConfigurationHooks
+    | import('@sewing-kit/hooks').DevServiceConfigurationHooks
+    | import('@sewing-kit/hooks').DevWebAppConfigurationHooks,
+) {
+  configure.webpackExtensions?.tap(USER_PLUGIN, addExtension);
+  configure.webpackRules?.tapPromise(PLUGIN, async (rules) => {
+    const options = await configure.babelConfig?.promise({});
+
+    return [
+      ...rules,
+      {
+        test: /\.esnext/,
+        include: /node_modules/,
+        loader: 'babel-loader',
+        options,
+      },
+    ];
+  });
+}

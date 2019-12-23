@@ -97,4 +97,4 @@ export const createPackageFlexibleOutputsConsumerPlugin = ({
     composer.use(...(composed.filter(Boolean) as ProjectPlugin[]));
   });
 
-export const packageFlexibleOutputsConsumerPlugin = createPackageFlexibleOutputsPlugin();
+export const packageFlexibleOutputsConsumerPlugin = createPackageFlexibleOutputsConsumerPlugin();

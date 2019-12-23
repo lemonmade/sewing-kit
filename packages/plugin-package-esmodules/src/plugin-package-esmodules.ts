@@ -11,6 +11,7 @@ import {createCompileBabelStep} from '@sewing-kit/plugin-babel';
 import {
   changeBaseJavaScriptBabelPreset,
   BaseBabelPresetModule,
+  BaseBabelPresetPolyfill,
 } from '@sewing-kit/plugin-javascript';
 import {} from '@sewing-kit/hooks';
 import {} from '@sewing-kit/plugin-webpack';
@@ -24,8 +25,9 @@ declare module '@sewing-kit/hooks' {
   }
 }
 
-const preserveEsModules = changeBaseJavaScriptBabelPreset({
+const updateBabelPreset = changeBaseJavaScriptBabelPreset({
   modules: BaseBabelPresetModule.Preserve,
+  polyfill: BaseBabelPresetPolyfill.Usage,
 });
 
 export const packageCreateEsModulesOutputPlugin = createProjectBuildPlugin(
@@ -43,7 +45,7 @@ export const packageCreateEsModulesOutputPlugin = createProjectBuildPlugin(
         }
 
         configurationHooks.babelConfig?.tap(PLUGIN, (babelConfig) => {
-          return produce(babelConfig, preserveEsModules);
+          return produce(babelConfig, updateBabelPreset);
         });
       });
 
