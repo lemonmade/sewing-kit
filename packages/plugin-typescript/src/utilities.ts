@@ -2,7 +2,7 @@ import {resolve, relative} from 'path';
 import {symlink, utimes} from 'fs-extra';
 
 import {BabelConfig} from '@sewing-kit/plugin-babel';
-import {Package} from '@sewing-kit/model';
+import {Package} from '@sewing-kit/plugins';
 
 export const addTypeScriptBabelConfig = (config: BabelConfig) => ({
   ...config,
