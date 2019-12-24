@@ -9,9 +9,8 @@ function addJsonExtension(extensions: readonly string[]) {
   return ['.json', ...extensions];
 }
 
-export const json = createProjectPlugin(
-  PLUGIN,
-  ({tasks: {test, dev, build}}) => {
+export function json() {
+  return createProjectPlugin(PLUGIN, ({tasks: {test, dev, build}}) => {
     test.hook(({hooks}) => {
       hooks.configure.hook((configure) => {
         configure.jestExtensions?.hook(addJsonExtension);
@@ -46,5 +45,5 @@ export const json = createProjectPlugin(
         },
       );
     });
-  },
-);
+  });
+}
