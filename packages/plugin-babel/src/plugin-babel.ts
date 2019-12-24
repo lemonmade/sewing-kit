@@ -1,6 +1,9 @@
-import {WaterfallHook} from '@sewing-kit/hooks';
-import {Package} from '@sewing-kit/model';
-import {addHooks, createProjectPlugin} from '@sewing-kit/plugins';
+import {
+  Package,
+  addHooks,
+  WaterfallHook,
+  createProjectPlugin,
+} from '@sewing-kit/plugins';
 
 import {BabelConfig} from './types';
 
@@ -26,7 +29,7 @@ declare module '@sewing-kit/hooks' {
   interface DevServiceConfigurationCustomHooks extends BabelHooks {}
 }
 
-const PLUGIN = 'SewingKit.babel';
+const PLUGIN = 'SewingKit.Babel';
 
 const addBabelHooks = addHooks(() => ({
   babelConfig: new WaterfallHook<BabelConfig>(),

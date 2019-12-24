@@ -9,7 +9,8 @@ import {
   BuildPackageConfigurationHooks,
 } from '@sewing-kit/hooks';
 import {BuildTaskOptions, BuildWorkspaceTaskHooks} from '@sewing-kit/tasks';
-import {run, createStep, Step, Loggable, LogLevel} from '@sewing-kit/ui';
+import {run, Step, Loggable, LogLevel} from '@sewing-kit/ui';
+import {createStep} from '@sewing-kit/plugins';
 
 import {
   TaskContext,

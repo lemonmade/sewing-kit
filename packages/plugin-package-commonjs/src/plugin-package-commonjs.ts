@@ -1,5 +1,4 @@
-import {Package, Runtime} from '@sewing-kit/model';
-import {createProjectBuildPlugin} from '@sewing-kit/plugins';
+import {Package, Runtime, createProjectBuildPlugin} from '@sewing-kit/plugins';
 import {
   createWriteEntriesStep,
   ExportStyle,
@@ -12,7 +11,7 @@ import {
   BaseBabelPresetPolyfill,
 } from '@sewing-kit/plugin-javascript';
 
-const PLUGIN = 'SewingKit.package-commonjs';
+const PLUGIN = 'SewingKit.PackageCommonJs';
 const VARIANT = 'commonjs';
 
 declare module '@sewing-kit/hooks' {

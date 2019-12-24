@@ -13,6 +13,7 @@ class ServiceBuilder extends BaseBuilder<
 
   entry(entry: string) {
     this.options.entry = entry;
+    return this;
   }
 }
 

@@ -6,9 +6,5 @@
     "rootDir": "src"
   },
   "include": ["src/**/*.ts"],
-  "references": [
-    {"path": "../tasks"},
-    {"path": "../plugins"},
-    {"path": "../plugin-babel"}
-  ]
+  "references": [{"path": "../plugins"}, {"path": "../plugin-babel"}]
 }

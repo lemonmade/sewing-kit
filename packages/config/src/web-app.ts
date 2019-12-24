@@ -12,10 +12,12 @@ class WebAppOptionBuilder extends BaseBuilder<
 
   entry(entry: string) {
     this.options.entry = entry;
+    return this;
   }
 
   serviceWorker(serviceWorker: ServiceWorkerOptions) {
     this.options.serviceWorker = serviceWorker;
+    return this;
   }
 }
 

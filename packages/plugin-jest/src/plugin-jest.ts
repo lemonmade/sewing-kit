@@ -1,6 +1,5 @@
 import {join} from 'path';
 
-import {createStep} from '@sewing-kit/ui';
 import {
   Project,
   Package,
@@ -16,7 +15,7 @@ import {
 import {} from '@sewing-kit/plugin-babel';
 import {} from 'jest';
 
-const PLUGIN = 'SewingKit.jest';
+const PLUGIN = 'SewingKit.Jest';
 
 type DeepReadonly<T> = Readonly<
   {
@@ -159,88 +158,91 @@ export function jest() {
 
       hooks.pre.hook((steps, {configuration}) => [
         ...steps,
-        createStep({label: 'Writing Jest configuration files'}, async () => {
-          const [rootSetupEnvFiles, rootSetupTestsFiles] = await Promise.all([
-            configuration.jestSetupEnv!.run([]),
-            configuration.jestSetupTests!.run([]),
-          ]);
+        api.createStep(
+          {label: 'Writing Jest configuration files'},
+          async () => {
+            const [rootSetupEnvFiles, rootSetupTestsFiles] = await Promise.all([
+              configuration.jestSetupEnv!.run([]),
+              configuration.jestSetupTests!.run([]),
+            ]);
 
-          const projects = await Promise.all(
-            [...projectConfigurations.entries()].map(
-              async ([project, hooks]) => {
-                if (hooks.babelConfig == null) {
-                  throw new MissingPluginError('@sewing-kit/plugin-babel');
-                }
+            const projects = await Promise.all(
+              [...projectConfigurations.entries()].map(
+                async ([project, hooks]) => {
+                  if (hooks.babelConfig == null) {
+                    throw new MissingPluginError('@sewing-kit/plugin-babel');
+                  }
 
-                const babelTransform = api.configPath(
-                  'jest/packages',
-                  project.name,
-                  'babel-transformer.js',
-                );
+                  const babelTransform = api.configPath(
+                    'jest/packages',
+                    project.name,
+                    'babel-transformer.js',
+                  );
 
-                const babelConfig = await hooks.babelConfig.run({});
-                const transform = await hooks.jestTransforms!.run(
-                  {},
-                  {babelTransform},
-                );
-                const environment = await hooks.jestEnvironment!.run('node');
-                const extensions = (
-                  await hooks.jestExtensions!.run([])
-                ).map((extension) => extension.replace('.', ''));
-                const moduleMapper = await hooks.jestModuleMapper!.run({});
-                const setupEnvFiles = await hooks.jestSetupEnv!.run(
-                  rootSetupEnvFiles,
-                );
-                const setupTestsFiles = await hooks.jestSetupTests!.run(
-                  rootSetupTestsFiles,
-                );
+                  const babelConfig = await hooks.babelConfig.run({});
+                  const transform = await hooks.jestTransforms!.run(
+                    {},
+                    {babelTransform},
+                  );
+                  const environment = await hooks.jestEnvironment!.run('node');
+                  const extensions = (
+                    await hooks.jestExtensions!.run([])
+                  ).map((extension) => extension.replace('.', ''));
+                  const moduleMapper = await hooks.jestModuleMapper!.run({});
+                  const setupEnvFiles = await hooks.jestSetupEnv!.run(
+                    rootSetupEnvFiles,
+                  );
+                  const setupTestsFiles = await hooks.jestSetupTests!.run(
+                    rootSetupTestsFiles,
+                  );
 
-                await api.write(
-                  babelTransform,
-                  `const {createTransformer} = require('babel-jest'); module.exports = createTransformer(${JSON.stringify(
-                    babelConfig,
-                  )})`,
-                );
+                  await api.write(
+                    babelTransform,
+                    `const {createTransformer} = require('babel-jest'); module.exports = createTransformer(${JSON.stringify(
+                      babelConfig,
+                    )})`,
+                  );
 
-                const config = await hooks.jestConfig!.run({
-                  displayName: project.name,
-                  rootDir: project.root,
-                  testRegex: `.*\\.test\\.(${extensions.join('|')})$`,
-                  moduleFileExtensions: extensions,
-                  testEnvironment: environment,
-                  moduleNameMapper: moduleMapper,
-                  setupFiles: setupEnvFiles,
-                  setupFilesAfterEnv: setupTestsFiles,
-                  transform,
-                });
+                  const config = await hooks.jestConfig!.run({
+                    displayName: project.name,
+                    rootDir: project.root,
+                    testRegex: `.*\\.test\\.(${extensions.join('|')})$`,
+                    moduleFileExtensions: extensions,
+                    testEnvironment: environment,
+                    moduleNameMapper: moduleMapper,
+                    setupFiles: setupEnvFiles,
+                    setupFilesAfterEnv: setupTestsFiles,
+                    transform,
+                  });
 
-                return config;
-              },
-            ),
-          );
+                  return config;
+                },
+              ),
+            );
 
-          const watchPlugins = await configuration.jestWatchPlugins!.run([]);
-          const watchIgnorePatterns = await configuration.jestWatchIgnore!.run(
-            [],
-          );
+            const watchPlugins = await configuration.jestWatchPlugins!.run([]);
+            const watchIgnorePatterns = await configuration.jestWatchIgnore!.run(
+              [],
+            );
 
-          const rootConfig = await configuration.jestConfig!.run({
-            rootDir: workspace.root,
-            projects: projects as any,
-            watchPlugins,
-            watchPathIgnorePatterns: watchIgnorePatterns,
-          });
+            const rootConfig = await configuration.jestConfig!.run({
+              rootDir: workspace.root,
+              projects: projects as any,
+              watchPlugins,
+              watchPathIgnorePatterns: watchIgnorePatterns,
+            });
 
-          await api.write(
-            rootConfigPath,
-            `module.exports = ${JSON.stringify(rootConfig)};`,
-          );
-        }),
+            await api.write(
+              rootConfigPath,
+              `module.exports = ${JSON.stringify(rootConfig)};`,
+            );
+          },
+        ),
       ]);
 
       hooks.steps.hook((steps, {configuration}) => [
         ...steps,
-        createStep({label: 'Running Jest', indefinite: true}, async () => {
+        api.createStep({label: 'Running Jest', indefinite: true}, async () => {
           process.env.BABEL_ENV = 'test';
           process.env.NODE_ENV = 'test';
 

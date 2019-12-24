@@ -26,8 +26,17 @@ export type SeriesHookFunction<First, Second, Third> = (
 export class SeriesHook<First = Unset, Second = Unset, Third = Unset> {
   private hooks = new Set<SeriesHookFunction<First, Second, Third>>();
 
-  hook(hook: SeriesHookFunction<First, Second, Third>) {
-    this.hooks.add(hook);
+  hook(
+    idOrHook: string | SeriesHookFunction<First, Second, Third>,
+    maybeHook?: SeriesHookFunction<First, Second, Third>,
+  ) {
+    if (typeof idOrHook === 'function') {
+      this.hooks.add(idOrHook);
+    } else if (maybeHook != null) {
+      this.hooks.add(maybeHook);
+    }
+
+    return this;
   }
 
   async run(...args: SeriesHookArguments<First, Second, Third>) {
@@ -62,8 +71,18 @@ export class WaterfallHook<
 > {
   private hooks = new Set<WaterfallHookFunction<Value, First, Second, Third>>();
 
-  hook(hook: WaterfallHookFunction<Value, First, Second, Third>) {
-    this.hooks.add(hook);
+  // ID is automatically being passed in, but we just aren’t using it for anything
+  hook(
+    idOrHook: string | WaterfallHookFunction<Value, First, Second, Third>,
+    maybeHook?: WaterfallHookFunction<Value, First, Second, Third>,
+  ) {
+    if (typeof idOrHook === 'function') {
+      this.hooks.add(idOrHook);
+    } else if (maybeHook != null) {
+      this.hooks.add(maybeHook);
+    }
+
+    return this;
   }
 
   async run(...args: WaterfallHookArguments<Value, First, Second, Third>) {

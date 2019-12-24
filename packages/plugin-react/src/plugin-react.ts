@@ -1,7 +1,7 @@
 import {Env, createProjectPlugin} from '@sewing-kit/plugins';
 import {BabelConfig} from '@sewing-kit/plugin-babel';
 
-const PLUGIN = 'SewingKit.react';
+const PLUGIN = 'SewingKit.React';
 
 export function react() {
   return createProjectPlugin(PLUGIN, ({tasks: {build, test, dev}}) => {

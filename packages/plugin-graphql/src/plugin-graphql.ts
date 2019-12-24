@@ -2,7 +2,7 @@ import {createProjectPlugin, Service, WebApp} from '@sewing-kit/plugins';
 import {} from '@sewing-kit/plugin-jest';
 import {} from '@sewing-kit/plugin-webpack';
 
-const PLUGIN = 'SewingKit.graphql';
+const PLUGIN = 'SewingKit.GraphQL';
 
 export function graphql() {
   return createProjectPlugin<Service | WebApp>(

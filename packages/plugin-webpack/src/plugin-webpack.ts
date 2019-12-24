@@ -1,10 +1,4 @@
 import {
-  BuildWebAppConfigurationHooks,
-  BuildServiceConfigurationHooks,
-  DevWebAppConfigurationHooks,
-  DevServiceConfigurationHooks,
-} from '@sewing-kit/hooks';
-import {
   Task,
   Service,
   WebApp,
@@ -53,7 +47,7 @@ declare module '@sewing-kit/hooks' {
   interface DevServiceStepContext extends WebpackDevContext {}
 }
 
-const PLUGIN = 'SewingKit.webpack';
+const PLUGIN = 'SewingKit.Webpack';
 
 const addWebpackHooks = addHooks<Partial<WebpackHooks>>(() => ({
   webpackRules: new WaterfallHook(),
@@ -166,10 +160,10 @@ function createWebpackConfigurationChangePlugin(
   }: WebpackConfigurationChangePluginOptions & {id: string},
   run: (
     hooks:
-      | BuildWebAppConfigurationHooks
-      | BuildServiceConfigurationHooks
-      | DevWebAppConfigurationHooks
-      | DevServiceConfigurationHooks,
+      | import('@sewing-kit/hooks').BuildWebAppConfigurationHooks
+      | import('@sewing-kit/hooks').BuildServiceConfigurationHooks
+      | import('@sewing-kit/hooks').DevWebAppConfigurationHooks
+      | import('@sewing-kit/hooks').DevServiceConfigurationHooks,
   ) => void,
 ) {
   return createProjectPlugin<WebApp | Service>(id, ({tasks: {build, dev}}) => {

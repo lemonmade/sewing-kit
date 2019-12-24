@@ -10,10 +10,8 @@
   "dependencies": {
     "@babel/plugin-proposal-decorators": "^7.7.4",
     "@babel/preset-typescript": "^7.7.4",
-    "@sewing-kit/model": "^0.0.7",
     "@sewing-kit/plugin-babel": "^0.0.28",
     "@sewing-kit/plugins": "^0.0.11",
-    "@sewing-kit/ui": "^0.0.16",
     "fs-extra": "^8.1.0",
     "immer": "^5.0.0",
     "tapable": "^1.1.3",

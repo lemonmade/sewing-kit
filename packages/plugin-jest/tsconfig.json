@@ -8,10 +8,5 @@
     "types": ["jest"]
   },
   "include": ["src/**/*.ts"],
-  "references": [
-    {"path": "../ui"},
-    {"path": "../model"},
-    {"path": "../plugins"},
-    {"path": "../plugin-babel"}
-  ]
+  "references": [{"path": "../hooks"}, {"path": "../plugins"}]
 }

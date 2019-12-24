@@ -6,11 +6,11 @@ import {
   Workspace,
   addHooks,
   WaterfallHook,
+  DiagnosticError,
   MissingPluginError,
   createProjectPlugin,
   createProjectDevPlugin,
 } from '@sewing-kit/plugins';
-import {createStep, DiagnosticError} from '@sewing-kit/ui';
 import {
   BaseBabelPresetModule,
   changeBaseJavaScriptBabelPreset,
@@ -59,7 +59,7 @@ export function buildWebAppWithWebpack({
 }: Options = {}) {
   return createProjectPlugin<WebApp>(
     PLUGIN,
-    ({workspace, project, tasks: {build, dev}}) => {
+    ({api, workspace, project, tasks: {build, dev}}) => {
       build.hook(({hooks, options}) => {
         const updatePreset = changeBaseJavaScriptBabelPreset({
           modules: BaseBabelPresetModule.Preserve,
@@ -88,7 +88,7 @@ export function buildWebAppWithWebpack({
         });
 
         hooks.steps.hook((steps, {config}, {webpackBuildManager}) => {
-          const step = createStep({}, async () => {
+          const step = api.createStep({}, async () => {
             const stats = await buildWebpack(
               await createWebpackConfig(config, project, workspace, {
                 mode: toMode(options.simulateEnv),
@@ -128,7 +128,7 @@ export function buildWebAppWithWebpack({
         hooks.steps.hook((steps, {config}, {webpackBuildManager}) => {
           return [
             ...steps,
-            createStep({indefinite: true}, async () => {
+            api.createStep({indefinite: true}, async () => {
               const {default: webpack} = await import('webpack');
               const {default: koaWebpack} = await import('koa-webpack');
               const {default: Koa} = await import('koa');

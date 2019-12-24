@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "@sewing-kit/hooks": "^0.0.13",
-    "@sewing-kit/model": "^0.0.7",
     "@sewing-kit/plugin-babel": "^0.0.28",
     "@sewing-kit/plugin-javascript": "^0.0.31",
     "@sewing-kit/plugin-package-utilities": "^0.0.20",

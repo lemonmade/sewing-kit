@@ -1,5 +1,6 @@
-import {Runtime, Package} from '@sewing-kit/model';
 import {
+  Runtime,
+  Package,
   createProjectBuildPlugin,
   createProjectTestPlugin,
 } from '@sewing-kit/plugins';
@@ -15,7 +16,7 @@ import {
 } from '@sewing-kit/plugin-javascript';
 import {} from '@sewing-kit/plugin-jest';
 
-const PLUGIN = 'SewingKit.package-node';
+const PLUGIN = 'SewingKit.PackageNode';
 const VARIANT = 'node';
 const EXTENSION = '.node';
 

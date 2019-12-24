@@ -18,7 +18,7 @@ import {
 import {} from '@sewing-kit/plugin-webpack';
 import {} from '@sewing-kit/hooks';
 
-const PLUGIN = 'SewingKit.package-esmodules';
+const PLUGIN = 'SewingKit.PackageEsModules';
 const VARIANT = 'esmodules';
 
 declare module '@sewing-kit/hooks' {

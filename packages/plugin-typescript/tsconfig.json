@@ -7,8 +7,6 @@
   },
   "include": ["src/**/*.ts"],
   "references": [
-    {"path": "../ui"},
-    {"path": "../model"},
     {"path": "../plugins"},
     {"path": "../plugin-webpack"},
     {"path": "../plugin-eslint"},

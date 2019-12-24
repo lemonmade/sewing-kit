@@ -7,7 +7,6 @@
   },
   "include": ["src/**/*.ts"],
   "references": [
-    {"path": "../model"},
     {"path": "../hooks"},
     {"path": "../plugins"},
     {"path": "../plugin-package-utilities"},

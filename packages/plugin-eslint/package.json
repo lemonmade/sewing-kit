@@ -10,7 +10,6 @@
   "dependencies": {
     "@sewing-kit/hooks": "^0.0.13",
     "@sewing-kit/plugins": "^0.0.11",
-    "@sewing-kit/ui": "^0.0.16",
     "eslint": "^6.7.1",
     "tapable": "^1.1.3"
   }

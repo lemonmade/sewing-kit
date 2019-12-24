@@ -6,10 +6,5 @@
     "rootDir": "src"
   },
   "include": ["src/**/*.ts"],
-  "references": [
-    {"path": "../ui"},
-    {"path": "../model"},
-    {"path": "../plugins"},
-    {"path": "../plugin-typescript"}
-  ]
+  "references": [{"path": "../plugins"}, {"path": "../plugin-typescript"}]
 }

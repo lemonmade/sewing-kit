@@ -3,7 +3,7 @@ import {} from '@sewing-kit/plugin-jest';
 import {} from '@sewing-kit/plugin-babel';
 import {} from '@sewing-kit/plugin-webpack';
 
-const PLUGIN = 'SewingKit.json';
+const PLUGIN = 'SewingKit.Json';
 
 function addJsonExtension(extensions: readonly string[]) {
   return ['.json', ...extensions];

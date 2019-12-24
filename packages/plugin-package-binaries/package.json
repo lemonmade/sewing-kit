@@ -8,8 +8,6 @@
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/model": "^0.0.7",
-    "@sewing-kit/plugins": "^0.0.11",
-    "@sewing-kit/ui": "^0.0.16"
+    "@sewing-kit/plugins": "^0.0.11"
   }
 }

@@ -2,7 +2,6 @@ import {resolve} from 'path';
 import {rename} from 'fs-extra';
 import {sync as glob} from 'glob';
 
-import {createStep} from '@sewing-kit/ui';
 import {BuildPackageConfigurationHooks} from '@sewing-kit/hooks';
 import {
   toArgs,
@@ -22,7 +21,7 @@ export function createCompileBabelStep(
   config: BuildPackageConfigurationHooks,
   options: CompileBabelOptions,
 ) {
-  return createStep(async (step) => {
+  return api.createStep(async (step) => {
     const {configFile = 'babel.js', outputPath, extension} = options;
 
     const babelConfigPath = api.configPath(

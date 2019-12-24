@@ -25,7 +25,7 @@ interface Options {
   readonly sassIncludes?: readonly string[];
 }
 
-const PLUGIN = 'SewingKit.sass';
+const PLUGIN = 'SewingKit.Sass';
 const HAPPYPACK_ID = 'sass';
 
 const addSassHooks = addHooks(() => ({

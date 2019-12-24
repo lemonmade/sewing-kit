@@ -6,11 +6,11 @@ import {
   Package,
   Workspace,
   WaterfallHook,
+  DiagnosticError,
   createProjectPlugin,
   createWorkspacePlugin,
   WorkspacePluginContext,
 } from '@sewing-kit/plugins';
-import {createStep, DiagnosticError} from '@sewing-kit/ui';
 
 import {BabelConfig} from '@sewing-kit/plugin-babel';
 import {} from '@sewing-kit/plugin-jest';
@@ -28,7 +28,7 @@ declare module '@sewing-kit/hooks' {
     extends TypeScriptTypeCheckingHooks {}
 }
 
-const PLUGIN = 'SewingKit.typescript';
+const PLUGIN = 'SewingKit.TypeScript';
 
 export function typescript() {
   return createProjectPlugin(PLUGIN, ({tasks: {dev, build, test}}) => {
@@ -130,7 +130,7 @@ export function workspaceTypeScript() {
           newSteps.push(createLoadTypeScriptCacheStep(context));
         }
 
-        newSteps.push(createRunTypeScriptStep(configuration));
+        newSteps.push(createRunTypeScriptStep(context, configuration));
 
         return newSteps;
       });
@@ -157,7 +157,7 @@ export function workspaceTypeScript() {
 
       hooks.steps.hook((steps, {configuration}) => [
         ...steps,
-        createRunTypeScriptStep(configuration),
+        createRunTypeScriptStep(context, configuration),
       ]);
 
       if (options.cache) {
@@ -172,7 +172,7 @@ const BUILD_DIRECTORY_CACHE_FILENAME = 'info';
 const TSBUILDINFO_FILE = 'tsconfig.tsbuildinfo';
 
 function createCacheSaveStep({workspace, api}: WorkspacePluginContext) {
-  return createStep(
+  return api.createStep(
     {label: 'Saving TypeScript cache', skip: /(ts|typescript)[-_]?cache/i},
     async () => {
       try {
@@ -232,8 +232,11 @@ async function getTscOutputDirectory(project: string, workspace: Workspace) {
   );
 }
 
-function createWriteFallbackEntriesStep({workspace}: WorkspacePluginContext) {
-  return createStep(
+function createWriteFallbackEntriesStep({
+  api,
+  workspace,
+}: WorkspacePluginContext) {
+  return api.createStep(
     {
       label: 'Writing TypeScript entries',
       skip: /(ts|typescript)[-_]?entr(y|ies)/i,
@@ -252,7 +255,7 @@ function createLoadTypeScriptCacheStep({
   workspace,
   api,
 }: WorkspacePluginContext) {
-  return createStep(
+  return api.createStep(
     {
       label: 'Restoring TypeScript cache',
       skip: /(ts|typescript)[-_]?cache/i,
@@ -290,9 +293,10 @@ function createLoadTypeScriptCacheStep({
 }
 
 export function createRunTypeScriptStep(
+  {api}: Pick<WorkspacePluginContext, 'api'>,
   configure: Partial<TypeScriptTypeCheckingHooks>,
 ) {
-  return createStep(
+  return api.createStep(
     {label: 'Type checking with TypeScript', skip: /(ts|typescript)/i},
     async (step) => {
       const heap = await configure.typescriptHeap!.run(0);

@@ -1,6 +1,10 @@
-import {createStep, DiagnosticError} from '@sewing-kit/ui';
-import {WaterfallHook} from '@sewing-kit/hooks';
-import {addHooks, toArgs, createWorkspaceLintPlugin} from '@sewing-kit/plugins';
+import {
+  toArgs,
+  addHooks,
+  WaterfallHook,
+  createWorkspaceLintPlugin,
+  DiagnosticError,
+} from '@sewing-kit/plugins';
 
 interface EslintFlags {
   fix?: boolean;
@@ -18,7 +22,7 @@ declare module '@sewing-kit/hooks' {
   }
 }
 
-const PLUGIN = 'SewingKit.eslint';
+const PLUGIN = 'SewingKit.Eslint';
 
 const addRootConfigurationHooks = addHooks<
   import('@sewing-kit/hooks').LintWorkspaceConfigurationHooks
@@ -33,7 +37,7 @@ export function eslint() {
 
     hooks.steps.hook((steps, {configuration}) => [
       ...steps,
-      createStep({label: 'Linting scripts with ESLint'}, async (step) => {
+      api.createStep({label: 'Linting scripts with ESLint'}, async (step) => {
         const {fix = false} = options;
         const extensions = await configuration.eslintExtensions!.run([]);
         const args = toArgs(

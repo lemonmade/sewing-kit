@@ -7,13 +7,9 @@
   },
   "include": ["src/**/*.ts"],
   "references": [
-    {"path": "../ui"},
-    {"path": "../core"},
     {"path": "../hooks"},
-    {"path": "../model"},
-    {"path": "../tasks"},
-    {"path": "../config"},
     {"path": "../plugins"},
+    {"path": "../plugin-javascript"},
     {"path": "../plugin-babel"},
     {"path": "../plugin-webpack"}
   ]

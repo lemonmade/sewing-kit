@@ -16,7 +16,7 @@ import {
 } from '@sewing-kit/plugin-javascript';
 import {} from '@sewing-kit/plugin-webpack';
 
-const PLUGIN = 'SewingKit.package-esnext';
+const PLUGIN = 'SewingKit.PackageEsNext';
 const VARIANT = 'esnext';
 const EXTENSION = '.esnext';
 

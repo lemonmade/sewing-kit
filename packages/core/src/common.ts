@@ -1,13 +1,15 @@
 import {Ui} from '@sewing-kit/ui';
 import {
+  AnyPlugin,
   PluginApi,
+  createStep,
   WorkspacePlugin,
   ProjectPlugin,
   ProjectPluginContext,
   WorkspacePluginContext,
 } from '@sewing-kit/plugins';
 import {WorkspaceTasks, ProjectTasks} from '@sewing-kit/tasks';
-import {SeriesHook} from '@sewing-kit/hooks';
+import {SeriesHook, WaterfallHook} from '@sewing-kit/hooks';
 import {Workspace, WebApp, Package, Service, Project} from '@sewing-kit/model';
 
 export interface SewingKitDelegate {
@@ -65,7 +67,7 @@ async function handleWorkspacePlugin(
     await handleWorkspacePlugin(child, context);
   }
 
-  await plugin.run?.(context);
+  await plugin.run?.({...context, tasks: wrapValue(plugin, context.tasks)});
 }
 
 export async function createProjectTasksAndApplyPlugins<
@@ -105,7 +107,7 @@ async function handleProjectPlugin<Type extends WebApp | Package | Service>(
     await handleProjectPlugin(child, context);
   }
 
-  await plugin.run?.(context);
+  await plugin.run?.({...context, tasks: wrapValue(plugin, context.tasks)});
 }
 
 function createPluginApi(workspace: Workspace): PluginApi {
@@ -113,6 +115,7 @@ function createPluginApi(workspace: Workspace): PluginApi {
     workspace.fs.resolvePath('.sewing-kit', ...parts);
 
   return {
+    createStep,
     resolvePath,
     read: (path) => workspace.fs.read(resolvePath(path)),
     write: (path, contents) => workspace.fs.write(resolvePath(path), contents),
@@ -120,4 +123,55 @@ function createPluginApi(workspace: Workspace): PluginApi {
     cachePath: (...parts) => resolvePath('cache', ...parts),
     tmpPath: (...parts) => resolvePath('tmp', ...parts),
   };
+}
+
+function wrapValue<T>(plugin: AnyPlugin, value: T): T {
+  if (typeof value !== 'object' || value == null) {
+    return value;
+  }
+
+  const updatedParts: {[key: string]: any} = {};
+
+  for (const [key, propValue] of Object.entries(value)) {
+    if (propValue instanceof WaterfallHook || propValue instanceof SeriesHook) {
+      updatedParts[key] = new Proxy(propValue, {
+        get(target, key, receiver) {
+          const realValue = Reflect.get(target, key, receiver);
+
+          if (key !== 'hook') {
+            return realValue;
+          }
+
+          return function hook(
+            hookOrId: string | Function,
+            maybeHook?: Function,
+          ) {
+            return typeof hookOrId === 'string'
+              ? realValue.call(
+                  propValue,
+                  hookOrId,
+                  wrapHook(plugin, maybeHook!),
+                )
+              : realValue.call(
+                  propValue,
+                  plugin.id,
+                  wrapHook(plugin, hookOrId),
+                );
+          };
+        },
+      });
+    } else {
+      const updatedValue = wrapValue(plugin, propValue);
+      if (updatedValue !== propValue) updatedParts[key] = updatedValue;
+    }
+  }
+
+  return Object.keys(updatedParts).length > 0
+    ? {...value, ...updatedParts}
+    : value;
+}
+
+function wrapHook(plugin: AnyPlugin, hook: Function) {
+  return (first: any, ...rest: any[]) =>
+    hook(wrapValue(plugin, first), ...rest);
 }

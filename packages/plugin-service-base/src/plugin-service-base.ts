@@ -8,13 +8,11 @@ import {
   createProjectPlugin,
   createProjectDevPlugin,
 } from '@sewing-kit/plugins';
-import {createStep} from '@sewing-kit/ui';
 import {
   changeBaseJavaScriptBabelPreset,
   BaseBabelPresetModule,
   BaseBabelPresetTarget,
 } from '@sewing-kit/plugin-javascript';
-
 import {} from '@sewing-kit/plugin-webpack';
 
 const PLUGIN = 'SewingKit.ServiceBase';
@@ -30,7 +28,7 @@ export function buildServiceWithWebpack({
 }: Options = {}) {
   return createProjectPlugin<Service>(
     PLUGIN,
-    ({workspace, project, tasks: {build, dev}}) => {
+    ({api, workspace, project, tasks: {build, dev}}) => {
       build.hook(({hooks, options}) => {
         const updatePreset = changeBaseJavaScriptBabelPreset({
           target: BaseBabelPresetTarget.Node,
@@ -52,7 +50,7 @@ export function buildServiceWithWebpack({
         });
 
         hooks.steps.hook((steps, {config}, {webpackBuildManager}) => {
-          const step = createStep({}, async () => {
+          const step = api.createStep({}, async () => {
             const stats = await buildWebpack(
               await createWebpackConfig(config, project, workspace, {
                 mode: toMode(options.simulateEnv),
@@ -84,7 +82,7 @@ export function buildServiceWithWebpack({
         hooks.steps.hook((steps, {config}, {webpackBuildManager}) => {
           return [
             ...steps,
-            createStep(
+            api.createStep(
               {indefinite: true, label: 'Compiling for development mode'},
               async (step) => {
                 const {default: Koa} = await import('koa');

@@ -53,10 +53,12 @@ export class BaseBuilder<
 
   root(root: string) {
     this.options.root = root as any;
+    return this;
   }
 
   name(name: string) {
     this.options.name = name as any;
+    return this;
   }
 
   use(...plugins: (PluginType | WorkspacePlugin | false | undefined | null)[]) {
@@ -79,6 +81,8 @@ export class BaseBuilder<
         this.projectPlugins.add(plugin);
       }
     }
+
+    return this;
   }
 
   toOptions(): ConfigurationBuilderResult<T> {

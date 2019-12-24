@@ -1,31 +1,37 @@
 import {relative, dirname} from 'path';
 
-import {createStep} from '@sewing-kit/ui';
-import {Package, Runtime} from '@sewing-kit/model';
-import {createProjectBuildPlugin} from '@sewing-kit/plugins';
+import {
+  Package,
+  Runtime,
+  createProjectBuildPlugin,
+  ProjectPluginContext,
+} from '@sewing-kit/plugins';
 
-const PLUGIN = 'SewingKit.package-binaries';
+const PLUGIN = 'SewingKit.PackageBinaries';
 
 export function buildBinaries() {
-  return createProjectBuildPlugin<Package>(PLUGIN, ({project, hooks}) => {
+  return createProjectBuildPlugin<Package>(PLUGIN, ({hooks, project, api}) => {
     hooks.steps.hook((steps) =>
       project.binaries.length > 0
-        ? [...steps, createWriteBinariesStep(project)]
+        ? [...steps, createWriteBinariesStep({project, api})]
         : steps,
     );
   });
 }
 
-function createWriteBinariesStep(pkg: Package) {
-  const binaryCount = pkg.binaries.length;
+function createWriteBinariesStep({
+  project,
+  api,
+}: Pick<ProjectPluginContext<Package>, 'project' | 'api'>) {
+  const binaryCount = project.binaries.length;
 
-  const allNodeEntries = pkg.entries.every(
+  const allNodeEntries = project.entries.every(
     ({runtime}) => runtime === Runtime.Node,
   );
 
-  const sourceRoot = pkg.fs.resolvePath('src');
+  const sourceRoot = project.fs.resolvePath('src');
 
-  return createStep(
+  return api.createStep(
     {
       label: `Writing ${binaryCount} ${
         binaryCount > 1 ? 'binaries' : 'binary'
@@ -33,25 +39,25 @@ function createWriteBinariesStep(pkg: Package) {
     },
     async (step) => {
       await Promise.all(
-        pkg.binaries.map(async ({name, root, aliases = []}) => {
+        project.binaries.map(async ({name, root, aliases = []}) => {
           const relativeFromSourceRoot = relative(
             sourceRoot,
-            pkg.fs.resolvePath(root),
+            project.fs.resolvePath(root),
           );
 
-          const destinationInOutput = pkg.fs.buildPath(
+          const destinationInOutput = project.fs.buildPath(
             allNodeEntries ? 'cjs' : 'node',
             relativeFromSourceRoot,
           );
 
           for (const binaryName of [name, ...aliases]) {
-            const binaryFile = pkg.fs.resolvePath('bin', binaryName);
+            const binaryFile = project.fs.resolvePath('bin', binaryName);
             const relativeFromBinary = normalizedRelative(
               dirname(binaryFile),
               destinationInOutput,
             );
 
-            await pkg.fs.write(
+            await project.fs.write(
               binaryFile,
               `#!/usr/bin/env node\nrequire(${JSON.stringify(
                 relativeFromBinary,

@@ -26,7 +26,7 @@ export const createSewingKitPackagePlugin = ({typesAtRoot = false} = {}) =>
       binaries: true,
       typescript: {typesAtRoot},
     }),
-  ]);
+  ] as const);
 
 // We use the internal babel preset to compile tests. As part of bootstrap,
 // we already handle this package a bit differently; we build its source

@@ -7,11 +7,7 @@
   },
   "include": ["src/**/*.ts"],
   "references": [
-    {"path": "../model"},
-    {"path": "../config"},
-    {"path": "../ui"},
     {"path": "../hooks"},
-    {"path": "../tasks"},
     {"path": "../plugins"},
     {"path": "../plugin-babel"},
     {"path": "../plugin-javascript"},

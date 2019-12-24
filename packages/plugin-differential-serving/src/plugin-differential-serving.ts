@@ -25,7 +25,7 @@ const DEFAULT_BROWSER_GROUPS = {
   ],
 };
 
-const PLUGIN = 'SewingKit.differential-serving';
+const PLUGIN = 'SewingKit.DifferentialServing';
 
 export interface Options {
   readonly groups?: {readonly [key: string]: readonly string[]};

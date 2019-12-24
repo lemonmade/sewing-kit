@@ -8,7 +8,6 @@
   "include": ["src/**/*.ts"],
   "references": [
     {"path": "../hooks"},
-    {"path": "../model"},
     {"path": "../plugins"},
     {"path": "../plugin-package-utilities"},
     {"path": "../plugin-javascript"},

@@ -12,7 +12,7 @@ import {} from '@sewing-kit/plugin-jest';
 import {} from '@sewing-kit/plugin-eslint';
 import {} from '@sewing-kit/plugin-webpack';
 
-const PLUGIN = 'SewingKit.javascript';
+const PLUGIN = 'SewingKit.JavaScript';
 
 export function javascript() {
   return createProjectPlugin(PLUGIN, ({tasks: {dev, build, test}}) => {

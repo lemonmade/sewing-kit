@@ -1,8 +1,5 @@
 import {resolve, relative} from 'path';
-
-import {Package, PackageEntry} from '@sewing-kit/model';
-import {ProjectPluginContext} from '@sewing-kit/plugins';
-import {createStep} from '@sewing-kit/ui';
+import {Package, PackageEntry, ProjectPluginContext} from '@sewing-kit/plugins';
 
 interface WriteEntriesOptions {
   extension?: string;
@@ -17,10 +14,10 @@ export enum ExportStyle {
 }
 
 export function createWriteEntriesStep(
-  {project}: Pick<ProjectPluginContext<Package>, 'project' | 'api'>,
+  {project, api}: Pick<ProjectPluginContext<Package>, 'project' | 'api'>,
   options: WriteEntriesOptions,
 ) {
-  return createStep(async () => {
+  return api.createStep(async () => {
     const {
       extension = '.js',
       outputPath,

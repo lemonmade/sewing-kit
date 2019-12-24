@@ -19,6 +19,7 @@ class PackageBuilder extends BaseBuilder<
 
   runtime(defaultRuntime: Runtime) {
     this.options.runtime = defaultRuntime;
+    return this;
   }
 
   entry(entry: PackageEntryOptions) {
@@ -31,11 +32,14 @@ class PackageBuilder extends BaseBuilder<
           ? entry.root.slice(1)
           : entry.root,
     });
+
+    return this;
   }
 
   binary(binary: PackageBinaryOptions) {
     this.options.binaries = this.options.binaries ?? [];
     this.options.binaries.push(binary);
+    return this;
   }
 }
 

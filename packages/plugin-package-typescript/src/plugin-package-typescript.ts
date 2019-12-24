@@ -2,14 +2,13 @@ import {relative} from 'path';
 
 import {copy, remove} from 'fs-extra';
 
-import {createStep} from '@sewing-kit/ui';
 import {Package, createProjectBuildPlugin} from '@sewing-kit/plugins';
 import {
   EntryStrategy,
   writeTypeScriptEntries,
 } from '@sewing-kit/plugin-typescript';
 
-const PLUGIN = 'SewingKit.package-typescript';
+const PLUGIN = 'SewingKit.PackageTypeScript';
 
 export interface Options {
   readonly typesAtRoot?: boolean;
@@ -20,7 +19,7 @@ export function buildTypeScriptDefinitions({
 }: Options = {}) {
   return createProjectBuildPlugin<Package>(
     PLUGIN,
-    ({hooks, project, workspace}) => {
+    ({hooks, project, workspace, api}) => {
       // We don’t build TypeScript definitions for projects that also include
       // web apps/ services.
       if (workspace.private) {
@@ -29,7 +28,7 @@ export function buildTypeScriptDefinitions({
 
       hooks.steps.hook((steps) => [
         ...steps,
-        createStep({label: 'Writing type definitions'}, async () => {
+        api.createStep({label: 'Writing type definitions'}, async () => {
           await Promise.all(
             project.entries.map((entry) =>
               remove(project.fs.resolvePath(`${entry.name || 'index'}.d.ts`)),
