@@ -1,5 +1,6 @@
-import {AsyncSeriesWaterfallHook, AsyncSeriesHook} from 'tapable';
 import {
+  WaterfallHook,
+  SeriesHook,
   BuildServiceHooks,
   BuildServiceConfigurationHooks,
   BuildWebAppHooks,
@@ -7,11 +8,7 @@ import {
   BuildPackageHooks,
   BuildPackageConfigurationHooks,
 } from '@sewing-kit/hooks';
-import {
-  BuildTaskOptions,
-  BuildWorkspaceTaskHooks,
-  BuildProjectTaskHooks,
-} from '@sewing-kit/tasks';
+import {BuildTaskOptions, BuildWorkspaceTaskHooks} from '@sewing-kit/tasks';
 import {run, createStep, Step, Loggable, LogLevel} from '@sewing-kit/ui';
 
 import {
@@ -32,15 +29,14 @@ export async function runBuild(
   );
 
   const buildTaskHooks: BuildWorkspaceTaskHooks = {
-    configure: new AsyncSeriesHook(['hooks']),
-    pre: new AsyncSeriesWaterfallHook(['steps', 'details']),
-    post: new AsyncSeriesWaterfallHook(['steps', 'details']),
+    configure: new SeriesHook(),
+    pre: new WaterfallHook(),
+    post: new WaterfallHook(),
   };
 
-  await build.promise({
+  await build.run({
     hooks: buildTaskHooks,
     options,
-    workspace,
   });
 
   const webAppSteps = await Promise.all(
@@ -51,41 +47,30 @@ export async function runBuild(
         delegate,
       );
 
-      const buildTaskHooks: BuildProjectTaskHooks = {
-        project: new AsyncSeriesHook(['project', 'projectBuildHooks']),
-        package: new AsyncSeriesHook(['pkg', 'packageBuildHooks']),
-        webApp: new AsyncSeriesHook(['app', 'webAppBuildHooks']),
-        service: new AsyncSeriesHook(['service', 'serviceBuildHooks']),
+      const hooks: BuildWebAppHooks = {
+        variants: new WaterfallHook(),
+        steps: new WaterfallHook(),
+        context: new WaterfallHook(),
+        configure: new SeriesHook(),
       };
 
-      await build.promise({
+      await build.run({
         options,
-        hooks: buildTaskHooks,
-        workspace,
+        hooks,
       });
 
-      const hooks: BuildWebAppHooks = {
-        variants: new AsyncSeriesWaterfallHook(['variants']),
-        steps: new AsyncSeriesWaterfallHook(['steps', 'details', 'context']),
-        context: new AsyncSeriesWaterfallHook(['context']),
-        configure: new AsyncSeriesHook(['configuration', 'variant']),
-      };
-
-      await buildTaskHooks.project.promise({project: webApp, hooks});
-      await buildTaskHooks.webApp.promise({webApp, hooks});
-
-      const variants = await hooks.variants.promise([]);
+      const variants = await hooks.variants.run([]);
 
       const stepsForVariant = async (
         variant: ArrayElement<typeof variants>,
       ) => {
         const configurationHooks: BuildWebAppConfigurationHooks = {};
 
-        await hooks.configure.promise(configurationHooks, variant);
+        await hooks.configure.run(configurationHooks, variant);
 
-        const context = await hooks.context.promise({});
+        const context = await hooks.context.run({});
 
-        return hooks.steps.promise(
+        return hooks.steps.run(
           [],
           {
             variant,
@@ -127,35 +112,20 @@ export async function runBuild(
         delegate,
       );
 
-      const buildTaskHooks: BuildProjectTaskHooks = {
-        project: new AsyncSeriesHook(['project', 'projectBuildHooks']),
-        package: new AsyncSeriesHook(['pkg', 'packageBuildHooks']),
-        webApp: new AsyncSeriesHook(['app', 'webAppBuildHooks']),
-        service: new AsyncSeriesHook(['service', 'serviceBuildHooks']),
-      };
-
-      await build.promise({
-        options,
-        hooks: buildTaskHooks,
-        workspace,
-      });
-
       const hooks: BuildServiceHooks = {
-        steps: new AsyncSeriesWaterfallHook(['steps', 'details', 'context']),
-        context: new AsyncSeriesWaterfallHook(['context']),
-        configure: new AsyncSeriesHook(['configuration']),
+        steps: new WaterfallHook(),
+        context: new WaterfallHook(),
+        configure: new SeriesHook(),
       };
 
-      await buildTaskHooks.project.promise({project: service, hooks});
-      await buildTaskHooks.service.promise({service, hooks});
+      await build.run({options, hooks});
 
       const configurationHooks: BuildServiceConfigurationHooks = {};
+      await hooks.configure.run(configurationHooks);
 
-      await hooks.configure.promise(configurationHooks);
+      const context = await hooks.context.run({});
 
-      const context = await hooks.context.promise({});
-
-      const steps = await hooks.steps.promise(
+      const steps = await hooks.steps.run(
         [],
         {
           config: configurationHooks,
@@ -175,40 +145,26 @@ export async function runBuild(
         delegate,
       );
 
-      const buildTaskHooks: BuildProjectTaskHooks = {
-        project: new AsyncSeriesHook(['project', 'projectBuildHooks']),
-        package: new AsyncSeriesHook(['pkg', 'packageBuildHooks']),
-        webApp: new AsyncSeriesHook(['app', 'webAppBuildHooks']),
-        service: new AsyncSeriesHook(['service', 'serviceBuildHooks']),
-      };
-
-      await build.promise({
-        options,
-        hooks: buildTaskHooks,
-        workspace,
-      });
-
       const hooks: BuildPackageHooks = {
-        variants: new AsyncSeriesWaterfallHook(['variants']),
-        steps: new AsyncSeriesWaterfallHook(['steps', 'details', 'context']),
-        context: new AsyncSeriesWaterfallHook(['context']),
-        configure: new AsyncSeriesHook(['buildTarget', 'variant']),
+        variants: new WaterfallHook(),
+        steps: new WaterfallHook(),
+        context: new WaterfallHook(),
+        configure: new SeriesHook(),
       };
 
-      await buildTaskHooks.project.promise({project: pkg, hooks});
-      await buildTaskHooks.package.promise({pkg, hooks});
+      await build.run({hooks, options});
 
-      const variants = await hooks.variants.promise([]);
+      const variants = await hooks.variants.run([]);
 
       const steps = await Promise.all(
         variants.map(async (variant) => {
           const configurationHooks: BuildPackageConfigurationHooks = {};
 
-          await hooks.configure.promise(configurationHooks, variant);
+          await hooks.configure.run(configurationHooks, variant);
 
-          const context = await hooks.context.promise({});
+          const context = await hooks.context.run({});
 
-          const steps = await hooks.steps.promise(
+          const steps = await hooks.steps.run(
             [],
             {
               variant,
@@ -232,11 +188,11 @@ export async function runBuild(
   );
 
   const configurationHooks = {};
-  await buildTaskHooks.configure.promise(configurationHooks);
+  await buildTaskHooks.configure.run(configurationHooks);
 
   const [pre, post] = await Promise.all([
-    buildTaskHooks.pre.promise([], {configuration: configurationHooks}),
-    buildTaskHooks.post.promise([], {configuration: configurationHooks}),
+    buildTaskHooks.pre.run([], {configuration: configurationHooks}),
+    buildTaskHooks.post.run([], {configuration: configurationHooks}),
   ]);
 
   const {skip, skipPre, skipPost} = options;

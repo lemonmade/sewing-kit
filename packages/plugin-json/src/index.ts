@@ -1,1 +1,1 @@
-export {jsonProjectPlugin} from './plugin-json';
+export {json} from './plugin-json';

@@ -1,8 +1,7 @@
 import {join, dirname, basename} from 'path';
 
-import {produce} from 'immer';
 import {BuildWebAppOptions} from '@sewing-kit/hooks';
-import {createProjectBuildPlugin} from '@sewing-kit/plugins';
+import {createProjectBuildPlugin, WebApp} from '@sewing-kit/plugins';
 import {changeBaseJavaScriptBabelPreset} from '@sewing-kit/plugin-javascript';
 
 import {} from '@sewing-kit/plugin-babel';
@@ -32,40 +31,34 @@ export interface Options {
   readonly groups?: {readonly [key: string]: readonly string[]};
 }
 
-export const createDifferentialServingPlugin = ({
+export function differentialServing({
   groups = DEFAULT_BROWSER_GROUPS,
-}: Options = {}) =>
-  createProjectBuildPlugin(PLUGIN, ({hooks}) => {
-    hooks.webApp.tap(PLUGIN, ({hooks}) => {
-      hooks.variants.tap(PLUGIN, (variants) => [
-        ...variants,
-        ...Object.keys(groups).flatMap((browserTarget) =>
-          variants.map((build) => ({
-            ...build,
-            browserTarget: browserTarget as BuildWebAppOptions['browserTarget'],
-          })),
-        ),
-      ]);
+}: Options = {}) {
+  return createProjectBuildPlugin<WebApp>(PLUGIN, ({hooks}) => {
+    hooks.variants.hook((variants) => [
+      ...variants,
+      ...Object.keys(groups).flatMap((browserTarget) =>
+        variants.map((build) => ({
+          ...build,
+          browserTarget: browserTarget as BuildWebAppOptions['browserTarget'],
+        })),
+      ),
+    ]);
 
-      hooks.configure.tap(PLUGIN, (configuration, {browserTarget}) => {
-        if (browserTarget == null) {
-          return;
-        }
+    hooks.configure.hook((configuration, {browserTarget}) => {
+      if (browserTarget == null) {
+        return;
+      }
 
-        configuration.webpackOutputFilename?.tap(PLUGIN, (filename) => {
-          return join(dirname(filename), browserTarget, basename(filename));
-        });
-
-        configuration.babelConfig?.tap(PLUGIN, (babelConfig) => {
-          return produce(
-            babelConfig,
-            changeBaseJavaScriptBabelPreset({
-              target: groups[browserTarget],
-            }),
-          );
-        });
+      configuration.webpackOutputFilename?.hook((filename) => {
+        return join(dirname(filename), browserTarget, basename(filename));
       });
+
+      configuration.babelConfig?.hook(
+        changeBaseJavaScriptBabelPreset({
+          target: groups[browserTarget],
+        }),
+      );
     });
   });
-
-export const differentialServingPlugin = createDifferentialServingPlugin();
+}

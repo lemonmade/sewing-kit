@@ -1,21 +1,19 @@
 import {resolve, relative} from 'path';
-
-import {produce} from 'immer';
 import {symlink, utimes} from 'fs-extra';
 
 import {BabelConfig} from '@sewing-kit/plugin-babel';
 import {Package} from '@sewing-kit/model';
 
-export const addTypeScriptBabelConfig = produce((babelConfig: BabelConfig) => {
-  babelConfig.plugins = babelConfig.plugins ?? [];
-  babelConfig.presets = babelConfig.presets ?? [];
-
-  // @note https://babeljs.io/docs/en/babel-plugin-proposal-decorators#note-compatibility-with-babel-plugin-proposal-class-properties
-  babelConfig.plugins.push([
-    require.resolve('@babel/plugin-proposal-decorators'),
-    {legacy: true},
-  ]);
-  babelConfig.presets.push(require.resolve('@babel/preset-typescript'));
+export const addTypeScriptBabelConfig = (config: BabelConfig) => ({
+  ...config,
+  plugins: [
+    ...(config.plugins ?? []),
+    [require.resolve('@babel/plugin-proposal-decorators'), {legacy: true}],
+  ],
+  presets: [
+    ...(config.presets ?? []),
+    require.resolve('@babel/preset-typescript'),
+  ],
 });
 
 export enum EntryStrategy {

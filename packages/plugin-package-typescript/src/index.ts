@@ -1,5 +1,1 @@
-export {
-  Options,
-  buildPackageTsDefinitionsPlugin,
-  createBuildPackageTsDefinitionsPlugin,
-} from './plugin-package-typescript';
+export {buildTypeScriptDefinitions, Options} from './plugin-package-typescript';

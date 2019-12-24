@@ -17,7 +17,7 @@ Plugins can have only one target. A target is the point in a task where the plug
 
 ## Hooks
 
-Once plugins are called, they should make use of the many hooks provided by the core of sewing-kit, and by other plugins. These hooks use `tapable`, a flexible library for defining custom behavior.
+Once plugins are called, they should make use of the many hooks provided by the core of sewing-kit, and by other plugins. These hooks use a very simplified re-implementation of `tapable`, a flexible library for defining custom behavior.
 
 ## Tools
 

@@ -1,4 +1,4 @@
-// import {AsyncSeriesWaterfallHook} from 'tapable';
+// import {WaterfallHook} from 'tapable';
 // import {
 //   createPlugin,
 //   PluginTarget,
@@ -26,7 +26,7 @@
 
 // declare module '@sewing-kit/hooks' {
 //   interface DevWorkspaceConfigurationCustomHooks {
-//     readonly devServer: AsyncSeriesWaterfallHook<DevServer>;
+//     readonly devServer: WaterfallHook<DevServer>;
 //   }
 
 //   interface DevPackageStepCustomDetails extends BuildCollectorDetails {}
@@ -35,7 +35,7 @@
 // }
 
 // const addDevServerHooks = addHooks(() => ({
-//   devServer: new AsyncSeriesWaterfallHook(['devServer']),
+//   devServer: new WaterfallHook(['devServer']),
 // }));
 
 // export default createPlugin(

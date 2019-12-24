@@ -1,6 +1,5 @@
-import {AsyncSeriesWaterfallHook} from 'tapable';
 import {createStep, DiagnosticError} from '@sewing-kit/ui';
-import {} from '@sewing-kit/hooks';
+import {WaterfallHook} from '@sewing-kit/hooks';
 import {addHooks, toArgs, createWorkspaceLintPlugin} from '@sewing-kit/plugins';
 
 interface EslintFlags {
@@ -14,8 +13,8 @@ interface EslintFlags {
 
 declare module '@sewing-kit/hooks' {
   interface LintWorkspaceConfigurationCustomHooks {
-    readonly eslintExtensions: AsyncSeriesWaterfallHook<string[]>;
-    readonly eslintFlags: AsyncSeriesWaterfallHook<EslintFlags>;
+    readonly eslintExtensions: WaterfallHook<string[]>;
+    readonly eslintFlags: WaterfallHook<EslintFlags>;
   }
 }
 
@@ -24,22 +23,21 @@ const PLUGIN = 'SewingKit.eslint';
 const addRootConfigurationHooks = addHooks<
   import('@sewing-kit/hooks').LintWorkspaceConfigurationHooks
 >(() => ({
-  eslintExtensions: new AsyncSeriesWaterfallHook(['extensions']),
-  eslintFlags: new AsyncSeriesWaterfallHook(['flags']),
+  eslintExtensions: new WaterfallHook(),
+  eslintFlags: new WaterfallHook(),
 }));
 
-export const eslintWorkspacePlugin = createWorkspaceLintPlugin(
-  PLUGIN,
-  ({hooks, options}, api) => {
-    hooks.configure.tap(PLUGIN, addRootConfigurationHooks);
+export function eslint() {
+  return createWorkspaceLintPlugin(PLUGIN, ({hooks, options, api}) => {
+    hooks.configure.hook(addRootConfigurationHooks);
 
-    hooks.steps.tap(PLUGIN, (steps, {configuration}) => [
+    hooks.steps.hook((steps, {configuration}) => [
       ...steps,
       createStep({label: 'Linting scripts with ESLint'}, async (step) => {
         const {fix = false} = options;
-        const extensions = await configuration.eslintExtensions!.promise([]);
+        const extensions = await configuration.eslintExtensions!.run([]);
         const args = toArgs(
-          await configuration.eslintFlags!.promise({
+          await configuration.eslintFlags!.run({
             fix,
             maxWarnings: 0,
             format: 'codeframe',
@@ -63,5 +61,5 @@ export const eslintWorkspacePlugin = createWorkspaceLintPlugin(
         }
       }),
     ]);
-  },
-);
+  });
+}

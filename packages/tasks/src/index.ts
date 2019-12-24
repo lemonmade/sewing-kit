@@ -1,9 +1,11 @@
-import {AsyncSeriesWaterfallHook, AsyncSeriesHook} from 'tapable';
 import {
+  SeriesHook,
+  WaterfallHook,
   TypeCheckWorkspaceConfigurationHooks,
   TestWorkspaceConfigurationHooks,
   TestPackageHooks,
   TestWebAppHooks,
+  TestServiceHooks,
   TestProjectWorkspaceContext,
   LintWorkspaceConfigurationHooks,
   BuildWorkspaceConfigurationHooks,
@@ -16,7 +18,7 @@ import {
   DevServiceHooks,
 } from '@sewing-kit/hooks';
 import {Step} from '@sewing-kit/ui';
-import {Workspace, Package, WebApp, Service} from '@sewing-kit/model';
+import {Package, WebApp, Service, Project} from '@sewing-kit/model';
 
 export enum Env {
   Development = 'development',
@@ -25,22 +27,30 @@ export enum Env {
   Test = 'test',
 }
 
+export enum Task {
+  Build = 'build',
+  Dev = 'dev',
+  Test = 'test',
+  Lint = 'lint',
+  TypeCheck = 'typeCheck',
+}
+
 // ==================================================================
 // CONSOLIDATED
 // ==================================================================
 
 export interface WorkspaceTasks {
-  readonly build: AsyncSeriesHook<BuildWorkspaceTask>;
-  readonly dev: AsyncSeriesHook<DevWorkspaceTask>;
-  readonly test: AsyncSeriesHook<TestWorkspaceTask>;
-  readonly lint: AsyncSeriesHook<LintWorkspaceTask>;
-  readonly typeCheck: AsyncSeriesHook<TypeCheckWorkspaceTask>;
+  readonly build: SeriesHook<BuildWorkspaceTask>;
+  readonly dev: SeriesHook<DevWorkspaceTask>;
+  readonly test: SeriesHook<TestWorkspaceTask>;
+  readonly lint: SeriesHook<LintWorkspaceTask>;
+  readonly typeCheck: SeriesHook<TypeCheckWorkspaceTask>;
 }
 
-export interface ProjectTasks {
-  readonly build: AsyncSeriesHook<BuildProjectTask>;
-  readonly dev: AsyncSeriesHook<DevProjectTask>;
-  readonly test: AsyncSeriesHook<TestProjectTask>;
+export interface ProjectTasks<Type extends Project> {
+  readonly build: SeriesHook<BuildProjectTask<Type>>;
+  readonly dev: SeriesHook<DevProjectTask<Type>>;
+  readonly test: SeriesHook<TestProjectTask<Type>>;
 }
 
 // ==================================================================
@@ -60,25 +70,15 @@ interface TypeCheckWorkspaceStepDetails {
 }
 
 export interface TypeCheckWorkspaceTaskHooks {
-  readonly configure: AsyncSeriesHook<TypeCheckWorkspaceConfigurationHooks>;
-  readonly pre: AsyncSeriesWaterfallHook<
-    readonly Step[],
-    TypeCheckWorkspaceStepDetails
-  >;
-  readonly steps: AsyncSeriesWaterfallHook<
-    readonly Step[],
-    TypeCheckWorkspaceStepDetails
-  >;
-  readonly post: AsyncSeriesWaterfallHook<
-    readonly Step[],
-    TypeCheckWorkspaceStepDetails
-  >;
+  readonly configure: SeriesHook<TypeCheckWorkspaceConfigurationHooks>;
+  readonly pre: WaterfallHook<readonly Step[], TypeCheckWorkspaceStepDetails>;
+  readonly steps: WaterfallHook<readonly Step[], TypeCheckWorkspaceStepDetails>;
+  readonly post: WaterfallHook<readonly Step[], TypeCheckWorkspaceStepDetails>;
 }
 
 export interface TypeCheckWorkspaceTask {
   readonly hooks: TypeCheckWorkspaceTaskHooks;
   readonly options: TypeCheckOptions;
-  readonly workspace: Workspace;
 }
 
 // ==================================================================
@@ -98,16 +98,15 @@ interface LintWorkspaceStepDetails {
 }
 
 export interface LintWorkspaceTaskHooks {
-  readonly configure: AsyncSeriesHook<LintWorkspaceConfigurationHooks>;
-  readonly pre: AsyncSeriesWaterfallHook<Step[], LintWorkspaceStepDetails>;
-  readonly steps: AsyncSeriesWaterfallHook<Step[], LintWorkspaceStepDetails>;
-  readonly post: AsyncSeriesWaterfallHook<Step[], LintWorkspaceStepDetails>;
+  readonly configure: SeriesHook<LintWorkspaceConfigurationHooks>;
+  readonly pre: WaterfallHook<Step[], LintWorkspaceStepDetails>;
+  readonly steps: WaterfallHook<Step[], LintWorkspaceStepDetails>;
+  readonly post: WaterfallHook<Step[], LintWorkspaceStepDetails>;
 }
 
 export interface LintWorkspaceTask {
   readonly hooks: LintWorkspaceTaskHooks;
   readonly options: LintTaskOptions;
-  readonly workspace: Workspace;
 }
 
 // ==================================================================
@@ -131,47 +130,31 @@ interface TestWorkspaceStepDetails {
   readonly configuration: TestWorkspaceConfigurationHooks;
 }
 
-export type TestProjectDetails =
-  | {
-      readonly project: Package;
-      readonly hooks: TestPackageHooks;
-    }
-  | {
-      readonly project: WebApp;
-      readonly hooks: TestWebAppHooks;
-    };
-
 export interface TestWorkspaceTaskHooks {
-  readonly pre: AsyncSeriesWaterfallHook<Step[], TestWorkspaceStepDetails>;
-  readonly post: AsyncSeriesWaterfallHook<Step[], TestWorkspaceStepDetails>;
-  readonly steps: AsyncSeriesWaterfallHook<Step[], TestWorkspaceStepDetails>;
-  readonly configure: AsyncSeriesHook<TestWorkspaceConfigurationHooks>;
-  readonly context: AsyncSeriesWaterfallHook<TestProjectWorkspaceContext>;
+  readonly pre: WaterfallHook<Step[], TestWorkspaceStepDetails>;
+  readonly post: WaterfallHook<Step[], TestWorkspaceStepDetails>;
+  readonly steps: WaterfallHook<Step[], TestWorkspaceStepDetails>;
+  readonly configure: SeriesHook<TestWorkspaceConfigurationHooks>;
+  readonly context: WaterfallHook<TestProjectWorkspaceContext>;
 }
 
-export interface TestProjectTaskHooks {
-  readonly project: AsyncSeriesHook<TestProjectDetails>;
-  readonly package: AsyncSeriesHook<{
-    readonly pkg: Package;
-    readonly hooks: TestPackageHooks;
-  }>;
-  readonly webApp: AsyncSeriesHook<{
-    readonly webApp: WebApp;
-    readonly hooks: TestWebAppHooks;
-  }>;
-}
+export type TestProjectTaskHooks<Type extends Project> = Type extends Package
+  ? TestPackageHooks
+  : Type extends WebApp
+  ? TestWebAppHooks
+  : Type extends Service
+  ? TestServiceHooks
+  : TestPackageHooks | TestWebAppHooks | TestServiceHooks;
 
 export interface TestWorkspaceTask {
   readonly hooks: TestWorkspaceTaskHooks;
   readonly options: TestTaskOptions;
-  readonly workspace: Workspace;
 }
 
-export interface TestProjectTask {
-  readonly hooks: TestProjectTaskHooks;
+export interface TestProjectTask<Type extends Project> {
+  readonly hooks: TestProjectTaskHooks<Type>;
   readonly context: TestProjectWorkspaceContext;
   readonly options: TestTaskOptions;
-  readonly workspace: Workspace;
 }
 
 // ==================================================================
@@ -192,52 +175,28 @@ interface BuildStepDetails {
   readonly configuration: BuildWorkspaceConfigurationHooks;
 }
 
-export interface BuildWebAppDetails {
-  readonly webApp: WebApp;
-  readonly hooks: BuildWebAppHooks;
-}
-
-export interface BuildPackageDetails {
-  readonly pkg: Package;
-  readonly hooks: BuildPackageHooks;
-}
-
-export interface BuildServiceDetails {
-  readonly service: Service;
-  readonly hooks: BuildServiceHooks;
-}
-
-export type BuildProjectDetails =
-  | {
-      readonly project: WebApp;
-      readonly hooks: BuildWebAppHooks;
-    }
-  | {readonly project: Package; readonly hooks: BuildPackageHooks}
-  | {readonly project: Service; readonly hooks: BuildServiceHooks};
-
 export interface BuildWorkspaceTaskHooks {
-  readonly configure: AsyncSeriesHook<BuildWorkspaceConfigurationHooks>;
-  readonly pre: AsyncSeriesWaterfallHook<readonly Step[], BuildStepDetails>;
-  readonly post: AsyncSeriesWaterfallHook<readonly Step[], BuildStepDetails>;
+  readonly configure: SeriesHook<BuildWorkspaceConfigurationHooks>;
+  readonly pre: WaterfallHook<readonly Step[], BuildStepDetails>;
+  readonly post: WaterfallHook<readonly Step[], BuildStepDetails>;
 }
 
-export interface BuildProjectTaskHooks {
-  readonly project: AsyncSeriesHook<BuildProjectDetails>;
-  readonly package: AsyncSeriesHook<BuildPackageDetails>;
-  readonly webApp: AsyncSeriesHook<BuildWebAppDetails>;
-  readonly service: AsyncSeriesHook<BuildServiceDetails>;
-}
+export type BuildProjectTaskHooks<Type extends Project> = Type extends Package
+  ? BuildPackageHooks
+  : Type extends WebApp
+  ? BuildWebAppHooks
+  : Type extends Service
+  ? BuildServiceHooks
+  : BuildPackageHooks | BuildWebAppHooks | BuildServiceHooks;
 
 export interface BuildWorkspaceTask {
   readonly hooks: BuildWorkspaceTaskHooks;
   readonly options: BuildTaskOptions;
-  readonly workspace: Workspace;
 }
 
-export interface BuildProjectTask {
-  readonly hooks: BuildProjectTaskHooks;
+export interface BuildProjectTask<Type extends Project> {
+  readonly hooks: BuildProjectTaskHooks<Type>;
   readonly options: BuildTaskOptions;
-  readonly workspace: Workspace;
 }
 
 // ==================================================================
@@ -255,50 +214,26 @@ interface DevWorkspaceStepDetails {
   readonly configuration: DevWorkspaceConfigurationHooks;
 }
 
-export type DevProjectDetails =
-  | {
-      readonly project: WebApp;
-      readonly hooks: DevWebAppHooks;
-    }
-  | {readonly project: Service; readonly hooks: DevServiceHooks}
-  | {readonly project: Package; readonly hooks: DevPackageHooks};
-
 export interface DevWorkspaceTaskHooks {
-  readonly configure: AsyncSeriesHook<DevWorkspaceConfigurationHooks>;
-  readonly pre: AsyncSeriesWaterfallHook<
-    readonly Step[],
-    DevWorkspaceStepDetails
-  >;
-  readonly post: AsyncSeriesWaterfallHook<
-    readonly Step[],
-    DevWorkspaceStepDetails
-  >;
+  readonly configure: SeriesHook<DevWorkspaceConfigurationHooks>;
+  readonly pre: WaterfallHook<readonly Step[], DevWorkspaceStepDetails>;
+  readonly post: WaterfallHook<readonly Step[], DevWorkspaceStepDetails>;
 }
 
-export interface DevProjectTaskHooks {
-  readonly project: AsyncSeriesHook<DevProjectDetails>;
-  readonly package: AsyncSeriesHook<{
-    readonly pkg: Package;
-    readonly hooks: DevPackageHooks;
-  }>;
-  readonly webApp: AsyncSeriesHook<{
-    readonly webApp: WebApp;
-    readonly hooks: DevWebAppHooks;
-  }>;
-  readonly service: AsyncSeriesHook<{
-    readonly service: Service;
-    readonly hooks: DevServiceHooks;
-  }>;
-}
+export type DevProjectTaskHooks<Type extends Project> = Type extends Package
+  ? DevPackageHooks
+  : Type extends WebApp
+  ? DevWebAppHooks
+  : Type extends Service
+  ? DevServiceHooks
+  : DevPackageHooks | DevWebAppHooks | DevServiceHooks;
 
 export interface DevWorkspaceTask {
   readonly hooks: DevWorkspaceTaskHooks;
   readonly options: DevTaskOptions;
-  readonly workspace: Workspace;
 }
 
-export interface DevProjectTask {
-  readonly hooks: DevProjectTaskHooks;
+export interface DevProjectTask<Type extends Project> {
+  readonly hooks: DevProjectTaskHooks<Type>;
   readonly options: DevTaskOptions;
-  readonly workspace: Workspace;
 }

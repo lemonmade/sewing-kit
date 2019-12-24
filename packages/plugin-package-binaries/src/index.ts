@@ -1,1 +1,1 @@
-export {packageCreateBinariesPlugin} from './plugin-package-binaries';
+export {buildBinaries} from './plugin-package-binaries';

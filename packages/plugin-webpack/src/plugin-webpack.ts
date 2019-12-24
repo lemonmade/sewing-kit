@@ -1,22 +1,32 @@
-import {AsyncSeriesWaterfallHook} from 'tapable';
-import {addHooks, createProjectPlugin} from '@sewing-kit/plugins';
-import {Project} from '@sewing-kit/model';
+import {
+  BuildWebAppConfigurationHooks,
+  BuildServiceConfigurationHooks,
+  DevWebAppConfigurationHooks,
+  DevServiceConfigurationHooks,
+} from '@sewing-kit/hooks';
+import {
+  Task,
+  Service,
+  WebApp,
+  addHooks,
+  createProjectPlugin,
+  Project,
+  WaterfallHook,
+} from '@sewing-kit/plugins';
 
 interface WebpackHooks {
-  readonly webpackRules: AsyncSeriesWaterfallHook<readonly any[]>;
-  readonly webpackPlugins: AsyncSeriesWaterfallHook<
-    readonly import('webpack').Plugin[]
-  >;
-  readonly webpackConfig: AsyncSeriesWaterfallHook<
+  readonly webpackRules: WaterfallHook<readonly any[]>;
+  readonly webpackPlugins: WaterfallHook<readonly import('webpack').Plugin[]>;
+  readonly webpackConfig: WaterfallHook<
     Readonly<import('webpack').Configuration>
   >;
-  readonly webpackPublicPath: AsyncSeriesWaterfallHook<string>;
+  readonly webpackPublicPath: WaterfallHook<string>;
 
-  readonly webpackOutputDirectory: AsyncSeriesWaterfallHook<string>;
-  readonly webpackOutputFilename: AsyncSeriesWaterfallHook<string>;
-  readonly webpackEntries: AsyncSeriesWaterfallHook<readonly string[]>;
-  readonly webpackExtensions: AsyncSeriesWaterfallHook<readonly string[]>;
-  readonly webpackAliases: AsyncSeriesWaterfallHook<{[key: string]: string}>;
+  readonly webpackOutputDirectory: WaterfallHook<string>;
+  readonly webpackOutputFilename: WaterfallHook<string>;
+  readonly webpackEntries: WaterfallHook<readonly string[]>;
+  readonly webpackExtensions: WaterfallHook<readonly string[]>;
+  readonly webpackAliases: WaterfallHook<{[key: string]: string}>;
 }
 
 interface WebpackDevContext {
@@ -46,77 +56,100 @@ declare module '@sewing-kit/hooks' {
 const PLUGIN = 'SewingKit.webpack';
 
 const addWebpackHooks = addHooks<Partial<WebpackHooks>>(() => ({
-  webpackRules: new AsyncSeriesWaterfallHook(['webpackRules']),
-  webpackConfig: new AsyncSeriesWaterfallHook(['webpackConfig']),
-  webpackPlugins: new AsyncSeriesWaterfallHook(['webpackPlugins']),
-  webpackPublicPath: new AsyncSeriesWaterfallHook(['webpackPublicPath']),
-  webpackOutputDirectory: new AsyncSeriesWaterfallHook([
-    'webpackOutputDirectory',
-  ]),
-  webpackOutputFilename: new AsyncSeriesWaterfallHook([
-    'webpackOutputFilename',
-  ]),
-  webpackEntries: new AsyncSeriesWaterfallHook(['webpackEntries']),
-  webpackExtensions: new AsyncSeriesWaterfallHook(['webpackExtensions']),
-  webpackAliases: new AsyncSeriesWaterfallHook(['webpackAliases']),
+  webpackRules: new WaterfallHook(),
+  webpackConfig: new WaterfallHook(),
+  webpackPlugins: new WaterfallHook(),
+  webpackPublicPath: new WaterfallHook(),
+  webpackOutputDirectory: new WaterfallHook(),
+  webpackOutputFilename: new WaterfallHook(),
+  webpackEntries: new WaterfallHook(),
+  webpackExtensions: new WaterfallHook(),
+  webpackAliases: new WaterfallHook(),
 }));
 
-export const webpackProjectPlugin = createProjectPlugin({
-  id: PLUGIN,
-  run({build, dev}) {
-    build.tap(PLUGIN, ({hooks}) => {
-      hooks.webApp.tap(PLUGIN, ({hooks}) => {
-        hooks.context.tap(PLUGIN, (context) => ({
+export function webpack() {
+  return createProjectPlugin<Service | WebApp>(
+    PLUGIN,
+    ({tasks: {build, dev}}) => {
+      build.hook(({hooks}) => {
+        hooks.context.hook((context) => ({
           ...context,
           webpackBuildManager: new BuildManager(),
         }));
 
-        hooks.configure.tap(PLUGIN, addWebpackHooks);
+        hooks.configure.hook(addWebpackHooks);
       });
 
-      hooks.service.tap(PLUGIN, ({hooks}) => {
-        hooks.context.tap(PLUGIN, (context) => ({
+      dev.hook(({hooks}) => {
+        hooks.context.hook((context) => ({
           ...context,
           webpackBuildManager: new BuildManager(),
         }));
 
-        hooks.configure.tap(PLUGIN, addWebpackHooks);
+        hooks.configure.hook(addWebpackHooks);
       });
-    });
-
-    dev.tap(PLUGIN, ({hooks}) => {
-      hooks.webApp.tap(PLUGIN, ({hooks}) => {
-        hooks.context.tap(PLUGIN, (context) => ({
-          ...context,
-          webpackBuildManager: new BuildManager(),
-        }));
-
-        hooks.configure.tap(PLUGIN, addWebpackHooks);
-      });
-
-      hooks.service.tap(PLUGIN, ({hooks}) => {
-        hooks.context.tap(PLUGIN, (context) => ({
-          ...context,
-          webpackBuildManager: new BuildManager(),
-        }));
-
-        hooks.configure.tap(PLUGIN, addWebpackHooks);
-      });
-    });
-  },
-});
+    },
+  );
+}
 
 interface WebpackConfigurationChangePluginOptions {
   id?: string;
-  dev?: boolean;
-  build?: boolean;
+  include?: (Task.Dev | Task.Build)[];
+}
+
+type ValueOrArray<Value> = Value | Value[];
+type ValueOrGetter<Value> = Value | (() => Value | Promise<Value>);
+
+export function addWebpackRules(
+  rules: ValueOrGetter<ValueOrArray<import('webpack').Rule>>,
+  options: WebpackConfigurationChangePluginOptions = {},
+) {
+  return createWebpackConfigurationChangePlugin(
+    {id: `${PLUGIN}.AddWebpackRules`, ...options},
+    (configure) => {
+      configure.webpackRules?.hook(async (existingRules) => [
+        ...existingRules,
+        ...(await unwrapPossibleArrayGetter(rules)),
+      ]);
+    },
+  );
+}
+
+export function addWebpackPlugins(
+  plugins: ValueOrGetter<ValueOrArray<import('webpack').Plugin>>,
+  options: WebpackConfigurationChangePluginOptions = {},
+) {
+  return createWebpackConfigurationChangePlugin(
+    {id: `${PLUGIN}.AddWebpackPlugins`, ...options},
+    (configure) => {
+      configure.webpackPlugins?.hook(async (existingPlugins) => [
+        ...existingPlugins,
+        ...(await unwrapPossibleArrayGetter(plugins)),
+      ]);
+    },
+  );
+}
+
+export function addWebpackAliases(
+  aliases: ValueOrGetter<{[key: string]: string}>,
+  options: WebpackConfigurationChangePluginOptions = {},
+) {
+  return createWebpackConfigurationChangePlugin(
+    {id: `${PLUGIN}.AddWebpackAliases`, ...options},
+    (configure) => {
+      configure.webpackAliases?.hook(async (existingAliases) => ({
+        ...existingAliases,
+        ...unwrapPossibleGetter(aliases),
+      }));
+    },
+  );
 }
 
 export function noopModuleWithWebpack(
   module: RegExp,
   options?: WebpackConfigurationChangePluginOptions,
 ) {
-  return addWebpackPlugin(
+  return addWebpackPlugins(
     async () =>
       new (await import('webpack')).NormalModuleReplacementPlugin(
         module,
@@ -126,121 +159,31 @@ export function noopModuleWithWebpack(
   );
 }
 
-type ValueOrArray<Value> = Value | Value[];
-type ValueOrGetter<Value> = Value | (() => Value | Promise<Value>);
-type PluginsOrPluginGetter = ValueOrGetter<
-  ValueOrArray<import('webpack').Plugin>
->;
-
-export function addWebpackPlugin(
-  pluginGetter: PluginsOrPluginGetter,
+function createWebpackConfigurationChangePlugin(
   {
-    id: pluginId = `${PLUGIN}.AddWebpackPlugin`,
-    dev: applyToDev = true,
-    build: applyToBuild = true,
-  }: WebpackConfigurationChangePluginOptions = {},
+    id,
+    include = [Task.Build, Task.Dev],
+  }: WebpackConfigurationChangePluginOptions & {id: string},
+  run: (
+    hooks:
+      | BuildWebAppConfigurationHooks
+      | BuildServiceConfigurationHooks
+      | DevWebAppConfigurationHooks
+      | DevServiceConfigurationHooks,
+  ) => void,
 ) {
-  async function addPlugins(existingPlugins: readonly any[]) {
-    const pluginOrPlugins =
-      typeof pluginGetter === 'function' ? await pluginGetter() : pluginGetter;
+  return createProjectPlugin<WebApp | Service>(id, ({tasks: {build, dev}}) => {
+    if (include.includes(Task.Build)) {
+      build.hook(({hooks}) => {
+        hooks.configure.hook(run);
+      });
+    }
 
-    const plugins = Array.isArray(pluginOrPlugins)
-      ? pluginOrPlugins
-      : [pluginOrPlugins];
-
-    return [...existingPlugins, ...plugins];
-  }
-
-  return createProjectPlugin({
-    id: pluginId,
-    run({build, dev}) {
-      if (applyToBuild) {
-        build.tap(pluginId, ({hooks}) => {
-          hooks.webApp.tap(pluginId, ({hooks}) => {
-            hooks.configure.tap(pluginId, (configure) => {
-              configure.webpackPlugins?.tapPromise(pluginId, addPlugins);
-            });
-          });
-
-          hooks.service.tap(pluginId, ({hooks}) => {
-            hooks.configure.tap(pluginId, (configure) => {
-              configure.webpackPlugins?.tapPromise(pluginId, addPlugins);
-            });
-          });
-        });
-      }
-
-      if (applyToDev) {
-        dev.tap(pluginId, ({hooks}) => {
-          hooks.webApp.tap(pluginId, ({hooks}) => {
-            hooks.configure.tap(pluginId, (configure) => {
-              configure.webpackPlugins?.tapPromise(pluginId, addPlugins);
-            });
-          });
-
-          hooks.service.tap(pluginId, ({hooks}) => {
-            hooks.configure.tap(pluginId, (configure) => {
-              configure.webpackPlugins?.tapPromise(pluginId, addPlugins);
-            });
-          });
-        });
-      }
-    },
-  });
-}
-
-type AliasesOrAliasGetter = ValueOrGetter<{[key: string]: string}>;
-
-export function addWebpackAliases(
-  aliasGetter: AliasesOrAliasGetter,
-  {
-    id: pluginId = `${PLUGIN}.AddWebpackPlugin`,
-    dev: applyToDev = true,
-    build: applyToBuild = true,
-  }: WebpackConfigurationChangePluginOptions = {},
-) {
-  async function addAliases(existingAliases: {[key: string]: string}) {
-    const aliases =
-      typeof aliasGetter === 'function' ? await aliasGetter() : aliasGetter;
-
-    return {...existingAliases, ...aliases};
-  }
-
-  return createProjectPlugin({
-    id: pluginId,
-    run({build, dev}) {
-      if (applyToBuild) {
-        build.tap(pluginId, ({hooks}) => {
-          hooks.webApp.tap(pluginId, ({hooks}) => {
-            hooks.configure.tap(pluginId, (configure) => {
-              configure.webpackAliases?.tapPromise(pluginId, addAliases);
-            });
-          });
-
-          hooks.service.tap(pluginId, ({hooks}) => {
-            hooks.configure.tap(pluginId, (configure) => {
-              configure.webpackAliases?.tapPromise(pluginId, addAliases);
-            });
-          });
-        });
-      }
-
-      if (applyToDev) {
-        dev.tap(pluginId, ({hooks}) => {
-          hooks.webApp.tap(pluginId, ({hooks}) => {
-            hooks.configure.tap(pluginId, (configure) => {
-              configure.webpackAliases?.tapPromise(pluginId, addAliases);
-            });
-          });
-
-          hooks.service.tap(pluginId, ({hooks}) => {
-            hooks.configure.tap(pluginId, (configure) => {
-              configure.webpackAliases?.tapPromise(pluginId, addAliases);
-            });
-          });
-        });
-      }
-    },
+    if (include.includes(Task.Dev)) {
+      dev.hook(({hooks}) => {
+        hooks.configure.hook(run);
+      });
+    }
   });
 }
 
@@ -265,4 +208,19 @@ export class BuildManager {
       listener(stats);
     }
   }
+}
+
+function unwrapPossibleGetter<T>(
+  maybeGetter: ValueOrGetter<T>,
+): T | Promise<T> {
+  return typeof maybeGetter === 'function'
+    ? (maybeGetter as any)()
+    : maybeGetter;
+}
+
+async function unwrapPossibleArrayGetter<T>(
+  maybeGetter: ValueOrGetter<ValueOrArray<T>>,
+) {
+  const result = await unwrapPossibleGetter(maybeGetter);
+  return Array.isArray(result) ? result : [result];
 }

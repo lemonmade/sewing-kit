@@ -1,15 +1,12 @@
-import {AsyncSeriesWaterfallHook, AsyncSeriesHook} from 'tapable';
 import {
+  SeriesHook,
+  WaterfallHook,
   TestPackageHooks,
   TestWebAppHooks,
   TestWorkspaceConfigurationHooks,
 } from '@sewing-kit/hooks';
-import {
-  TestTaskOptions,
-  TestWorkspaceTaskHooks,
-  TestProjectTaskHooks,
-} from '@sewing-kit/tasks';
-import {Package, WebApp} from '@sewing-kit/model';
+import {TestTaskOptions, TestWorkspaceTaskHooks} from '@sewing-kit/tasks';
+import {Package, WebApp, Service} from '@sewing-kit/model';
 import {run} from '@sewing-kit/ui';
 
 import {
@@ -23,66 +20,59 @@ export async function runTests(
   options: TestTaskOptions,
 ) {
   const hooks: TestWorkspaceTaskHooks = {
-    context: new AsyncSeriesWaterfallHook(['context']),
-    configure: new AsyncSeriesHook(['configurationHooks']),
-    pre: new AsyncSeriesWaterfallHook(['steps', 'stepDetails']),
-    post: new AsyncSeriesWaterfallHook(['steps', 'stepDetails']),
-    steps: new AsyncSeriesWaterfallHook(['steps', 'stepDetails']),
+    context: new WaterfallHook(),
+    configure: new SeriesHook(),
+    pre: new WaterfallHook(),
+    post: new WaterfallHook(),
+    steps: new WaterfallHook(),
   };
 
   const {test} = await createWorkspaceTasksAndApplyPlugins(workspace, delegate);
 
-  await test.promise({hooks, workspace, options});
+  await test.run({hooks, options});
 
   const rootConfigHooks: TestWorkspaceConfigurationHooks = {};
-  await hooks.configure.promise(rootConfigHooks);
+  await hooks.configure.run(rootConfigHooks);
 
-  const context = await hooks.context.promise({});
+  const context = await hooks.context.run({});
 
   await Promise.all(
     workspace.projects.map(async (project) => {
-      const hooks: TestProjectTaskHooks = {
-        project: new AsyncSeriesHook(['projectWithHooks']),
-        package: new AsyncSeriesHook(['packageWithHooks']),
-        webApp: new AsyncSeriesHook(['webAppWithHooks']),
-      };
-
       const {test: testProject} = await createProjectTasksAndApplyPlugins(
         project,
         workspace,
         delegate,
       );
 
-      await testProject.promise({hooks, workspace, options, context});
-
       if (project instanceof Package) {
-        const packageHooks: TestPackageHooks = {
-          configure: new AsyncSeriesHook(['configHooks']),
+        const hooks: TestPackageHooks = {
+          configure: new SeriesHook(),
         };
 
-        const projectDetails = {project, hooks: packageHooks};
-
-        await hooks.project.promise(projectDetails);
-        await hooks.package.promise({pkg: project, hooks: packageHooks});
-        await packageHooks.configure.promise({});
+        await testProject.run({hooks, options, context});
+        await hooks.configure.run({});
       } else if (project instanceof WebApp) {
-        const webAppHooks: TestWebAppHooks = {
-          configure: new AsyncSeriesHook(['configHooks']),
+        const hooks: TestWebAppHooks = {
+          configure: new SeriesHook(),
         };
 
-        const projectDetails = {project, hooks: webAppHooks};
+        await testProject.run({hooks, options, context});
+        await hooks.configure.run({});
+      } else if (project instanceof Service) {
+        const hooks: TestWebAppHooks = {
+          configure: new SeriesHook(),
+        };
 
-        await hooks.project.promise(projectDetails);
-        await hooks.webApp.promise({webApp: project, hooks: webAppHooks});
-        await webAppHooks.configure.promise({});
+        await testProject.run({hooks, options, context});
+        await hooks.configure.run({});
       }
     }),
   );
 
   const stepDetails = {configuration: rootConfigHooks, context};
-  const pre = await hooks.pre.promise([], stepDetails);
-  const steps = await hooks.steps.promise([], stepDetails);
-  const post = await hooks.post.promise([], stepDetails);
+  const pre = await hooks.pre.run([], stepDetails);
+  const steps = await hooks.steps.run([], stepDetails);
+  const post = await hooks.post.run([], stepDetails);
 
   const {skip, skipPre, skipPost} = options;
 

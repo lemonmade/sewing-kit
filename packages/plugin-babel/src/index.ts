@@ -1,6 +1,6 @@
 export * from './types';
 export {
-  babelProjectPlugin,
+  babelConfigurationHooks,
   addBabelPlugin,
   addBabelPreset,
 } from './plugin-babel';

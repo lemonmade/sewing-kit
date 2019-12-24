@@ -35,11 +35,3 @@ export function toArgs(flags: object, {dasherize = false} = {}) {
     return [...all, ...newArgs];
   }, []);
 }
-
-export function lazy<Args extends any[], ReturnType>(
-  asyncImport: () => Promise<(...args: Args) => ReturnType>,
-) {
-  return async (...args: Args) => {
-    return (await asyncImport())(...args);
-  };
-}

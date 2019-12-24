@@ -1,7 +1,9 @@
-import {AsyncSeriesHook, AsyncSeriesWaterfallHook} from 'tapable';
-
 import {run} from '@sewing-kit/ui';
-import {LintWorkspaceConfigurationHooks} from '@sewing-kit/hooks';
+import {
+  SeriesHook,
+  WaterfallHook,
+  LintWorkspaceConfigurationHooks,
+} from '@sewing-kit/hooks';
 import {LintTaskOptions, LintWorkspaceTaskHooks} from '@sewing-kit/tasks';
 
 import {TaskContext, createWorkspaceTasksAndApplyPlugins} from './common';
@@ -13,26 +15,25 @@ export async function runLint(
   const {lint} = await createWorkspaceTasksAndApplyPlugins(workspace, delegate);
 
   const hooks: LintWorkspaceTaskHooks = {
-    configure: new AsyncSeriesHook(['configurationHooks']),
-    pre: new AsyncSeriesWaterfallHook(['steps', 'stepDetails']),
-    steps: new AsyncSeriesWaterfallHook(['steps', 'stepDetails']),
-    post: new AsyncSeriesWaterfallHook(['steps', 'stepDetails']),
+    configure: new SeriesHook(),
+    pre: new WaterfallHook(),
+    steps: new WaterfallHook(),
+    post: new WaterfallHook(),
   };
 
-  await lint.promise({
+  await lint.run({
     hooks,
     options,
-    workspace,
   });
 
   const configurationHooks: LintWorkspaceConfigurationHooks = {};
-  await hooks.configure.promise(configurationHooks);
+  await hooks.configure.run(configurationHooks);
 
-  const pre = await hooks.pre.promise([], {configuration: configurationHooks});
-  const steps = await hooks.steps.promise([], {
+  const pre = await hooks.pre.run([], {configuration: configurationHooks});
+  const steps = await hooks.steps.run([], {
     configuration: configurationHooks,
   });
-  const post = await hooks.post.promise([], {
+  const post = await hooks.post.run([], {
     configuration: configurationHooks,
   });
 

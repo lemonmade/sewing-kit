@@ -1,5 +1,16 @@
-import {AsyncSeriesHook} from 'tapable';
-import {ProjectTasks, WorkspaceTasks} from '@sewing-kit/tasks';
+import {Project, WebApp, Package, Service, Workspace} from '@sewing-kit/model';
+import {
+  ProjectTasks,
+  WorkspaceTasks,
+  DevProjectTask,
+  DevWorkspaceTask,
+  TestProjectTask,
+  TestWorkspaceTask,
+  BuildProjectTask,
+  BuildWorkspaceTask,
+  LintWorkspaceTask,
+  TypeCheckWorkspaceTask,
+} from '@sewing-kit/tasks';
 
 import {PluginApi} from './api';
 
@@ -17,36 +28,91 @@ interface BasePlugin {
 }
 
 export interface PluginComposer<Plugin extends BasePlugin> {
-  use(...plugins: Plugin[]): void;
+  use(...plugins: (Plugin | false | undefined | null)[]): void;
 }
 
-export interface ProjectPlugin extends BasePlugin {
+export interface ProjectPluginContext<Type extends Project> {
+  readonly api: PluginApi;
+  readonly tasks: ProjectTasks<Type>;
+  readonly project: Type;
+  readonly workspace: Workspace;
+}
+
+export interface ProjectPlugin<Type extends Project = Project>
+  extends BasePlugin {
   readonly target: PluginTarget.Project;
-  run?(tasks: ProjectTasks, api: PluginApi): any;
-  compose?(composer: PluginComposer<ProjectPlugin>): any;
+  run?(context: ProjectPluginContext<Type>): any;
+  compose?(composer: PluginComposer<ProjectPlugin<Type>>): any;
+}
+
+export interface WorkspacePluginContext {
+  readonly api: PluginApi;
+  readonly tasks: WorkspaceTasks;
+  readonly workspace: Workspace;
 }
 
 export interface WorkspacePlugin extends BasePlugin {
   readonly target: PluginTarget.Workspace;
-  run?(tasks: WorkspaceTasks, api: PluginApi): any;
+  run?(context: WorkspacePluginContext): any;
   compose?(composer: PluginComposer<WorkspacePlugin>): any;
 }
 
-export type AnyPlugin = ProjectPlugin | WorkspacePlugin;
+export type AnyPlugin = ProjectPlugin<Project> | WorkspacePlugin;
 
-export function createProjectPlugin(
-  plugin: Omit<ProjectPlugin, typeof PLUGIN_MARKER | 'target'>,
-): ProjectPlugin {
-  return {...plugin, target: PluginTarget.Project, [PLUGIN_MARKER]: true};
+export function createProjectPlugin<
+  Type extends Project = WebApp | Service | Package
+>(
+  id: BasePlugin['id'],
+  run: NonNullable<ProjectPlugin<Type>['run']>,
+): ProjectPlugin<Type> {
+  return {id, run, target: PluginTarget.Project, [PLUGIN_MARKER]: true};
 }
 
-export function createComposedProjectPlugin(
+export const createProjectBuildPlugin = <
+  Type extends Project = WebApp | Service | Package
+>(
+  id: BasePlugin['id'],
+  run: (
+    context: Omit<ProjectPluginContext<Type>, 'tasks'> & BuildProjectTask<Type>,
+  ) => void | Promise<void>,
+) =>
+  createProjectPlugin<Type>(id, ({tasks, ...context}) => {
+    tasks.build.hook((task) => run({...context, ...task}));
+  });
+
+export const createProjectDevPlugin = <
+  Type extends Project = WebApp | Service | Package
+>(
+  id: BasePlugin['id'],
+  run: (
+    context: Omit<ProjectPluginContext<Type>, 'tasks'> & DevProjectTask<Type>,
+  ) => void | Promise<void>,
+) =>
+  createProjectPlugin<Type>(id, ({tasks, ...context}) => {
+    tasks.dev.hook((task) => run({...context, ...task}));
+  });
+
+export const createProjectTestPlugin = <
+  Type extends Project = WebApp | Service | Package
+>(
+  id: BasePlugin['id'],
+  run: (
+    context: Omit<ProjectPluginContext<Type>, 'tasks'> & TestProjectTask<Type>,
+  ) => void | Promise<void>,
+) =>
+  createProjectPlugin<Type>(id, ({tasks, ...context}) => {
+    tasks.test.hook((task) => run({...context, ...task}));
+  });
+
+export function createComposedProjectPlugin<
+  Type extends Project = WebApp | Service | Package
+>(
   id: BasePlugin['id'],
   pluginsOrCompose:
-    | readonly (ProjectPlugin | false | null | undefined)[]
-    | NonNullable<ProjectPlugin['compose']>,
-) {
-  const compose: NonNullable<ProjectPlugin['compose']> =
+    | readonly (ProjectPlugin<Type> | false | null | undefined)[]
+    | NonNullable<ProjectPlugin<Type>['compose']>,
+): ProjectPlugin<Type> {
+  const compose: NonNullable<ProjectPlugin<Type>['compose']> =
     typeof pluginsOrCompose === 'function'
       ? pluginsOrCompose
       : (composer) => {
@@ -55,80 +121,80 @@ export function createComposedProjectPlugin(
           }
         };
 
-  return createProjectPlugin({
-    id,
-    compose,
-  });
+  return {id, compose, target: PluginTarget.Project, [PLUGIN_MARKER]: true};
 }
 
 export function createWorkspacePlugin(
-  plugin: Omit<WorkspacePlugin, typeof PLUGIN_MARKER | 'target'>,
+  id: BasePlugin['id'],
+  run: NonNullable<WorkspacePlugin['run']>,
 ): WorkspacePlugin {
-  return {...plugin, target: PluginTarget.Workspace, [PLUGIN_MARKER]: true};
+  return {id, run, target: PluginTarget.Workspace, [PLUGIN_MARKER]: true};
 }
+
+export const createWorkspaceBuildPlugin = (
+  id: BasePlugin['id'],
+  run: (
+    context: Omit<WorkspacePluginContext, 'tasks'> & BuildWorkspaceTask,
+  ) => void | Promise<void>,
+) =>
+  createWorkspacePlugin(id, ({tasks, ...context}) => {
+    tasks.build.hook((task) => run({...context, ...task}));
+  });
+
+export const createWorkspaceDevPlugin = (
+  id: BasePlugin['id'],
+  run: (
+    context: Omit<WorkspacePluginContext, 'tasks'> & DevWorkspaceTask,
+  ) => void | Promise<void>,
+) =>
+  createWorkspacePlugin(id, ({tasks, ...context}) => {
+    tasks.dev.hook((task) => run({...context, ...task}));
+  });
+
+export const createWorkspaceTestPlugin = (
+  id: BasePlugin['id'],
+  run: (
+    context: Omit<WorkspacePluginContext, 'tasks'> & TestWorkspaceTask,
+  ) => void | Promise<void>,
+) =>
+  createWorkspacePlugin(id, ({tasks, ...context}) => {
+    tasks.test.hook((task) => run({...context, ...task}));
+  });
+
+export const createWorkspaceTypeCheckPlugin = (
+  id: BasePlugin['id'],
+  run: (
+    context: Omit<WorkspacePluginContext, 'tasks'> & TypeCheckWorkspaceTask,
+  ) => void | Promise<void>,
+) =>
+  createWorkspacePlugin(id, ({tasks, ...context}) => {
+    tasks.typeCheck.hook((task) => run({...context, ...task}));
+  });
+
+export const createWorkspaceLintPlugin = (
+  id: BasePlugin['id'],
+  run: (
+    context: Omit<WorkspacePluginContext, 'tasks'> & LintWorkspaceTask,
+  ) => void | Promise<void>,
+) =>
+  createWorkspacePlugin(id, ({tasks, ...context}) => {
+    tasks.lint.hook((task) => run({...context, ...task}));
+  });
 
 export function createComposedWorkspacePlugin(
   id: BasePlugin['id'],
-  plugins: readonly WorkspacePlugin[],
-) {
-  return createWorkspacePlugin({
-    id,
-    compose(composer) {
-      for (const plugin of plugins) {
-        composer.use(plugin);
-      }
-    },
-  });
+  pluginsOrCompose:
+    | readonly (WorkspacePlugin | false | null | undefined)[]
+    | NonNullable<WorkspacePlugin['compose']>,
+): WorkspacePlugin {
+  const compose: NonNullable<WorkspacePlugin['compose']> =
+    typeof pluginsOrCompose === 'function'
+      ? pluginsOrCompose
+      : (composer) => {
+          for (const plugin of pluginsOrCompose) {
+            if (plugin) composer.use(plugin);
+          }
+        };
+
+  return {id, compose, target: PluginTarget.Workspace, [PLUGIN_MARKER]: true};
 }
-
-type IndividualTaskRunner<
-  Tasks extends WorkspaceTasks | ProjectTasks,
-  Task extends keyof Tasks
-> = Tasks[Task] extends AsyncSeriesHook<infer Context>
-  ? (task: Context, api: PluginApi) => void | Promise<void>
-  : never;
-
-const createProjectTaskPluginCreator = <Task extends keyof ProjectTasks>(
-  task: Task,
-) => (id: ProjectPlugin['id'], run: IndividualTaskRunner<ProjectTasks, Task>) =>
-  createProjectPlugin({
-    id,
-    run(tasks, api) {
-      tasks[task].tapPromise(id, (task: any) =>
-        Promise.resolve(run(task, api)),
-      );
-    },
-  });
-
-export const createProjectBuildPlugin = createProjectTaskPluginCreator('build');
-export const createProjectDevPlugin = createProjectTaskPluginCreator('dev');
-export const createProjectTestPlugin = createProjectTaskPluginCreator('test');
-
-const createWorkspaceTaskPluginCreator = <Task extends keyof WorkspaceTasks>(
-  task: Task,
-) => (
-  id: WorkspacePlugin['id'],
-  run: IndividualTaskRunner<WorkspaceTasks, Task>,
-) =>
-  createWorkspacePlugin({
-    id,
-    run(tasks, api) {
-      tasks[task].tapPromise(id, (task: any) =>
-        Promise.resolve(run(task, api)),
-      );
-    },
-  });
-
-export const createWorkspaceBuildPlugin = createWorkspaceTaskPluginCreator(
-  'build',
-);
-export const createWorkspaceDevPlugin = createWorkspaceTaskPluginCreator('dev');
-export const createWorkspaceLintPlugin = createWorkspaceTaskPluginCreator(
-  'lint',
-);
-export const createWorkspaceTypeCheckPlugin = createWorkspaceTaskPluginCreator(
-  'typeCheck',
-);
-export const createWorkspaceTestPlugin = createWorkspaceTaskPluginCreator(
-  'test',
-);

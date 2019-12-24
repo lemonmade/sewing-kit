@@ -7,12 +7,12 @@ describe('@sewing-kit/plugin-package-esmodules', () => {
       await workspace.writeConfig(`
         import {createPackage} from '@sewing-kit/config';
 
-        import {babelProjectPlugin} from '@sewing-kit/plugin-babel';
-        import {javascriptProjectPlugin} from '@sewing-kit/plugin-javascript';
-        import {packageCreateEsModulesOutputPlugin} from '@sewing-kit/plugin-package-esmodules';
+        import {babelConfigurationHooks} from '@sewing-kit/plugin-babel';
+        import {javascript} from '@sewing-kit/plugin-javascript';
+        import {buildEsModulesOutput} from '@sewing-kit/plugin-package-esmodules';
 
         export default createPackage((pkg) => {
-          pkg.plugins(babelProjectPlugin, javascriptProjectPlugin, packageCreateEsModulesOutputPlugin);
+          pkg.use(babelConfigurationHooks, javascript(), buildEsModulesOutput());
         });
       `);
 
@@ -49,12 +49,12 @@ describe('@sewing-kit/plugin-package-esmodules', () => {
           `
             import {createPackage} from '@sewing-kit/config';
 
-            import {babelProjectPlugin} from '@sewing-kit/plugin-babel';
-            import {javascriptProjectPlugin} from '@sewing-kit/plugin-javascript';
-            import {packageCreateEsModulesOutputPlugin} from '@sewing-kit/plugin-package-esmodules';
+            import {babelConfigurationHooks} from '@sewing-kit/plugin-babel';
+            import {javascript} from '@sewing-kit/plugin-javascript';
+            import {buildEsModulesOutput} from '@sewing-kit/plugin-package-esmodules';
 
             export default createPackage((pkg) => {
-              pkg.plugins(babelProjectPlugin, javascriptProjectPlugin, packageCreateEsModulesOutputPlugin);
+              pkg.use(babelConfigurationHooks, javascript(), buildEsModulesOutput());
             });
           `,
         );
@@ -86,13 +86,13 @@ describe('@sewing-kit/plugin-package-esmodules', () => {
       await workspace.writeConfig(`
         import {createPackage} from '@sewing-kit/config';
 
-        import {babelProjectPlugin} from '@sewing-kit/plugin-babel';
-        import {javascriptProjectPlugin} from '@sewing-kit/plugin-javascript';
-        import {packageCreateEsModulesOutputPlugin} from '@sewing-kit/plugin-package-esmodules';
+        import {babelConfigurationHooks} from '@sewing-kit/plugin-babel';
+        import {javascript} from '@sewing-kit/plugin-javascript';
+        import {buildEsModulesOutput} from '@sewing-kit/plugin-package-esmodules';
 
         export default createPackage((pkg) => {
           pkg.entry({root: '/src/custom'});
-          pkg.plugins(babelProjectPlugin, javascriptProjectPlugin, packageCreateEsModulesOutputPlugin);
+          pkg.use(babelConfigurationHooks, javascript(), buildEsModulesOutput());
         });
       `);
 
@@ -112,12 +112,12 @@ describe('@sewing-kit/plugin-package-esmodules', () => {
           `
             import {createPackage} from '@sewing-kit/config';
 
-            import {babelProjectPlugin} from '@sewing-kit/plugin-babel';
-            import {javascriptProjectPlugin} from '@sewing-kit/plugin-javascript';
-            import {packageCreateEsModulesOutputPlugin} from '@sewing-kit/plugin-package-esmodules';
+            import {babelConfigurationHooks} from '@sewing-kit/plugin-babel';
+            import {javascript} from '@sewing-kit/plugin-javascript';
+            import {buildEsModulesOutput} from '@sewing-kit/plugin-package-esmodules';
 
             export default createPackage((pkg) => {
-              pkg.plugins(babelProjectPlugin, javascriptProjectPlugin, packageCreateEsModulesOutputPlugin);
+              pkg.use(babelConfigurationHooks, javascript(), buildEsModulesOutput());
             });
           `,
         );

@@ -4,3 +4,9 @@ export enum Runtime {
   ServiceWorker = 'service-worker',
   WebWorker = 'web-worker',
 }
+
+export enum ProjectKind {
+  WebApp,
+  Service,
+  Package,
+}

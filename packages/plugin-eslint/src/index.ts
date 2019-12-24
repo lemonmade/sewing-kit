@@ -1,1 +1,1 @@
-export {eslintWorkspacePlugin} from './plugin-eslint';
+export {eslint} from './plugin-eslint';

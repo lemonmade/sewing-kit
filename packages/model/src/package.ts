@@ -1,4 +1,4 @@
-import {Runtime} from './types';
+import {Runtime, ProjectKind} from './types';
 import {Base, Options as BaseOptions} from './base';
 
 export interface PackageEntryOptions {
@@ -44,6 +44,7 @@ export interface PackageOptions extends BaseOptions {
 }
 
 export class Package extends Base {
+  readonly kind = ProjectKind.Package;
   readonly runtime: Runtime | undefined;
   readonly entries: readonly PackageEntry[];
   readonly binaries: readonly PackageBinary[];

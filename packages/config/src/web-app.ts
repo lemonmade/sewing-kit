@@ -1,7 +1,11 @@
-import {ServiceWorkerOptions, WebAppOptions} from '@sewing-kit/model';
+import {ProjectPlugin} from '@sewing-kit/plugins';
+import {WebApp, ServiceWorkerOptions, WebAppOptions} from '@sewing-kit/model';
 import {BaseBuilder, ConfigurationKind} from './base';
 
-class WebAppOptionBuilder extends BaseBuilder<WebAppOptions> {
+class WebAppOptionBuilder extends BaseBuilder<
+  ProjectPlugin<WebApp>,
+  WebAppOptions
+> {
   constructor() {
     super(ConfigurationKind.WebApp);
   }

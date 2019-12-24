@@ -1,7 +1,8 @@
-import {produce} from 'immer';
-
-import {Runtime} from '@sewing-kit/model';
-import {createProjectPlugin} from '@sewing-kit/plugins';
+import {Runtime, Package} from '@sewing-kit/model';
+import {
+  createProjectBuildPlugin,
+  createProjectTestPlugin,
+} from '@sewing-kit/plugins';
 import {
   createWriteEntriesStep,
   ExportStyle,
@@ -24,73 +25,60 @@ declare module '@sewing-kit/hooks' {
   }
 }
 
-export const packageCreateNodeOutputPlugin = createProjectPlugin({
-  id: PLUGIN,
-  run({build, test}, api) {
-    build.tap(PLUGIN, ({hooks}) => {
-      hooks.package.tap(PLUGIN, ({pkg, hooks}) => {
-        hooks.variants.tap(PLUGIN, (variants) => {
-          // If all the entries already target node, there is no need to do a
-          // node-only build (it will match the CommonJS build).
-          if (pkg.entries.every(({runtime}) => runtime === Runtime.Node)) {
-            return variants;
-          }
+export function nodeOutput() {
+  return createProjectTestPlugin(`${PLUGIN}.Consumer`, ({hooks}) => {
+    hooks.configure.hook((hooks) => {
+      hooks.jestExtensions?.hook((extensions) => [EXTENSION, ...extensions]);
+    });
+  });
+}
 
-          return [...variants, {[VARIANT]: true}];
-        });
+export function buildNodeOutput() {
+  return createProjectBuildPlugin<Package>(PLUGIN, (context) => {
+    const {hooks, project} = context;
 
-        hooks.configure.tap(PLUGIN, (configurationHooks, {node}) => {
-          if (!node) {
-            return;
-          }
+    hooks.variants.hook((variants) => {
+      // If all the entries already target node, there is no need to do a
+      // node-only build (it will match the CommonJS build).
+      if (project.entries.every(({runtime}) => runtime === Runtime.Node)) {
+        return variants;
+      }
 
-          if (configurationHooks.babelConfig) {
-            configurationHooks.babelConfig.tap(PLUGIN, (babelConfig) => {
-              return produce(
-                babelConfig,
-                changeBaseJavaScriptBabelPreset({
-                  modules: BaseBabelPresetModule.CommonJs,
-                  target: BaseBabelPresetTarget.Node,
-                }),
-              );
-            });
-          }
-        });
-
-        hooks.steps.tap(PLUGIN, (steps, {config, variant: {node}}) => {
-          if (!node) {
-            return steps;
-          }
-
-          const outputPath = pkg.fs.buildPath('node');
-
-          return [
-            ...steps,
-            createCompileBabelStep(pkg, api, config, {
-              outputPath,
-              extension: EXTENSION,
-              configFile: 'babel.node.js',
-            }),
-            createWriteEntriesStep(pkg, {
-              outputPath,
-              extension: EXTENSION,
-              exportStyle: ExportStyle.CommonJs,
-              exclude: (entry) => entry.runtime === Runtime.Node,
-            }),
-          ];
-        });
-      });
+      return [...variants, {[VARIANT]: true}];
     });
 
-    test.tap(PLUGIN, ({hooks}) => {
-      hooks.project.tap(PLUGIN, ({hooks}) => {
-        hooks.configure.tap(PLUGIN, (hooks) => {
-          hooks.jestExtensions?.tap(PLUGIN, (extensions) => [
-            EXTENSION,
-            ...extensions,
-          ]);
-        });
-      });
+    hooks.configure.hook((configurationHooks, {node}) => {
+      if (!node) {
+        return;
+      }
+
+      configurationHooks.babelConfig?.hook(
+        changeBaseJavaScriptBabelPreset({
+          modules: BaseBabelPresetModule.CommonJs,
+          target: BaseBabelPresetTarget.Node,
+        }),
+      );
     });
-  },
-});
+
+    hooks.steps.hook((steps, {config, variant: {node}}) => {
+      if (!node) {
+        return steps;
+      }
+
+      const outputPath = project.fs.buildPath('node');
+
+      return [
+        ...steps,
+        createCompileBabelStep(context, config, {
+          outputPath,
+          configFile: 'babel.node.js',
+        }),
+        createWriteEntriesStep(context, {
+          outputPath,
+          exportStyle: ExportStyle.CommonJs,
+          extension: EXTENSION,
+        }),
+      ];
+    });
+  });
+}

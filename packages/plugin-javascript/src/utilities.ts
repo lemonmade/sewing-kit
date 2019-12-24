@@ -18,15 +18,16 @@ const resolvedPreset = require.resolve('@sewing-kit/babel-preset');
 export function changeBaseJavaScriptBabelPreset(
   options: BaseBabelPresetOptions,
 ) {
-  return ({presets = []}: BabelConfig) => {
-    for (const [index, preset] of presets.entries()) {
-      if (typeof preset === 'string') {
-        if (preset === resolvedPreset) {
-          presets[index] = [preset, options];
-        }
-      } else if (preset?.[0] === resolvedPreset) {
-        preset[1] = {...preset[1], ...options};
+  return (config: BabelConfig): BabelConfig => ({
+    ...config,
+    presets: config.presets?.map((preset) => {
+      if (preset === resolvedPreset) {
+        return [preset as string, options];
+      } else if (Array.isArray(preset) && preset[0] === resolvedPreset) {
+        return [preset[0], {...preset[1], ...options}];
+      } else {
+        return preset;
       }
-    }
-  };
+    }),
+  });
 }

@@ -1,39 +1,60 @@
-import {createProjectPlugin} from '@sewing-kit/plugins';
+import {createProjectPlugin, Service, WebApp} from '@sewing-kit/plugins';
 import {} from '@sewing-kit/plugin-jest';
 import {} from '@sewing-kit/plugin-webpack';
-import {AsyncSeriesWaterfallHook} from 'tapable';
 
 const PLUGIN = 'SewingKit.graphql';
 
-export const graphqlProjectPlugin = createProjectPlugin({
-  id: PLUGIN,
-  run({build, test}) {
-    build.tap(PLUGIN, ({hooks}) => {
-      function addWebpackRule(configurationHooks: {
-        webpackRules?: AsyncSeriesWaterfallHook<readonly any[]>;
-      }) {
-        configurationHooks.webpackRules?.tap(PLUGIN, (rules) => [
-          ...rules,
-          {
-            test: /\.graphql$/,
-            use: [{loader: require.resolve('graphql-mini-transforms/webpack')}],
+export function graphql() {
+  return createProjectPlugin<Service | WebApp>(
+    PLUGIN,
+    ({tasks: {build, dev, test}}) => {
+      build.hook(({hooks}) => {
+        hooks.configure.hook(
+          (
+            configure: Partial<
+              import('@sewing-kit/hooks').BuildWebAppConfigurationHooks &
+                import('@sewing-kit/hooks').BuildServiceConfigurationHooks &
+                import('@sewing-kit/hooks').BuildPackageConfigurationHooks
+            >,
+          ) => {
+            configure.webpackRules?.hook((rules) => [
+              ...rules,
+              {
+                test: /\.graphql$/,
+                use: [
+                  {loader: require.resolve('graphql-mini-transforms/webpack')},
+                ],
+              },
+            ]);
           },
-        ]);
-      }
-
-      hooks.webApp.tap(PLUGIN, ({hooks}) => {
-        hooks.configure.tap(PLUGIN, addWebpackRule);
+        );
       });
 
-      hooks.service.tap(PLUGIN, ({hooks}) => {
-        hooks.configure.tap(PLUGIN, addWebpackRule);
+      dev.hook(({hooks}) => {
+        hooks.configure.hook(
+          (
+            configure: Partial<
+              import('@sewing-kit/hooks').DevWebAppConfigurationHooks &
+                import('@sewing-kit/hooks').DevServiceConfigurationHooks &
+                import('@sewing-kit/hooks').DevPackageConfigurationHooks
+            >,
+          ) => {
+            configure.webpackRules?.hook((rules) => [
+              ...rules,
+              {
+                test: /\.graphql$/,
+                use: [
+                  {loader: require.resolve('graphql-mini-transforms/webpack')},
+                ],
+              },
+            ]);
+          },
+        );
       });
-    });
 
-    test.tap(PLUGIN, ({hooks}) => {
-      hooks.project.tap(PLUGIN, ({hooks}) => {
-        hooks.configure.tap(PLUGIN, (hooks) => {
-          hooks.jestTransforms?.tap(PLUGIN, (transforms) => ({
+      test.hook(({hooks}) => {
+        hooks.configure.hook((hooks) => {
+          hooks.jestTransforms?.hook((transforms) => ({
             ...transforms,
             '\\.(gql|graphql)$': require.resolve(
               'graphql-mini-transforms/jest',
@@ -41,6 +62,6 @@ export const graphqlProjectPlugin = createProjectPlugin({
           }));
         });
       });
-    });
-  },
-});
+    },
+  );
+}

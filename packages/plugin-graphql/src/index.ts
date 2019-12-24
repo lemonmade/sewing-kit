@@ -1,1 +1,1 @@
-export {graphqlProjectPlugin} from './plugin-graphql';
+export {graphql} from './plugin-graphql';

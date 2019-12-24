@@ -1,50 +1,449 @@
+import {join, resolve, relative} from 'path';
+import {copy, utimes, symlink} from 'fs-extra';
+
 import {
-  lazy,
+  addHooks,
+  Package,
+  Workspace,
+  WaterfallHook,
   createProjectPlugin,
   createWorkspacePlugin,
+  WorkspacePluginContext,
 } from '@sewing-kit/plugins';
+import {createStep, DiagnosticError} from '@sewing-kit/ui';
 
-import {PLUGIN} from './common';
+import {BabelConfig} from '@sewing-kit/plugin-babel';
+import {} from '@sewing-kit/plugin-jest';
+import {} from '@sewing-kit/plugin-eslint';
+import {} from '@sewing-kit/plugin-webpack';
 
-export const typeScriptProjectPlugin = createProjectPlugin({
-  id: PLUGIN,
-  run({test, build, dev}) {
-    test.tapPromise(
-      PLUGIN,
-      lazy(async () => (await import('./test')).testTypeScript),
-    );
+interface TypeScriptTypeCheckingHooks {
+  readonly typescriptHeap: WaterfallHook<number>;
+}
 
-    build.tapPromise(
-      PLUGIN,
-      lazy(async () => (await import('./build')).buildTypeScript),
-    );
+declare module '@sewing-kit/hooks' {
+  interface TypeCheckWorkspaceConfigurationCustomHooks
+    extends TypeScriptTypeCheckingHooks {}
+  interface BuildWorkspaceConfigurationCustomHooks
+    extends TypeScriptTypeCheckingHooks {}
+}
 
-    dev.tapPromise(
-      PLUGIN,
-      lazy(async () => (await import('./dev')).devTypeScript),
-    );
-  },
+const PLUGIN = 'SewingKit.typescript';
+
+export function typescript() {
+  return createProjectPlugin(PLUGIN, ({tasks: {dev, build, test}}) => {
+    test.hook(({hooks}) => {
+      hooks.configure.hook((hooks) => {
+        hooks.jestExtensions?.hook(addTypeScriptExtensions);
+        hooks.jestTransforms?.hook((transforms, {babelTransform}) => ({
+          ...transforms,
+          ['^.+\\.tsx?$']: babelTransform,
+        }));
+
+        hooks.babelConfig?.hook(addTypeScriptBabelConfig);
+      });
+    });
+
+    build.hook(({hooks}) => {
+      hooks.configure.hook(
+        (
+          configure: Partial<
+            import('@sewing-kit/hooks').BuildPackageConfigurationHooks &
+              import('@sewing-kit/hooks').BuildWebAppConfigurationHooks &
+              import('@sewing-kit/hooks').BuildServiceConfigurationHooks
+          >,
+        ) => {
+          configure.babelConfig?.hook(addTypeScriptBabelConfig);
+          configure.babelExtensions?.hook(addTypeScriptExtensions);
+          configure.webpackRules?.hook(async (rules) => {
+            const options = await configure.babelConfig?.run({});
+
+            return [
+              ...rules,
+              {
+                test: /\.tsx?/,
+                exclude: /node_modules/,
+                loader: 'babel-loader',
+                options,
+              },
+            ];
+          });
+        },
+      );
+    });
+
+    dev.hook(({hooks}) => {
+      hooks.configure.hook(
+        (
+          configure: Partial<
+            import('@sewing-kit/hooks').DevPackageConfigurationHooks &
+              import('@sewing-kit/hooks').DevWebAppConfigurationHooks &
+              import('@sewing-kit/hooks').DevServiceConfigurationHooks
+          >,
+        ) => {
+          configure.babelConfig?.hook(addBaseBabelPreset);
+          configure.webpackRules?.hook(async (rules) => {
+            const options = await configure.babelConfig?.run({});
+
+            return [
+              ...rules,
+              {
+                test: /\.tsx?/,
+                exclude: /node_modules/,
+                loader: 'babel-loader',
+                options,
+              },
+            ];
+          });
+        },
+      );
+    });
+  });
+}
+
+export function workspaceTypeScript() {
+  return createWorkspacePlugin(PLUGIN, (context) => {
+    const {
+      workspace,
+      tasks: {build, lint, typeCheck},
+    } = context;
+
+    lint.hook(({hooks}) => {
+      hooks.configure.hook((configure) => {
+        configure.eslintExtensions?.hook(addTypeScriptExtensions);
+      });
+    });
+
+    build.hook(({hooks, options}) => {
+      hooks.configure.hook(addTypeScriptWorkspaceConfigurationHooks);
+
+      if (workspace.private) {
+        return;
+      }
+
+      hooks.pre.hook((steps, {configuration}) => {
+        const newSteps = [...steps];
+
+        newSteps.push(createWriteFallbackEntriesStep(context));
+
+        if (options.cache) {
+          newSteps.push(createLoadTypeScriptCacheStep(context));
+        }
+
+        newSteps.push(createRunTypeScriptStep(configuration));
+
+        return newSteps;
+      });
+
+      if (options.cache) {
+        hooks.post.hook((steps) => [...steps, createCacheSaveStep(context)]);
+      }
+    });
+
+    typeCheck.hook(({hooks, options}) => {
+      hooks.configure.hook(addTypeScriptWorkspaceConfigurationHooks);
+
+      hooks.pre.hook((steps) => {
+        const newSteps = [...steps];
+
+        newSteps.push(createWriteFallbackEntriesStep(context));
+
+        if (options.cache) {
+          newSteps.push(createLoadTypeScriptCacheStep(context));
+        }
+
+        return newSteps;
+      });
+
+      hooks.steps.hook((steps, {configuration}) => [
+        ...steps,
+        createRunTypeScriptStep(configuration),
+      ]);
+
+      if (options.cache) {
+        hooks.post.hook((steps) => [...steps, createCacheSaveStep(context)]);
+      }
+    });
+  });
+}
+
+const OUTPUT_DIRECTORY_NAME = 'output';
+const BUILD_DIRECTORY_CACHE_FILENAME = 'info';
+const TSBUILDINFO_FILE = 'tsconfig.tsbuildinfo';
+
+function createCacheSaveStep({workspace, api}: WorkspacePluginContext) {
+  return createStep(
+    {label: 'Saving TypeScript cache', skip: /(ts|typescript)[-_]?cache/i},
+    async () => {
+      try {
+        const {references = []} = JSON.parse(
+          await workspace.fs.read('tsconfig.json'),
+        ) as {references?: {path: string}[]};
+
+        await Promise.all(
+          references.map(async ({path: reference}) => {
+            const outDirectory = await getTscOutputDirectory(
+              reference,
+              workspace,
+            );
+            const projectCacheDirectory = join(
+              api.cachePath('typescript'),
+              reference.replace(/^\.*\/?/, '').replace(/\//g, '_'),
+            );
+            const cacheOutputDirectory = join(
+              projectCacheDirectory,
+              OUTPUT_DIRECTORY_NAME,
+            );
+
+            await workspace.fs.write(
+              join(projectCacheDirectory, TSBUILDINFO_FILE),
+              await workspace.fs.read(
+                resolve(outDirectory, `../${TSBUILDINFO_FILE}`),
+              ),
+            );
+
+            await workspace.fs.write(
+              join(projectCacheDirectory, BUILD_DIRECTORY_CACHE_FILENAME),
+              outDirectory,
+            );
+
+            await copy(
+              workspace.fs.resolvePath(reference, outDirectory),
+              cacheOutputDirectory,
+              {preserveTimestamps: true},
+            );
+          }),
+        );
+      } catch {
+        // noop
+      }
+    },
+  );
+}
+
+async function getTscOutputDirectory(project: string, workspace: Workspace) {
+  const tsconfig = JSON.parse(
+    await workspace.fs.read(workspace.fs.resolvePath(project, 'tsconfig.json')),
+  ) as {compilerOptions?: {outDir?: string}};
+
+  return workspace.fs.resolvePath(
+    project,
+    tsconfig.compilerOptions?.outDir ?? 'build/ts',
+  );
+}
+
+function createWriteFallbackEntriesStep({workspace}: WorkspacePluginContext) {
+  return createStep(
+    {
+      label: 'Writing TypeScript entries',
+      skip: /(ts|typescript)[-_]?entr(y|ies)/i,
+    },
+    async () => {
+      await Promise.all(
+        workspace.packages.map((pkg) =>
+          writeTypeScriptEntries(pkg, {strategy: EntryStrategy.Symlink}),
+        ),
+      );
+    },
+  );
+}
+
+function createLoadTypeScriptCacheStep({
+  workspace,
+  api,
+}: WorkspacePluginContext) {
+  return createStep(
+    {
+      label: 'Restoring TypeScript cache',
+      skip: /(ts|typescript)[-_]?cache/i,
+    },
+    async () => {
+      try {
+        const projectCacheDirectories = await workspace.fs.glob(
+          join(api.cachePath('typescript'), '*/'),
+        );
+
+        await Promise.all(
+          projectCacheDirectories.map(async (projectCacheDirectory) => {
+            const outDirectory = await workspace.fs.read(
+              join(projectCacheDirectory, BUILD_DIRECTORY_CACHE_FILENAME),
+            );
+
+            await copy(
+              join(projectCacheDirectory, TSBUILDINFO_FILE),
+              resolve(outDirectory, `../${TSBUILDINFO_FILE}`),
+              {preserveTimestamps: true},
+            );
+
+            await copy(
+              join(projectCacheDirectory, OUTPUT_DIRECTORY_NAME),
+              outDirectory,
+              {preserveTimestamps: true},
+            );
+          }),
+        );
+      } catch {
+        // noop
+      }
+    },
+  );
+}
+
+export function createRunTypeScriptStep(
+  configure: Partial<TypeScriptTypeCheckingHooks>,
+) {
+  return createStep(
+    {label: 'Type checking with TypeScript', skip: /(ts|typescript)/i},
+    async (step) => {
+      const heap = await configure.typescriptHeap!.run(0);
+      const heapArguments = heap ? [`--max-old-space-size=${heap}`] : [];
+
+      try {
+        await step.exec(
+          'node',
+          [...heapArguments, 'node_modules/.bin/tsc', '--build', '--pretty'],
+          {all: true, env: {FORCE_COLOR: '1'}},
+        );
+      } catch (error) {
+        throw new DiagnosticError({
+          title: 'TypeScript found type errors',
+          content: error.all,
+        });
+      }
+    },
+  );
+}
+
+const addTypeScriptBabelConfig = (config: BabelConfig): BabelConfig => ({
+  ...config,
+  plugins: [
+    ...(config.plugins ?? []),
+    [require.resolve('@babel/plugin-proposal-decorators'), {legacy: true}],
+  ],
+  presets: [
+    ...(config.presets ?? []),
+    require.resolve('@babel/preset-typescript'),
+  ],
 });
 
-export const typeScriptWorkspacePlugin = createWorkspacePlugin({
-  id: PLUGIN,
-  run({typeCheck, lint, build}) {
-    lint.tapPromise(
-      PLUGIN,
-      lazy(async () => (await import('./lint')).lintTypeScript),
-    );
+export enum EntryStrategy {
+  Symlink,
+  ReExport,
+}
 
-    build.tapPromise(
-      PLUGIN,
-      lazy(
-        async () =>
-          (await import('./type-check')).buildWorkspaceThroughTypeCheck,
-      ),
-    );
+export async function writeTypeScriptEntries(
+  pkg: Package,
+  {strategy}: {strategy: EntryStrategy},
+) {
+  const outputPath = await getOutputPath(pkg);
 
-    typeCheck.tapPromise(
-      PLUGIN,
-      lazy(async () => (await import('./type-check')).typeCheckTypeScript),
-    );
-  },
-});
+  const sourceRoot = pkg.fs.resolvePath('src');
+
+  for (const entry of pkg.entries) {
+    const absoluteEntryPath = (await pkg.fs.hasDirectory(entry.root))
+      ? pkg.fs.resolvePath(entry.root, 'index')
+      : pkg.fs.resolvePath(entry.root);
+    const relativeFromSourceRoot = relative(sourceRoot, absoluteEntryPath);
+    const destinationInOutput = resolve(outputPath, relativeFromSourceRoot);
+    const relativeFromRoot = normalizedRelative(pkg.root, destinationInOutput);
+
+    if (strategy === EntryStrategy.ReExport) {
+      let hasDefault = true;
+      let content = '';
+
+      try {
+        content = await pkg.fs.read(
+          (await pkg.fs.glob(`${absoluteEntryPath}.*`))[0],
+        );
+
+        // export default ...
+        // export {Foo as default} from ...
+        // export {default} from ...
+        hasDefault =
+          /(?:export|as) default\b/.test(content) || /{default}/.test(content);
+      } catch {
+        // intentional no-op
+        content = '';
+      }
+
+      await pkg.fs.write(
+        `${entry.name || 'index'}.d.ts`,
+        [
+          `export * from ${JSON.stringify(relativeFromRoot)};`,
+          hasDefault
+            ? `export {default} from ${JSON.stringify(relativeFromRoot)};`
+            : false,
+        ]
+          .filter(Boolean)
+          .join('\n'),
+      );
+    } else {
+      const symlinkFile = `${relativeFromRoot}.d.ts`;
+      if (!(await pkg.fs.hasFile(symlinkFile))) {
+        await pkg.fs.write(symlinkFile, '');
+        await utimes(
+          pkg.fs.resolvePath(symlinkFile),
+          201001010000,
+          201001010000,
+        );
+      }
+
+      try {
+        await symlink(
+          symlinkFile,
+          pkg.fs.resolvePath(`${entry.name || 'index'}.d.ts`),
+        );
+      } catch (error) {
+        if (error.code !== 'EEXIST') {
+          throw error;
+        }
+      }
+    }
+  }
+}
+
+async function getOutputPath(pkg: Package) {
+  if (await pkg.fs.hasFile('tsconfig.json')) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const tsconfig = require(pkg.fs.resolvePath('tsconfig.json'));
+      const relativePath =
+        (tsconfig.compilerOptions && tsconfig.compilerOptions.outDir) ||
+        'build/ts';
+
+      return pkg.fs.resolvePath(relativePath);
+    } catch {
+      // Fall through to the default below
+    }
+  }
+
+  return pkg.fs.resolvePath('build/ts');
+}
+
+function normalizedRelative(from: string, to: string) {
+  const rel = relative(from, to);
+  return rel.startsWith('.') ? rel : `./${rel}`;
+}
+
+const addTypeScriptWorkspaceConfigurationHooks = addHooks<
+  Pick<
+    import('@sewing-kit/hooks').TypeCheckWorkspaceConfigurationHooks,
+    'typescriptHeap'
+  >
+>(() => ({
+  typescriptHeap: new WaterfallHook(),
+}));
+
+function addBaseBabelPreset(babelConfig: BabelConfig) {
+  return {
+    ...babelConfig,
+    presets: [
+      ...(babelConfig.presets ?? []),
+      require.resolve('@sewing-kit/babel-preset'),
+    ],
+  };
+}
+
+function addTypeScriptExtensions(extensions: readonly string[]) {
+  return ['.ts', '.tsx', ...extensions];
+}

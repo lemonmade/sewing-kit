@@ -1,23 +1,24 @@
 import {
+  Package,
   createComposedProjectPlugin,
   createProjectTestPlugin,
 } from '@sewing-kit/plugins';
-import {babelProjectPlugin} from '@sewing-kit/plugin-babel';
-import {jestProjectPlugin} from '@sewing-kit/plugin-jest';
-import {javascriptProjectPlugin} from '@sewing-kit/plugin-javascript';
-import {typeScriptProjectPlugin} from '@sewing-kit/plugin-typescript';
-import {createPackageFlexibleOutputsPlugin} from '@sewing-kit/plugin-package-flexible-outputs';
+import {babelConfigurationHooks} from '@sewing-kit/plugin-babel';
+import {jestConfigurationHooks} from '@sewing-kit/plugin-jest';
+import {javascript} from '@sewing-kit/plugin-javascript';
+import {typescript} from '@sewing-kit/plugin-typescript';
+import {buildFlexibleOutputs} from '@sewing-kit/plugin-package-flexible-outputs';
 
 const jestRemoveBabelPresetModuleMapperPlugin = createRemoveSourceMappingPlugin();
 
 export const createSewingKitPackagePlugin = ({typesAtRoot = false} = {}) =>
-  createComposedProjectPlugin('SewingKit.InternalPackage', [
-    babelProjectPlugin,
-    jestProjectPlugin,
+  createComposedProjectPlugin<Package>('SewingKit.InternalPackage', [
+    babelConfigurationHooks,
+    jestConfigurationHooks,
     jestRemoveBabelPresetModuleMapperPlugin,
-    javascriptProjectPlugin,
-    typeScriptProjectPlugin,
-    createPackageFlexibleOutputsPlugin({
+    javascript(),
+    typescript(),
+    buildFlexibleOutputs({
       node: false,
       esmodules: false,
       esnext: false,
@@ -38,16 +39,14 @@ export const createSewingKitPackagePlugin = ({typesAtRoot = false} = {}) =>
 // point at the compiled output, which is a sloppy but workable solution.
 
 function createRemoveSourceMappingPlugin() {
-  const plugin = 'SewingKit.InternalRemoveBabelPresetJestModuleMapper';
-
-  return createProjectTestPlugin(plugin, ({hooks}) => {
-    hooks.project.tap(plugin, ({hooks}) => {
-      hooks.configure.tap(plugin, ({jestModuleMapper}) => {
-        jestModuleMapper?.tap(
-          plugin,
+  return createProjectTestPlugin<Package>(
+    'SewingKit.InternalRemoveBabelPresetJestModuleMapper',
+    ({hooks}) => {
+      hooks.configure.hook(({jestModuleMapper}) => {
+        jestModuleMapper?.hook(
           ({'@sewing-kit/babel-preset$': _, ...rest}) => rest,
         );
       });
-    });
-  });
+    },
+  );
 }

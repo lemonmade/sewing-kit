@@ -1,1 +1,1 @@
-export {packageCreateNodeOutputPlugin} from './plugin-package-node';
+export {buildNodeOutput, nodeOutput} from './plugin-package-node';

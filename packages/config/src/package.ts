@@ -1,13 +1,18 @@
 import {
   Runtime,
+  Package,
   PackageOptions,
   PackageEntryOptions,
   PackageBinaryOptions,
 } from '@sewing-kit/model';
+import {ProjectPlugin} from '@sewing-kit/plugins';
 
 import {BaseBuilder, ConfigurationKind} from './base';
 
-class PackageBuilder extends BaseBuilder<PackageOptions> {
+class PackageBuilder extends BaseBuilder<
+  ProjectPlugin<Package>,
+  PackageOptions
+> {
   constructor() {
     super(ConfigurationKind.Package);
   }

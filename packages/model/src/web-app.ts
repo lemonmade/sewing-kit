@@ -1,4 +1,5 @@
 import {Base, Options as BaseOptions} from './base';
+import {ProjectKind} from './types';
 
 export interface ServiceWorkerOptions {
   readonly entry: string;
@@ -18,6 +19,7 @@ export interface WebAppOptions extends BaseOptions {
 }
 
 export class WebApp extends Base {
+  readonly kind = ProjectKind.WebApp;
   readonly entry?: string;
   readonly serviceWorker?: ServiceWorker;
 

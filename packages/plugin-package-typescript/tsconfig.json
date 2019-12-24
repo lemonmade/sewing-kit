@@ -9,6 +9,7 @@
   "references": [
     {"path": "../ui"},
     {"path": "../model"},
-    {"path": "../plugins"}
+    {"path": "../plugins"},
+    {"path": "../plugin-typescript"}
   ]
 }

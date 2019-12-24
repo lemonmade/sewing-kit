@@ -1,4 +1,4 @@
-export {Runtime} from './types';
+export {Runtime, ProjectKind} from './types';
 export {
   Package,
   PackageOptions,

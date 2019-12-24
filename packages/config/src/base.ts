@@ -2,7 +2,6 @@ import {
   PluginTarget,
   WorkspacePlugin,
   ProjectPlugin,
-  AnyPlugin,
   PLUGIN_MARKER,
 } from '@sewing-kit/plugins';
 import {DiagnosticError} from '@sewing-kit/ui';
@@ -36,6 +35,7 @@ export interface ConfigurationBuilderResult<
 }
 
 export class BaseBuilder<
+  PluginType,
   T extends {readonly name: string; readonly root: string} = {
     readonly name: string;
     readonly root: string;
@@ -59,12 +59,12 @@ export class BaseBuilder<
     this.options.name = name as any;
   }
 
-  plugin(...plugins: AnyPlugin[]) {
-    this.plugins(...plugins);
-  }
+  use(...plugins: (PluginType | WorkspacePlugin | false | undefined | null)[]) {
+    for (const pluginTyped of plugins) {
+      const plugin = pluginTyped as any;
 
-  plugins(...plugins: AnyPlugin[]) {
-    for (const plugin of plugins) {
+      if (!plugin) continue;
+
       if (!plugin[PLUGIN_MARKER]) {
         throw new DiagnosticError({
           title: 'Invalid configuration file',

@@ -1,1 +1,1 @@
-export {sassProjectPlugin, createSassProjectPlugin} from './plugin-sass';
+export {sass} from './plugin-sass';

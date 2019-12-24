@@ -1,5 +1,7 @@
-import {produce} from 'immer';
 import {
+  WebApp,
+  Service,
+  Package,
   createProjectPlugin,
   createProjectBuildPlugin,
 } from '@sewing-kit/plugins';
@@ -24,107 +26,105 @@ declare module '@sewing-kit/hooks' {
   }
 }
 
-export const packageCreateEsNextOutputPlugin = createProjectBuildPlugin(
-  PLUGIN,
-  ({hooks}, api) => {
-    hooks.package.tap(PLUGIN, ({pkg, hooks}) => {
-      hooks.variants.tap(PLUGIN, (variants) => {
-        return [...variants, {[VARIANT]: true}];
+export function esnextOutput() {
+  return createProjectPlugin<WebApp | Service>(
+    `${PLUGIN}.Consumer`,
+    ({tasks: {build, dev}}) => {
+      build.hook(({hooks}) => {
+        hooks.configure.hook(
+          (
+            configure: Partial<
+              import('@sewing-kit/hooks').BuildWebAppConfigurationHooks &
+                import('@sewing-kit/hooks').BuildServiceConfigurationHooks
+            >,
+          ) => {
+            configure.webpackExtensions?.hook(addExtension);
+            configure.webpackRules?.hook(async (rules) => [
+              ...rules,
+              await createWebpackRule(configure),
+            ]);
+          },
+        );
       });
 
-      hooks.configure.tap(PLUGIN, (configurationHooks, {esnext}) => {
-        if (!esnext) {
-          return;
-        }
-
-        if (configurationHooks.babelConfig) {
-          configurationHooks.babelConfig.tap(PLUGIN, (babelConfig) => {
-            return produce(
-              babelConfig,
-              changeBaseJavaScriptBabelPreset({
-                modules: BaseBabelPresetModule.Preserve,
-                target: ['last 1 chrome version'],
-              }),
-            );
-          });
-        }
+      dev.hook(({hooks}) => {
+        hooks.configure.hook(
+          (
+            configure: Partial<
+              import('@sewing-kit/hooks').BuildWebAppConfigurationHooks &
+                import('@sewing-kit/hooks').BuildServiceConfigurationHooks
+            >,
+          ) => {
+            configure.webpackExtensions?.hook(addExtension);
+            configure.webpackRules?.hook(async (rules) => [
+              ...rules,
+              await createWebpackRule(configure),
+            ]);
+          },
+        );
       });
+    },
+  );
+}
 
-      hooks.steps.tap(PLUGIN, (steps, {config, variant: {esnext}}) => {
-        if (!esnext) {
-          return steps;
-        }
+export function buildEsNextOutput() {
+  return createProjectBuildPlugin<Package>(PLUGIN, (context) => {
+    const {hooks, project} = context;
 
-        const outputPath = pkg.fs.buildPath('esnext');
+    hooks.variants.hook((variants) => [...variants, {[VARIANT]: true}]);
 
-        return [
-          ...steps,
-          createCompileBabelStep(pkg, api, config, {
-            outputPath,
-            extension: EXTENSION,
-            configFile: 'babel.esnext.js',
-          }),
-          createWriteEntriesStep(pkg, {
-            outputPath,
-            extension: EXTENSION,
-            exportStyle: ExportStyle.EsModules,
-          }),
-        ];
-      });
+    hooks.configure.hook((configure, {esnext}) => {
+      if (!esnext) {
+        return;
+      }
+
+      configure.babelConfig?.hook(
+        changeBaseJavaScriptBabelPreset({
+          modules: BaseBabelPresetModule.Preserve,
+          target: ['last 1 chrome version'],
+        }),
+      );
     });
-  },
-);
 
-const USER_PLUGIN = `${PLUGIN}.Consumer`;
+    hooks.steps.hook((steps, {config, variant: {esnext}}) => {
+      if (!esnext) {
+        return steps;
+      }
+
+      const outputPath = project.fs.buildPath('cjs');
+
+      return [
+        ...steps,
+        createCompileBabelStep(context, config, {
+          outputPath,
+          extension: EXTENSION,
+          configFile: 'babel.esnext.js',
+        }),
+        createWriteEntriesStep(context, {
+          outputPath,
+          extension: EXTENSION,
+          exportStyle: ExportStyle.EsModules,
+        }),
+      ];
+    });
+  });
+}
 
 function addExtension(extensions: readonly string[]): readonly string[] {
   return [EXTENSION, ...extensions];
 }
 
-export const useEsNextPlugin = createProjectPlugin({
-  id: USER_PLUGIN,
-  run({build, dev}) {
-    build.tap(USER_PLUGIN, ({hooks}) => {
-      hooks.service.tap(USER_PLUGIN, ({hooks}) => {
-        hooks.configure.tap(USER_PLUGIN, useEsNext);
-      });
-
-      hooks.webApp.tap(USER_PLUGIN, ({hooks}) => {
-        hooks.configure.tap(USER_PLUGIN, useEsNext);
-      });
-    });
-
-    dev.tap(USER_PLUGIN, ({hooks}) => {
-      hooks.service.tap(USER_PLUGIN, ({hooks}) => {
-        hooks.configure.tap(USER_PLUGIN, useEsNext);
-      });
-
-      hooks.webApp.tap(USER_PLUGIN, ({hooks}) => {
-        hooks.configure.tap(USER_PLUGIN, useEsNext);
-      });
-    });
-  },
-});
-
-function useEsNext(
+async function createWebpackRule(
   configure:
-    | import('@sewing-kit/hooks').BuildServiceConfigurationHooks
     | import('@sewing-kit/hooks').BuildWebAppConfigurationHooks
-    | import('@sewing-kit/hooks').DevServiceConfigurationHooks
-    | import('@sewing-kit/hooks').DevWebAppConfigurationHooks,
+    | import('@sewing-kit/hooks').BuildServiceConfigurationHooks,
 ) {
-  configure.webpackExtensions?.tap(USER_PLUGIN, addExtension);
-  configure.webpackRules?.tapPromise(PLUGIN, async (rules) => {
-    const options = await configure.babelConfig?.promise({});
+  const options = await configure.babelConfig?.run({});
 
-    return [
-      ...rules,
-      {
-        test: /\.esnext/,
-        include: /node_modules/,
-        loader: 'babel-loader',
-        options,
-      },
-    ];
-  });
+  return {
+    test: /\.esnext/,
+    include: /node_modules/,
+    loader: 'babel-loader',
+    options,
+  };
 }

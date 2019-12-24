@@ -1,1 +1,1 @@
-export {packageCreateCommonJsOutputPlugin} from './plugin-package-commonjs';
+export {buildCommonJsOutput} from './plugin-package-commonjs';

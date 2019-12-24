@@ -1,5 +1,83 @@
-import {AsyncSeriesHook, AsyncSeriesWaterfallHook} from 'tapable';
-import {Step} from '@sewing-kit/ui';
+type Step = import('@sewing-kit/ui').Step;
+
+// ==================================================================
+// PRIMITIVES
+// ==================================================================
+
+export const UNSET = Symbol('SewingKit.Hooks.Unset');
+type Unset = typeof UNSET;
+
+export type SeriesHookArguments<
+  First = Unset,
+  Second = Unset,
+  Third = Unset
+> = First extends Unset
+  ? []
+  : Second extends Unset
+  ? [First]
+  : Third extends Unset
+  ? [First, Second]
+  : [First, Second, Third];
+
+export type SeriesHookFunction<First, Second, Third> = (
+  ...args: SeriesHookArguments<First, Second, Third>
+) => void | Promise<void>;
+
+export class SeriesHook<First = Unset, Second = Unset, Third = Unset> {
+  private hooks = new Set<SeriesHookFunction<First, Second, Third>>();
+
+  hook(hook: SeriesHookFunction<First, Second, Third>) {
+    this.hooks.add(hook);
+  }
+
+  async run(...args: SeriesHookArguments<First, Second, Third>) {
+    for (const hook of [...this.hooks]) {
+      await hook(...args);
+    }
+  }
+}
+
+export type WaterfallHookArguments<
+  Value,
+  First = Unset,
+  Second = Unset,
+  Third = Unset
+> = First extends Unset
+  ? [Value]
+  : Second extends Unset
+  ? [Value, First]
+  : Third extends Unset
+  ? [Value, First, Second]
+  : [Value, First, Second, Third];
+
+export type WaterfallHookFunction<Value, First, Second, Third> = (
+  ...args: WaterfallHookArguments<Value, First, Second, Third>
+) => Value | Promise<Value>;
+
+export class WaterfallHook<
+  Value,
+  First = Unset,
+  Second = Unset,
+  Third = Unset
+> {
+  private hooks = new Set<WaterfallHookFunction<Value, First, Second, Third>>();
+
+  hook(hook: WaterfallHookFunction<Value, First, Second, Third>) {
+    this.hooks.add(hook);
+  }
+
+  async run(...args: WaterfallHookArguments<Value, First, Second, Third>) {
+    const [initialValue, ...extraArgs] = args;
+
+    let currentValue = initialValue;
+
+    for (const hook of [...this.hooks]) {
+      currentValue = await (hook as any)(currentValue, ...extraArgs);
+    }
+
+    return currentValue;
+  }
+}
 
 // ==================================================================
 // BUILD
@@ -25,18 +103,16 @@ export interface BuildPackageStepDetails {
 }
 
 export interface BuildPackageHooks {
-  readonly variants: AsyncSeriesWaterfallHook<
-    readonly Partial<BuildPackageOptions>[]
-  >;
+  readonly variants: WaterfallHook<readonly Partial<BuildPackageOptions>[]>;
 
-  readonly configure: AsyncSeriesHook<
+  readonly configure: SeriesHook<
     BuildPackageConfigurationHooks,
     Partial<BuildPackageOptions>
   >;
 
-  readonly context: AsyncSeriesWaterfallHook<Partial<BuildPackageStepContext>>;
+  readonly context: WaterfallHook<Partial<BuildPackageStepContext>>;
 
-  readonly steps: AsyncSeriesWaterfallHook<
+  readonly steps: WaterfallHook<
     readonly Step[],
     BuildPackageStepDetails,
     Partial<BuildPackageStepContext>
@@ -60,11 +136,11 @@ export interface BuildServiceStepDetails {
 }
 
 export interface BuildServiceHooks {
-  readonly configure: AsyncSeriesHook<BuildServiceConfigurationHooks>;
+  readonly configure: SeriesHook<BuildServiceConfigurationHooks>;
 
-  readonly context: AsyncSeriesWaterfallHook<Partial<BuildServiceStepContext>>;
+  readonly context: WaterfallHook<Partial<BuildServiceStepContext>>;
 
-  readonly steps: AsyncSeriesWaterfallHook<
+  readonly steps: WaterfallHook<
     readonly Step[],
     BuildServiceStepDetails,
     Partial<BuildServiceStepContext>
@@ -91,16 +167,16 @@ export interface BuildWebAppStepDetails {
 }
 
 export interface BuildWebAppHooks {
-  readonly variants: AsyncSeriesWaterfallHook<Partial<BuildWebAppOptions>[]>;
+  readonly variants: WaterfallHook<Partial<BuildWebAppOptions>[]>;
 
-  readonly configure: AsyncSeriesHook<
+  readonly configure: SeriesHook<
     BuildWebAppConfigurationHooks,
     Partial<BuildWebAppOptions>
   >;
 
-  readonly context: AsyncSeriesWaterfallHook<Partial<BuildWebAppStepContext>>;
+  readonly context: WaterfallHook<Partial<BuildWebAppStepContext>>;
 
-  readonly steps: AsyncSeriesWaterfallHook<
+  readonly steps: WaterfallHook<
     readonly Step[],
     BuildWebAppStepDetails,
     Partial<BuildWebAppStepContext>
@@ -136,9 +212,9 @@ export interface DevPackageStepDetails {
 export interface DevPackageStepContext {}
 
 export interface DevPackageHooks {
-  readonly configure: AsyncSeriesHook<DevPackageConfigurationHooks>;
-  readonly context: AsyncSeriesWaterfallHook<Partial<DevPackageStepContext>>;
-  readonly steps: AsyncSeriesWaterfallHook<
+  readonly configure: SeriesHook<DevPackageConfigurationHooks>;
+  readonly context: WaterfallHook<Partial<DevPackageStepContext>>;
+  readonly steps: WaterfallHook<
     Step[],
     DevPackageStepDetails,
     Partial<DevPackageStepContext>
@@ -150,8 +226,8 @@ export interface DevPackageHooks {
 export interface DevServiceConfigurationCustomHooks {}
 
 export interface DevServiceConfigurationCoreHooks {
-  readonly ip: AsyncSeriesWaterfallHook<string | undefined>;
-  readonly port: AsyncSeriesWaterfallHook<number | undefined>;
+  readonly ip: WaterfallHook<string | undefined>;
+  readonly port: WaterfallHook<number | undefined>;
 }
 
 export interface DevServiceConfigurationHooks
@@ -165,9 +241,9 @@ export interface DevServiceStepDetails {
 export interface DevServiceStepContext {}
 
 export interface DevServiceHooks {
-  readonly configure: AsyncSeriesHook<DevServiceConfigurationHooks>;
-  readonly context: AsyncSeriesWaterfallHook<Partial<DevServiceStepContext>>;
-  readonly steps: AsyncSeriesWaterfallHook<
+  readonly configure: SeriesHook<DevServiceConfigurationHooks>;
+  readonly context: WaterfallHook<Partial<DevServiceStepContext>>;
+  readonly steps: WaterfallHook<
     readonly Step[],
     DevServiceStepDetails,
     Partial<DevServiceStepContext>
@@ -189,9 +265,9 @@ export interface DevWebAppStepDetails {
 export interface DevWebAppStepContext {}
 
 export interface DevWebAppHooks {
-  readonly configure: AsyncSeriesHook<DevWebAppConfigurationHooks>;
-  readonly context: AsyncSeriesWaterfallHook<Partial<DevWebAppStepContext>>;
-  readonly steps: AsyncSeriesWaterfallHook<
+  readonly configure: SeriesHook<DevWebAppConfigurationHooks>;
+  readonly context: WaterfallHook<Partial<DevWebAppStepContext>>;
+  readonly steps: WaterfallHook<
     Step[],
     DevWebAppStepDetails,
     Partial<DevWebAppStepContext>
@@ -255,7 +331,22 @@ export interface TestWebAppConfigurationHooks
     Partial<TestWebAppConfigurationCoreHooks> {}
 
 export interface TestWebAppHooks {
-  readonly configure: AsyncSeriesHook<TestWebAppConfigurationHooks>;
+  readonly configure: SeriesHook<TestWebAppConfigurationHooks>;
+}
+
+// SERVICE
+
+export interface TestServiceConfigurationCustomHooks {}
+
+interface TestServiceConfigurationCoreHooks {}
+
+export interface TestServiceConfigurationHooks
+  extends TestProjectConfigurationHooks,
+    TestServiceConfigurationCoreHooks,
+    Partial<TestServiceConfigurationCoreHooks> {}
+
+export interface TestServiceHooks {
+  readonly configure: SeriesHook<TestServiceConfigurationHooks>;
 }
 
 // PACKAGE
@@ -270,7 +361,7 @@ export interface TestPackageConfigurationHooks
     Partial<TestPackageConfigurationCoreHooks> {}
 
 export interface TestPackageHooks {
-  readonly configure: AsyncSeriesHook<TestPackageConfigurationHooks>;
+  readonly configure: SeriesHook<TestPackageConfigurationHooks>;
 }
 
 // WORKSPACE

@@ -3,5 +3,5 @@ import {createSewingKitPackagePlugin} from '../../config/sewing-kit';
 
 export default createPackage((pkg) => {
   pkg.runtime(Runtime.Node);
-  pkg.plugin(createSewingKitPackagePlugin({typesAtRoot: true}));
+  pkg.use(createSewingKitPackagePlugin({typesAtRoot: true}));
 });

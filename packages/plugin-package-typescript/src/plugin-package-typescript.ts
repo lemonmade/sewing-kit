@@ -1,133 +1,59 @@
-import {resolve, relative} from 'path';
+import {relative} from 'path';
 
-import {copy, symlink, remove, utimes} from 'fs-extra';
+import {copy, remove} from 'fs-extra';
 
-import {Package} from '@sewing-kit/model';
 import {createStep} from '@sewing-kit/ui';
-import {createProjectBuildPlugin} from '@sewing-kit/plugins';
+import {Package, createProjectBuildPlugin} from '@sewing-kit/plugins';
+import {
+  EntryStrategy,
+  writeTypeScriptEntries,
+} from '@sewing-kit/plugin-typescript';
 
 const PLUGIN = 'SewingKit.package-typescript';
-
-enum EntryStrategy {
-  Symlink,
-  ReExport,
-}
 
 export interface Options {
   readonly typesAtRoot?: boolean;
 }
 
-export function createBuildPackageTsDefinitionsPlugin({
+export function buildTypeScriptDefinitions({
   typesAtRoot = false,
 }: Options = {}) {
-  return createProjectBuildPlugin(PLUGIN, ({hooks, workspace}) => {
-    // We don’t build TypeScript definitions for projects that also include
-    // web apps/ services.
-    if (workspace.private) {
-      return;
-    }
+  return createProjectBuildPlugin<Package>(
+    PLUGIN,
+    ({hooks, project, workspace}) => {
+      // We don’t build TypeScript definitions for projects that also include
+      // web apps/ services.
+      if (workspace.private) {
+        return;
+      }
 
-    hooks.package.tap(PLUGIN, ({pkg, hooks}) => {
-      hooks.steps.tap(PLUGIN, (steps) => [
+      hooks.steps.hook((steps) => [
         ...steps,
         createStep({label: 'Writing type definitions'}, async () => {
           await Promise.all(
-            pkg.entries.map((entry) =>
-              remove(pkg.fs.resolvePath(`${entry.name || 'index'}.d.ts`)),
+            project.entries.map((entry) =>
+              remove(project.fs.resolvePath(`${entry.name || 'index'}.d.ts`)),
             ),
           );
 
           if (typesAtRoot) {
-            const outputPath = await getOutputPath(pkg);
-            const files = await pkg.fs.glob(
-              pkg.fs.resolvePath(outputPath, '**/*.d.ts'),
+            const outputPath = await getOutputPath(project);
+            const files = await project.fs.glob(
+              project.fs.resolvePath(outputPath, '**/*.d.ts'),
             );
 
             await Promise.all(
               files.map((file) =>
-                copy(file, pkg.fs.resolvePath(relative(outputPath, file))),
+                copy(file, project.fs.resolvePath(relative(outputPath, file))),
               ),
             );
           } else {
-            writeTypeScriptEntries(pkg, {strategy: EntryStrategy.ReExport});
+            writeTypeScriptEntries(project, {strategy: EntryStrategy.ReExport});
           }
         }),
       ]);
-    });
-  });
-}
-
-export const buildPackageTsDefinitionsPlugin = createBuildPackageTsDefinitionsPlugin();
-
-async function writeTypeScriptEntries(
-  pkg: Package,
-  {strategy}: {strategy: EntryStrategy},
-) {
-  const outputPath = await getOutputPath(pkg);
-
-  const sourceRoot = pkg.fs.resolvePath('src');
-
-  for (const entry of pkg.entries) {
-    const absoluteEntryPath = (await pkg.fs.hasDirectory(entry.root))
-      ? pkg.fs.resolvePath(entry.root, 'index')
-      : pkg.fs.resolvePath(entry.root);
-    const relativeFromSourceRoot = relative(sourceRoot, absoluteEntryPath);
-    const destinationInOutput = resolve(outputPath, relativeFromSourceRoot);
-    const relativeFromRoot = normalizedRelative(pkg.root, destinationInOutput);
-
-    if (strategy === EntryStrategy.ReExport) {
-      let hasDefault = true;
-      let content = '';
-
-      try {
-        content = await pkg.fs.read(
-          (await pkg.fs.glob(`${absoluteEntryPath}.*`))[0],
-        );
-
-        // export default ...
-        // export {Foo as default} from ...
-        // export {default} from ...
-        hasDefault =
-          /(?:export|as) default\b/.test(content) || /{default}/.test(content);
-      } catch {
-        // intentional no-op
-        content = '';
-      }
-
-      await pkg.fs.write(
-        `${entry.name || 'index'}.d.ts`,
-        [
-          `export * from ${JSON.stringify(relativeFromRoot)};`,
-          hasDefault
-            ? `export {default} from ${JSON.stringify(relativeFromRoot)};`
-            : false,
-        ]
-          .filter(Boolean)
-          .join('\n'),
-      );
-    } else {
-      const symlinkFile = `${relativeFromRoot}.d.ts`;
-      if (!(await pkg.fs.hasFile(symlinkFile))) {
-        await pkg.fs.write(symlinkFile, '');
-        await utimes(
-          pkg.fs.resolvePath(symlinkFile),
-          201001010000,
-          201001010000,
-        );
-      }
-
-      try {
-        await symlink(
-          symlinkFile,
-          pkg.fs.resolvePath(`${entry.name || 'index'}.d.ts`),
-        );
-      } catch (error) {
-        if (error.code !== 'EEXIST') {
-          throw error;
-        }
-      }
-    }
-  }
+    },
+  );
 }
 
 async function getOutputPath(pkg: Package) {
@@ -146,9 +72,4 @@ async function getOutputPath(pkg: Package) {
   }
 
   return pkg.fs.resolvePath('build/ts');
-}
-
-function normalizedRelative(from: string, to: string) {
-  const rel = relative(from, to);
-  return rel.startsWith('.') ? rel : `./${rel}`;
 }

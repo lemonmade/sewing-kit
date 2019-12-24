@@ -1,4 +1,9 @@
-import {createComposedProjectPlugin, ProjectPlugin} from '@sewing-kit/plugins';
+import {
+  WebApp,
+  Package,
+  Service,
+  createComposedProjectPlugin,
+} from '@sewing-kit/plugins';
 
 const PLUGIN = 'SewingKit.PackageFlexibleOutputs';
 
@@ -15,86 +20,80 @@ export interface Options {
 
 const emptyPromise = Promise.resolve(undefined);
 
-export const createPackageFlexibleOutputsPlugin = ({
+export function buildFlexibleOutputs({
   binaries = true,
   commonjs = true,
   esmodules = true,
   esnext = true,
   node = true,
   typescript = true,
-}: Options = {}) =>
-  createComposedProjectPlugin(PLUGIN, async (composer) => {
+}: Options = {}) {
+  return createComposedProjectPlugin<Package>(PLUGIN, async (composer) => {
     const composed = await Promise.all([
       binaries
-        ? import('@sewing-kit/plugin-package-binaries').then(
-            ({packageCreateBinariesPlugin}) => packageCreateBinariesPlugin,
-          )
+        ? import(
+            '@sewing-kit/plugin-package-binaries'
+          ).then(({buildBinaries}) => buildBinaries())
         : emptyPromise,
       commonjs
-        ? import('@sewing-kit/plugin-package-commonjs').then(
-            ({packageCreateCommonJsOutputPlugin}) =>
-              packageCreateCommonJsOutputPlugin,
-          )
+        ? import(
+            '@sewing-kit/plugin-package-commonjs'
+          ).then(({buildCommonJsOutput}) => buildCommonJsOutput())
         : emptyPromise,
       esmodules
-        ? import('@sewing-kit/plugin-package-esmodules').then(
-            ({packageCreateEsModulesOutputPlugin}) =>
-              packageCreateEsModulesOutputPlugin,
-          )
+        ? import(
+            '@sewing-kit/plugin-package-esmodules'
+          ).then(({buildEsModulesOutput}) => buildEsModulesOutput())
         : emptyPromise,
       esnext
-        ? import('@sewing-kit/plugin-package-esnext').then(
-            ({packageCreateEsNextOutputPlugin}) =>
-              packageCreateEsNextOutputPlugin,
-          )
+        ? import(
+            '@sewing-kit/plugin-package-esnext'
+          ).then(({buildEsNextOutput}) => buildEsNextOutput())
         : emptyPromise,
       node
-        ? import('@sewing-kit/plugin-package-node').then(
-            ({packageCreateNodeOutputPlugin}) => packageCreateNodeOutputPlugin,
+        ? import('@sewing-kit/plugin-package-node').then(({buildNodeOutput}) =>
+            buildNodeOutput(),
           )
         : emptyPromise,
       typescript
         ? import(
             '@sewing-kit/plugin-package-typescript'
-          ).then(
-            ({
-              buildPackageTsDefinitionsPlugin,
-              createBuildPackageTsDefinitionsPlugin,
-            }) =>
-              typeof typescript === 'boolean'
-                ? buildPackageTsDefinitionsPlugin
-                : createBuildPackageTsDefinitionsPlugin(typescript),
+          ).then(({buildTypeScriptDefinitions}) =>
+            typeof typescript === 'boolean'
+              ? buildTypeScriptDefinitions()
+              : buildTypeScriptDefinitions(typescript),
           )
         : emptyPromise,
     ]);
 
-    composer.use(...(composed.filter(Boolean) as ProjectPlugin[]));
+    composer.use(...composed);
   });
-
-export const packageFlexibleOutputsPlugin = createPackageFlexibleOutputsPlugin();
+}
 
 export interface ConsumerOptions
   extends Pick<Options, 'esnext' | 'esmodules'> {}
 
-export const createPackageFlexibleOutputsConsumerPlugin = ({
+export function flexibleOutputs({
   esmodules = true,
   esnext = true,
-}: ConsumerOptions = {}) =>
-  createComposedProjectPlugin(PLUGIN, async (composer) => {
-    const composed = await Promise.all([
-      esmodules
-        ? import('@sewing-kit/plugin-package-esmodules').then(
-            ({useEsModulesPlugin}) => useEsModulesPlugin,
-          )
-        : emptyPromise,
-      esnext
-        ? import('@sewing-kit/plugin-package-esnext').then(
-            ({useEsNextPlugin}) => useEsNextPlugin,
-          )
-        : emptyPromise,
-    ]);
+}: ConsumerOptions = {}) {
+  return createComposedProjectPlugin<WebApp | Service>(
+    PLUGIN,
+    async (composer) => {
+      const composed = await Promise.all([
+        esmodules
+          ? import(
+              '@sewing-kit/plugin-package-esmodules'
+            ).then(({esmodulesOutput}) => esmodulesOutput())
+          : emptyPromise,
+        esnext
+          ? import('@sewing-kit/plugin-package-esnext').then(({esnextOutput}) =>
+              esnextOutput(),
+            )
+          : emptyPromise,
+      ]);
 
-    composer.use(...(composed.filter(Boolean) as ProjectPlugin[]));
-  });
-
-export const packageFlexibleOutputsConsumerPlugin = createPackageFlexibleOutputsConsumerPlugin();
+      composer.use(...composed);
+    },
+  );
+}

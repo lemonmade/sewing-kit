@@ -9,35 +9,42 @@ function addJsonExtension(extensions: readonly string[]) {
   return ['.json', ...extensions];
 }
 
-export const jsonProjectPlugin = createProjectPlugin({
-  id: PLUGIN,
-  run({build, test}) {
-    build.tap(PLUGIN, ({hooks}) => {
-      hooks.package.tap(PLUGIN, ({hooks}) => {
-        hooks.configure.tap(PLUGIN, (configurationHooks) => {
-          configurationHooks.babelExtensions?.tap(PLUGIN, addJsonExtension);
-        });
-      });
-
-      hooks.webApp.tap(PLUGIN, ({hooks}) => {
-        hooks.configure.tap(PLUGIN, (configurationHooks) => {
-          configurationHooks.webpackExtensions?.tap(PLUGIN, addJsonExtension);
-        });
-      });
-
-      hooks.service.tap(PLUGIN, ({hooks}) => {
-        hooks.configure.tap(PLUGIN, (configurationHooks) => {
-          configurationHooks.webpackExtensions?.tap(PLUGIN, addJsonExtension);
-        });
+export const json = createProjectPlugin(
+  PLUGIN,
+  ({tasks: {test, dev, build}}) => {
+    test.hook(({hooks}) => {
+      hooks.configure.hook((configure) => {
+        configure.jestExtensions?.hook(addJsonExtension);
       });
     });
 
-    test.tap(PLUGIN, ({hooks}) => {
-      hooks.project.tap(PLUGIN, ({hooks}) => {
-        hooks.configure.tap(PLUGIN, (hooks) => {
-          hooks.jestExtensions?.tap(PLUGIN, addJsonExtension);
-        });
-      });
+    build.hook(({hooks}) => {
+      hooks.configure.hook(
+        (
+          configure: Partial<
+            import('@sewing-kit/hooks').BuildWebAppConfigurationHooks &
+              import('@sewing-kit/hooks').BuildServiceConfigurationHooks &
+              import('@sewing-kit/hooks').BuildPackageConfigurationHooks
+          >,
+        ) => {
+          configure.babelExtensions?.hook(addJsonExtension);
+          configure.webpackExtensions?.hook(addJsonExtension);
+        },
+      );
+    });
+
+    dev.hook(({hooks}) => {
+      hooks.configure.hook(
+        (
+          configure: Partial<
+            import('@sewing-kit/hooks').DevWebAppConfigurationHooks &
+              import('@sewing-kit/hooks').DevServiceConfigurationHooks &
+              import('@sewing-kit/hooks').DevPackageConfigurationHooks
+          >,
+        ) => {
+          configure.webpackExtensions?.hook(addJsonExtension);
+        },
+      );
     });
   },
-});
+);

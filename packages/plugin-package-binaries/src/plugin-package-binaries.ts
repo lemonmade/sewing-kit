@@ -6,18 +6,15 @@ import {createProjectBuildPlugin} from '@sewing-kit/plugins';
 
 const PLUGIN = 'SewingKit.package-binaries';
 
-export const packageCreateBinariesPlugin = createProjectBuildPlugin(
-  PLUGIN,
-  ({hooks}) => {
-    hooks.package.tap(PLUGIN, ({pkg, hooks}) => {
-      hooks.steps.tap(PLUGIN, (steps) =>
-        pkg.binaries.length > 0
-          ? [...steps, createWriteBinariesStep(pkg)]
-          : steps,
-      );
-    });
-  },
-);
+export function buildBinaries() {
+  return createProjectBuildPlugin<Package>(PLUGIN, ({project, hooks}) => {
+    hooks.steps.hook((steps) =>
+      project.binaries.length > 0
+        ? [...steps, createWriteBinariesStep(project)]
+        : steps,
+    );
+  });
+}
 
 function createWriteBinariesStep(pkg: Package) {
   const binaryCount = pkg.binaries.length;

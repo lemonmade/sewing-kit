@@ -13,7 +13,6 @@
     "@sewing-kit/model": "^0.0.7",
     "@sewing-kit/plugins": "^0.0.11",
     "@sewing-kit/tasks": "^0.0.9",
-    "@sewing-kit/ui": "^0.0.16",
-    "tapable": "^1.1.3"
+    "@sewing-kit/ui": "^0.0.16"
   }
 }

@@ -1,17 +1,23 @@
 import {cpus} from 'os';
 
-import {AsyncSeriesWaterfallHook} from 'tapable';
-import {addHooks, createProjectPlugin} from '@sewing-kit/plugins';
+import {
+  WebApp,
+  Service,
+  addHooks,
+  WaterfallHook,
+  createProjectPlugin,
+} from '@sewing-kit/plugins';
+
 import {} from '@sewing-kit/plugin-jest';
 import {} from '@sewing-kit/plugin-webpack';
 
 declare module '@sewing-kit/hooks' {
   interface BuildWebAppConfigurationCustomHooks {
-    readonly sassIncludePaths: AsyncSeriesWaterfallHook<string[]>;
+    readonly sassIncludePaths: WaterfallHook<string[]>;
   }
 
   interface DevWebAppConfigurationCustomHooks {
-    readonly sassIncludePaths: AsyncSeriesWaterfallHook<string[]>;
+    readonly sassIncludePaths: WaterfallHook<string[]>;
   }
 }
 
@@ -23,19 +29,24 @@ const PLUGIN = 'SewingKit.sass';
 const HAPPYPACK_ID = 'sass';
 
 const addSassHooks = addHooks(() => ({
-  sassIncludePaths: new AsyncSeriesWaterfallHook(['sassIncludePaths']),
+  sassIncludePaths: new WaterfallHook(),
 }));
 
-export const createSassProjectPlugin = ({sassIncludes = []}: Options = {}) =>
-  createProjectPlugin({
-    id: PLUGIN,
-    run({build, test}) {
-      build.tap(PLUGIN, ({hooks, options: {sourceMaps}}) => {
-        hooks.webApp.tap(PLUGIN, ({hooks}) => {
-          hooks.configure.tap(PLUGIN, (configurationHooks) => {
-            addSassHooks(configurationHooks);
+export function sass({sassIncludes = []}: Options = {}) {
+  return createProjectPlugin<WebApp | Service>(
+    PLUGIN,
+    ({tasks: {build, test}}) => {
+      build.hook(({hooks, options: {sourceMaps}}) => {
+        hooks.configure.hook(
+          (
+            configure: Partial<
+              import('@sewing-kit/hooks').BuildWebAppConfigurationHooks &
+                import('@sewing-kit/hooks').BuildServiceConfigurationHooks
+            >,
+          ) => {
+            addSassHooks(configure);
 
-            configurationHooks.webpackRules?.tap(PLUGIN, (rules) => [
+            configure.webpackRules?.hook((rules) => [
               ...rules,
               {
                 test: /\.scss$/,
@@ -44,75 +55,69 @@ export const createSassProjectPlugin = ({sassIncludes = []}: Options = {}) =>
               },
             ]);
 
-            configurationHooks.webpackPlugins?.tapPromise(
-              PLUGIN,
-              async (plugins) => {
-                const {default: Happypack} = await import('happypack');
-                const sassIncludePaths = configurationHooks.sassIncludePaths!.promise(
-                  [...sassIncludes],
-                );
+            configure.webpackPlugins?.hook(async (plugins) => {
+              const {default: Happypack} = await import('happypack');
+              const sassIncludePaths = configure.sassIncludePaths!.run([
+                ...sassIncludes,
+              ]);
 
-                return [
-                  ...plugins,
-                  new Happypack({
-                    id: HAPPYPACK_ID,
-                    verbose: false,
-                    threads: cpus().length - 1,
-                    loaders: [
-                      {path: 'style-loader'},
-                      // {
-                      //   path: 'cache-loader',
-                      //   query: {
-                      //     cacheDirectory: finalCacheDirectory,
-                      //     cacheIdentifier,
-                      //   },
-                      // },
-                      {
-                        path: 'css-loader',
-                        options: {
-                          sourceMap: sourceMaps,
-                          modules: true,
-                          importLoaders: 1,
-                          localIdentName: '[name]-[local]_[hash:base64:5]',
-                        },
+              return [
+                ...plugins,
+                new Happypack({
+                  id: HAPPYPACK_ID,
+                  verbose: false,
+                  threads: cpus().length - 1,
+                  loaders: [
+                    {path: 'style-loader'},
+                    // {
+                    //   path: 'cache-loader',
+                    //   query: {
+                    //     cacheDirectory: finalCacheDirectory,
+                    //     cacheIdentifier,
+                    //   },
+                    // },
+                    {
+                      path: 'css-loader',
+                      options: {
+                        sourceMap: sourceMaps,
+                        modules: true,
+                        importLoaders: 1,
+                        localIdentName: '[name]-[local]_[hash:base64:5]',
                       },
-                      {
-                        path: 'postcss-loader',
-                        options: {
-                          // config: ifElse(!project.hasPostCSSConfig, {
-                          //   path: workspace.paths.defaultPostCSSConfig,
-                          // }),
-                          sourceMap: sourceMaps,
-                        },
+                    },
+                    {
+                      path: 'postcss-loader',
+                      options: {
+                        // config: ifElse(!project.hasPostCSSConfig, {
+                        //   path: workspace.paths.defaultPostCSSConfig,
+                        // }),
+                        sourceMap: sourceMaps,
                       },
-                      {
-                        path: 'sass-loader',
-                        options: {
-                          sourceMap: sourceMaps,
-                          includePaths: sassIncludePaths,
-                        },
+                    },
+                    {
+                      path: 'sass-loader',
+                      options: {
+                        sourceMap: sourceMaps,
+                        includePaths: sassIncludePaths,
                       },
-                      // sassGlobalsLoader(workspace),
-                    ],
-                  } as any),
-                ];
-              },
-            );
-          });
-        });
+                    },
+                    // sassGlobalsLoader(workspace),
+                  ],
+                } as any),
+              ];
+            });
+          },
+        );
       });
 
-      test.tap(PLUGIN, ({hooks}) => {
-        hooks.project.tap(PLUGIN, ({hooks}) => {
-          hooks.configure.tap(PLUGIN, (hooks) => {
-            hooks.jestModuleMapper?.tap(PLUGIN, (moduleMapper) => ({
-              ...moduleMapper,
-              '\\.scss$': require.resolve('./jest-module-mapper'),
-            }));
-          });
+      test.hook(({hooks}) => {
+        hooks.configure.hook((hooks) => {
+          hooks.jestModuleMapper?.hook((moduleMapper) => ({
+            ...moduleMapper,
+            '\\.scss$': require.resolve('./jest-module-mapper'),
+          }));
         });
       });
     },
-  });
-
-export const sassProjectPlugin = createSassProjectPlugin();
+  );
+}

@@ -1,6 +1,4 @@
-import {produce} from 'immer';
-
-import {Runtime} from '@sewing-kit/model';
+import {Package, Runtime} from '@sewing-kit/model';
 import {createProjectBuildPlugin} from '@sewing-kit/plugins';
 import {
   createWriteEntriesStep,
@@ -33,55 +31,47 @@ const setNodeTarget = changeBaseJavaScriptBabelPreset({
   polyfill: BaseBabelPresetPolyfill.Usage,
 });
 
-export const packageCreateCommonJsOutputPlugin = createProjectBuildPlugin(
-  PLUGIN,
-  ({hooks}, api) => {
-    hooks.package.tap(PLUGIN, ({pkg, hooks}) => {
-      hooks.variants.tap(PLUGIN, (variants) => [
-        ...variants,
-        {[VARIANT]: true},
-      ]);
+export function buildCommonJsOutput() {
+  return createProjectBuildPlugin<Package>(PLUGIN, (context) => {
+    const {hooks, project} = context;
 
-      hooks.configure.tap(PLUGIN, (configurationHooks, {commonjs}) => {
-        if (!commonjs) {
-          return;
-        }
+    hooks.variants.hook((variants) => [...variants, {[VARIANT]: true}]);
 
-        configurationHooks.babelConfig?.tap(PLUGIN, (babelConfig) => {
-          const allEntriesAreNode = pkg.entries.every(
-            ({runtime}) => runtime === Runtime.Node,
-          );
+    hooks.configure.hook((configurationHooks, {commonjs}) => {
+      if (!commonjs) {
+        return;
+      }
 
-          return produce(babelConfig, (babelConfig) => {
-            if (allEntriesAreNode) {
-              setNodeTarget(babelConfig);
-            }
+      configurationHooks.babelConfig?.hook((babelConfig) => {
+        const allEntriesAreNode = project.entries.every(
+          ({runtime}) => runtime === Runtime.Node,
+        );
 
-            setCommonJsModules(babelConfig);
-          });
-        });
-      });
-
-      hooks.steps.tap(PLUGIN, (steps, {config, variant: {commonjs}}) => {
-        if (!commonjs) {
-          return steps;
-        }
-
-        const outputPath = pkg.fs.buildPath('cjs');
-
-        return [
-          ...steps,
-          createCompileBabelStep(pkg, api, config, {
-            outputPath,
-            configFile: 'babel.cjs.js',
-          }),
-          createWriteEntriesStep(pkg, {
-            outputPath,
-            exportStyle: ExportStyle.CommonJs,
-            extension: '.js',
-          }),
-        ];
+        return allEntriesAreNode
+          ? setNodeTarget(babelConfig)
+          : setCommonJsModules(babelConfig);
       });
     });
-  },
-);
+
+    hooks.steps.hook((steps, {config, variant: {commonjs}}) => {
+      if (!commonjs) {
+        return steps;
+      }
+
+      const outputPath = project.fs.buildPath('cjs');
+
+      return [
+        ...steps,
+        createCompileBabelStep(context, config, {
+          outputPath,
+          configFile: 'babel.cjs.js',
+        }),
+        createWriteEntriesStep(context, {
+          outputPath,
+          exportStyle: ExportStyle.CommonJs,
+          extension: '.js',
+        }),
+      ];
+    });
+  });
+}

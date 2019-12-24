@@ -1,4 +1,4 @@
 export {
-  useEsModulesPlugin,
-  packageCreateEsModulesOutputPlugin,
+  esmodulesOutput,
+  buildEsModulesOutput,
 } from './plugin-package-esmodules';

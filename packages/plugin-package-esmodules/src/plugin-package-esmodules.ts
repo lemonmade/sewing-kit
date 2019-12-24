@@ -1,5 +1,7 @@
-import {produce} from 'immer';
 import {
+  WebApp,
+  Service,
+  Package,
   createProjectPlugin,
   createProjectBuildPlugin,
 } from '@sewing-kit/plugins';
@@ -13,8 +15,8 @@ import {
   BaseBabelPresetModule,
   BaseBabelPresetPolyfill,
 } from '@sewing-kit/plugin-javascript';
-import {} from '@sewing-kit/hooks';
 import {} from '@sewing-kit/plugin-webpack';
+import {} from '@sewing-kit/hooks';
 
 const PLUGIN = 'SewingKit.package-esmodules';
 const VARIANT = 'esmodules';
@@ -30,88 +32,77 @@ const updateBabelPreset = changeBaseJavaScriptBabelPreset({
   polyfill: BaseBabelPresetPolyfill.Usage,
 });
 
-export const packageCreateEsModulesOutputPlugin = createProjectBuildPlugin(
-  PLUGIN,
-  ({hooks}, api) => {
-    hooks.package.tap(PLUGIN, ({pkg, hooks}) => {
-      hooks.variants.tap(PLUGIN, (variants) => [
-        ...variants,
-        {[VARIANT]: true},
-      ]);
-
-      hooks.configure.tap(PLUGIN, (configurationHooks, {esmodules}) => {
-        if (!esmodules) {
-          return;
-        }
-
-        configurationHooks.babelConfig?.tap(PLUGIN, (babelConfig) => {
-          return produce(babelConfig, updateBabelPreset);
-        });
+export function esmodulesOutput() {
+  return createProjectPlugin<WebApp | Service>(
+    `${PLUGIN}.Consumer`,
+    ({tasks: {build, dev}}) => {
+      build.hook(({hooks}) => {
+        hooks.configure.hook(
+          (
+            configure: Partial<
+              import('@sewing-kit/hooks').BuildWebAppConfigurationHooks &
+                import('@sewing-kit/hooks').BuildServiceConfigurationHooks
+            >,
+          ) => {
+            configure.webpackRules?.hook(addWebpackRule);
+            configure.webpackExtensions?.hook(addExtension);
+          },
+        );
       });
 
-      hooks.steps.tap(PLUGIN, (steps, {config, variant: {esmodules}}) => {
-        if (!esmodules) {
-          return steps;
-        }
-
-        const outputPath = pkg.fs.buildPath('esm');
-
-        return [
-          ...steps,
-          createCompileBabelStep(pkg, api, config, {
-            outputPath,
-            extension: '.mjs',
-            configFile: 'babel.esm.js',
-          }),
-          createWriteEntriesStep(pkg, {
-            outputPath,
-            extension: '.mjs',
-            exportStyle: ExportStyle.EsModules,
-          }),
-        ];
+      dev.hook(({hooks}) => {
+        hooks.configure.hook(
+          (
+            configure: Partial<
+              import('@sewing-kit/hooks').BuildWebAppConfigurationHooks &
+                import('@sewing-kit/hooks').BuildServiceConfigurationHooks
+            >,
+          ) => {
+            configure.webpackRules?.hook(addWebpackRule);
+            configure.webpackExtensions?.hook(addExtension);
+          },
+        );
       });
-    });
-  },
-);
+    },
+  );
+}
 
-const USER_PLUGIN = `${PLUGIN}.Consumer`;
+export function buildEsModulesOutput() {
+  return createProjectBuildPlugin<Package>(PLUGIN, (context) => {
+    const {hooks, project} = context;
+    hooks.variants.hook((variants) => [...variants, {[VARIANT]: true}]);
 
-export const useEsModulesPlugin = createProjectPlugin({
-  id: USER_PLUGIN,
-  run({build, dev}) {
-    build.tap(USER_PLUGIN, ({hooks}) => {
-      hooks.service.tap(USER_PLUGIN, ({hooks}) => {
-        hooks.configure.tap(USER_PLUGIN, (configure) => {
-          configure.webpackRules?.tap(USER_PLUGIN, addWebpackRule);
-          configure.webpackExtensions?.tap(USER_PLUGIN, addExtension);
-        });
-      });
+    hooks.configure.hook((configure, {esmodules}) => {
+      if (!esmodules) {
+        return;
+      }
 
-      hooks.webApp.tap(USER_PLUGIN, ({hooks}) => {
-        hooks.configure.tap(USER_PLUGIN, (configure) => {
-          configure.webpackRules?.tap(USER_PLUGIN, addWebpackRule);
-          configure.webpackExtensions?.tap(USER_PLUGIN, addExtension);
-        });
-      });
+      configure.babelConfig?.hook(updateBabelPreset);
     });
 
-    dev.tap(USER_PLUGIN, ({hooks}) => {
-      hooks.service.tap(USER_PLUGIN, ({hooks}) => {
-        hooks.configure.tap(USER_PLUGIN, (configure) => {
-          configure.webpackRules?.tap(USER_PLUGIN, addWebpackRule);
-          configure.webpackExtensions?.tap(USER_PLUGIN, addExtension);
-        });
-      });
+    hooks.steps.hook((steps, {config, variant: {esmodules}}) => {
+      if (!esmodules) {
+        return steps;
+      }
 
-      hooks.webApp.tap(USER_PLUGIN, ({hooks}) => {
-        hooks.configure.tap(USER_PLUGIN, (configure) => {
-          configure.webpackRules?.tap(USER_PLUGIN, addWebpackRule);
-          configure.webpackExtensions?.tap(USER_PLUGIN, addExtension);
-        });
-      });
+      const outputPath = project.fs.buildPath('esm');
+
+      return [
+        ...steps,
+        createCompileBabelStep(context, config, {
+          outputPath,
+          extension: '.mjs',
+          configFile: 'babel.esm.js',
+        }),
+        createWriteEntriesStep(context, {
+          outputPath,
+          extension: '.mjs',
+          exportStyle: ExportStyle.EsModules,
+        }),
+      ];
     });
-  },
-});
+  });
+}
 
 function addExtension(extensions: readonly string[]): readonly string[] {
   return ['.mjs', ...extensions];

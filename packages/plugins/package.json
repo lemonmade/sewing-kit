@@ -8,6 +8,7 @@
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
+    "@sewing-kit/model": "*",
     "@sewing-kit/tasks": "^0.0.9",
     "@sewing-kit/ui": "^0.0.16",
     "change-case": "^4.1.0",

@@ -1,13 +1,19 @@
-import {AsyncSeriesHook} from 'tapable';
 import {Ui} from '@sewing-kit/ui';
-import {PluginApi, WorkspacePlugin, ProjectPlugin} from '@sewing-kit/plugins';
+import {
+  PluginApi,
+  WorkspacePlugin,
+  ProjectPlugin,
+  ProjectPluginContext,
+  WorkspacePluginContext,
+} from '@sewing-kit/plugins';
 import {WorkspaceTasks, ProjectTasks} from '@sewing-kit/tasks';
-import {Workspace, Project} from '@sewing-kit/model';
+import {SeriesHook} from '@sewing-kit/hooks';
+import {Workspace, WebApp, Package, Service, Project} from '@sewing-kit/model';
 
 export interface SewingKitDelegate {
-  pluginsForProject(
+  pluginsForProject<Type extends WebApp | Package | Service>(
     project: Project,
-  ): readonly ProjectPlugin[] | Promise<readonly ProjectPlugin[]>;
+  ): readonly ProjectPlugin<Type>[] | Promise<readonly ProjectPlugin<Type>[]>;
   pluginsForWorkspace(
     workspace: Workspace,
   ): readonly WorkspacePlugin[] | Promise<readonly WorkspacePlugin[]>;
@@ -25,61 +31,81 @@ export async function createWorkspaceTasksAndApplyPlugins(
 ) {
   const api = createPluginApi(workspace);
   const tasks: WorkspaceTasks = {
-    build: new AsyncSeriesHook(['buildTask']),
-    dev: new AsyncSeriesHook(['devTask']),
-    test: new AsyncSeriesHook(['testTask']),
-    lint: new AsyncSeriesHook(['lintTask']),
-    typeCheck: new AsyncSeriesHook(['typeCheckTask']),
+    build: new SeriesHook(),
+    dev: new SeriesHook(),
+    test: new SeriesHook(),
+    lint: new SeriesHook(),
+    typeCheck: new SeriesHook(),
   };
 
   const plugins = await delegate.pluginsForWorkspace(workspace);
 
   for (const plugin of plugins) {
-    await handlePlugin(plugin, tasks, api);
+    await handleWorkspacePlugin(plugin, {api, tasks, workspace});
   }
 
   return tasks;
 }
 
-export async function createProjectTasksAndApplyPlugins(
-  project: Project,
-  workspace: Workspace,
-  delegate: SewingKitDelegate,
+async function handleWorkspacePlugin(
+  plugin: WorkspacePlugin,
+  context: WorkspacePluginContext,
 ) {
+  const children = new Set<WorkspacePlugin>();
+
+  await plugin.compose?.({
+    use(...plugins: any[]) {
+      for (const plugin of plugins) {
+        if (plugin) children.add(plugin);
+      }
+    },
+  });
+
+  for (const child of children) {
+    await handleWorkspacePlugin(child, context);
+  }
+
+  await plugin.run?.(context);
+}
+
+export async function createProjectTasksAndApplyPlugins<
+  Type extends WebApp | Package | Service
+>(project: Type, workspace: Workspace, delegate: SewingKitDelegate) {
   const api = createPluginApi(workspace);
-  const tasks: ProjectTasks = {
-    build: new AsyncSeriesHook(['buildTask']),
-    dev: new AsyncSeriesHook(['devTask']),
-    test: new AsyncSeriesHook(['testTask']),
+  const tasks: ProjectTasks<Type> = {
+    build: new SeriesHook(),
+    dev: new SeriesHook(),
+    test: new SeriesHook(),
   };
 
   const plugins = await delegate.pluginsForProject(project);
 
   for (const plugin of plugins) {
-    await handlePlugin(plugin, tasks, api);
+    await handleProjectPlugin(plugin, {tasks, api, workspace, project});
   }
 
   return tasks;
 }
 
-async function handlePlugin<Plugin extends ProjectPlugin | WorkspacePlugin>(
-  plugin: Plugin,
-  tasks: Plugin extends ProjectPlugin ? ProjectTasks : WorkspaceTasks,
-  api: PluginApi,
+async function handleProjectPlugin<Type extends WebApp | Package | Service>(
+  plugin: ProjectPlugin<Type>,
+  context: ProjectPluginContext<Type>,
 ) {
-  const children = new Set<Plugin>();
+  const children = new Set<ProjectPlugin<Type>>();
 
   await plugin.compose?.({
     use(...plugins: any[]) {
-      for (const plugin of plugins) children.add(plugin);
+      for (const plugin of plugins) {
+        if (plugin) children.add(plugin);
+      }
     },
   });
 
   for (const child of children) {
-    await handlePlugin(child, tasks, api);
+    await handleProjectPlugin(child, context);
   }
 
-  await plugin.run?.(tasks as any, api);
+  await plugin.run?.(context);
 }
 
 function createPluginApi(workspace: Workspace): PluginApi {

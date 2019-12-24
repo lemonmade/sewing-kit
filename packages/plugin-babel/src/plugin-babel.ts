@@ -1,15 +1,16 @@
-import {AsyncSeriesWaterfallHook} from 'tapable';
+import {WaterfallHook} from '@sewing-kit/hooks';
+import {Package} from '@sewing-kit/model';
 import {addHooks, createProjectPlugin} from '@sewing-kit/plugins';
 
 import {BabelConfig} from './types';
 
 interface BabelHooks {
-  readonly babelConfig: AsyncSeriesWaterfallHook<BabelConfig>;
-  readonly babelIgnorePatterns: AsyncSeriesWaterfallHook<readonly string[]>;
+  readonly babelConfig: WaterfallHook<BabelConfig>;
+  readonly babelIgnorePatterns: WaterfallHook<readonly string[]>;
 }
 
 interface BabelPackageBuildHooks extends BabelHooks {
-  readonly babelExtensions: AsyncSeriesWaterfallHook<readonly string[]>;
+  readonly babelExtensions: WaterfallHook<readonly string[]>;
 }
 
 declare module '@sewing-kit/hooks' {
@@ -28,66 +29,41 @@ declare module '@sewing-kit/hooks' {
 const PLUGIN = 'SewingKit.babel';
 
 const addBabelHooks = addHooks(() => ({
-  babelConfig: new AsyncSeriesWaterfallHook<BabelConfig>(['babelConfig']),
-  babelIgnorePatterns: new AsyncSeriesWaterfallHook<readonly string[]>([
-    'babelIgnorePatterns',
-  ]),
+  babelConfig: new WaterfallHook<BabelConfig>(),
+  babelIgnorePatterns: new WaterfallHook<readonly string[]>(),
 }));
 
 const addPackageBabelHooks = addHooks(() => ({
-  babelConfig: new AsyncSeriesWaterfallHook<BabelConfig>(['babelConfig']),
-  babelIgnorePatterns: new AsyncSeriesWaterfallHook<readonly string[]>([
-    'babelIgnorePatterns',
-  ]),
-  babelExtensions: new AsyncSeriesWaterfallHook<readonly string[]>([
-    'extensions',
-  ]),
+  babelConfig: new WaterfallHook<BabelConfig>(),
+  babelIgnorePatterns: new WaterfallHook<readonly string[]>(),
+  babelExtensions: new WaterfallHook<readonly string[]>(),
 }));
 
-export const babelProjectPlugin = createProjectPlugin({
-  id: PLUGIN,
-  run({build, test, dev}) {
-    build.tap(PLUGIN, ({hooks}) => {
-      hooks.package.tap(PLUGIN, ({hooks}) => {
-        hooks.configure.tap(PLUGIN, addPackageBabelHooks);
-      });
+export const babelConfigurationHooks = createProjectPlugin(
+  PLUGIN,
+  ({project, tasks: {build, test, dev}}) => {
+    const addHooks =
+      project instanceof Package ? addPackageBabelHooks : addBabelHooks;
 
-      hooks.webApp.tap(PLUGIN, ({hooks}) => {
-        hooks.configure.tap(PLUGIN, addBabelHooks);
-      });
-
-      hooks.service.tap(PLUGIN, ({hooks}) => {
-        hooks.configure.tap(PLUGIN, addBabelHooks);
-      });
+    build.hook(({hooks}) => {
+      hooks.configure.hook(addHooks);
     });
 
-    dev.tap(PLUGIN, ({hooks}) => {
-      hooks.package.tap(PLUGIN, ({hooks}) => {
-        hooks.configure.tap(PLUGIN, addBabelHooks);
-      });
-
-      hooks.webApp.tap(PLUGIN, ({hooks}) => {
-        hooks.configure.tap(PLUGIN, addBabelHooks);
-      });
-
-      hooks.service.tap(PLUGIN, ({hooks}) => {
-        hooks.configure.tap(PLUGIN, addBabelHooks);
-      });
+    dev.hook(({hooks}) => {
+      hooks.configure.hook(addHooks);
     });
 
-    test.tap(PLUGIN, ({hooks}) => {
-      hooks.project.tap(PLUGIN, ({hooks}) => {
-        hooks.configure.tap(PLUGIN, addBabelHooks);
-      });
+    test.hook(({hooks}) => {
+      hooks.configure.hook(addHooks);
     });
   },
-});
+);
 
 export function addBabelPlugin(plugin: string | [string, object]) {
   const id = `${PLUGIN}.AddBabelPlugin`;
 
   return createProjectPluginTargettingAllConfigurationHooks(id, (hooks) => {
-    hooks.babelConfig?.tap(id, (config) => ({
+    hooks.babelConfig?.hook((config) => ({
       ...config,
       plugins: [...(config.plugins ?? []), plugin],
     }));
@@ -98,7 +74,7 @@ export function addBabelPreset(preset: string | [string, object]) {
   const id = `${PLUGIN}.AddBabelPreset`;
 
   return createProjectPluginTargettingAllConfigurationHooks(id, (hooks) => {
-    hooks.babelConfig?.tap(id, (config) => ({
+    hooks.babelConfig?.hook((config) => ({
       ...config,
       presets: [...(config.presets ?? []), preset],
     }));
@@ -109,42 +85,17 @@ function createProjectPluginTargettingAllConfigurationHooks(
   id: string,
   configurator: (hooks: Partial<BabelHooks>) => void,
 ) {
-  return createProjectPlugin({
-    id,
-    run({build, test, dev}) {
-      build.tap(id, ({hooks}) => {
-        hooks.package.tap(id, ({hooks}) => {
-          hooks.configure.tap(id, configurator);
-        });
+  return createProjectPlugin(id, ({tasks: {build, dev, test}}) => {
+    build.hook(({hooks}) => {
+      hooks.configure.hook(configurator);
+    });
 
-        hooks.webApp.tap(id, ({hooks}) => {
-          hooks.configure.tap(id, configurator);
-        });
+    dev.hook(({hooks}) => {
+      hooks.configure.hook(configurator);
+    });
 
-        hooks.service.tap(id, ({hooks}) => {
-          hooks.configure.tap(id, configurator);
-        });
-      });
-
-      dev.tap(id, ({hooks}) => {
-        hooks.package.tap(id, ({hooks}) => {
-          hooks.configure.tap(id, configurator);
-        });
-
-        hooks.webApp.tap(id, ({hooks}) => {
-          hooks.configure.tap(id, configurator);
-        });
-
-        hooks.service.tap(id, ({hooks}) => {
-          hooks.configure.tap(id, configurator);
-        });
-      });
-
-      test.tap(id, ({hooks}) => {
-        hooks.project.tap(id, ({hooks}) => {
-          hooks.configure.tap(id, configurator);
-        });
-      });
-    },
+    test.hook(({hooks}) => {
+      hooks.configure.hook(configurator);
+    });
   });
 }

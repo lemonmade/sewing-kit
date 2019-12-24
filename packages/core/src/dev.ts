@@ -1,5 +1,6 @@
-import {AsyncSeriesWaterfallHook, AsyncSeriesHook} from 'tapable';
 import {
+  SeriesHook,
+  WaterfallHook,
   DevServiceHooks,
   DevServiceConfigurationHooks,
   DevWebAppHooks,
@@ -7,11 +8,7 @@ import {
   DevPackageHooks,
   DevPackageConfigurationHooks,
 } from '@sewing-kit/hooks';
-import {
-  DevTaskOptions,
-  DevProjectTaskHooks,
-  DevWorkspaceTaskHooks,
-} from '@sewing-kit/tasks';
+import {DevTaskOptions, DevWorkspaceTaskHooks} from '@sewing-kit/tasks';
 import {run} from '@sewing-kit/ui';
 
 import {
@@ -27,15 +24,14 @@ export async function runDev(
   const {dev} = await createWorkspaceTasksAndApplyPlugins(workspace, delegate);
 
   const devTaskHooks: DevWorkspaceTaskHooks = {
-    configure: new AsyncSeriesHook(['hooks']),
-    pre: new AsyncSeriesWaterfallHook(['steps', 'details']),
-    post: new AsyncSeriesWaterfallHook(['steps', 'details']),
+    configure: new SeriesHook(),
+    pre: new WaterfallHook(),
+    post: new WaterfallHook(),
   };
 
-  await dev.promise({
+  await dev.run({
     hooks: devTaskHooks,
     options,
-    workspace,
   });
 
   const webAppSteps = await Promise.all(
@@ -46,30 +42,19 @@ export async function runDev(
         delegate,
       );
 
-      const devTaskHooks: DevProjectTaskHooks = {
-        project: new AsyncSeriesHook(['project', 'projectDevHooks']),
-        package: new AsyncSeriesHook(['pkg', 'packageDevHooks']),
-        webApp: new AsyncSeriesHook(['app', 'webAppDevHooks']),
-        service: new AsyncSeriesHook(['service', 'serviceDevHooks']),
-      };
-
-      await dev.promise({options, hooks: devTaskHooks, workspace});
-
       const hooks: DevWebAppHooks = {
-        context: new AsyncSeriesWaterfallHook(['context']),
-        configure: new AsyncSeriesHook(['configuration']),
-        steps: new AsyncSeriesWaterfallHook(['steps', 'details', 'context']),
+        context: new WaterfallHook(),
+        configure: new SeriesHook(),
+        steps: new WaterfallHook(),
       };
 
-      await devTaskHooks.project.promise({project: webApp, hooks});
-      await devTaskHooks.webApp.promise({webApp, hooks});
+      await dev.run({options, hooks});
 
       const configurationHooks: DevWebAppConfigurationHooks = {};
-      await hooks.configure.promise(configurationHooks);
+      await hooks.configure.run(configurationHooks);
 
-      const context = await hooks.context.promise({});
-
-      const steps = await hooks.steps.promise(
+      const context = await hooks.context.run({});
+      const steps = await hooks.steps.run(
         [],
         {config: configurationHooks},
         context,
@@ -87,33 +72,23 @@ export async function runDev(
         delegate,
       );
 
-      const devTaskHooks: DevProjectTaskHooks = {
-        project: new AsyncSeriesHook(['project', 'projectDevHooks']),
-        package: new AsyncSeriesHook(['pkg', 'packageDevHooks']),
-        webApp: new AsyncSeriesHook(['app', 'webAppDevHooks']),
-        service: new AsyncSeriesHook(['service', 'serviceDevHooks']),
-      };
-
-      await dev.promise({options, hooks: devTaskHooks, workspace});
-
       const hooks: DevServiceHooks = {
-        configure: new AsyncSeriesHook(['configuration']),
-        context: new AsyncSeriesWaterfallHook(['context']),
-        steps: new AsyncSeriesWaterfallHook(['steps', 'details', 'context']),
+        configure: new SeriesHook(),
+        context: new WaterfallHook(),
+        steps: new WaterfallHook(),
       };
 
-      await devTaskHooks.project.promise({project: service, hooks});
-      await devTaskHooks.service.promise({service, hooks});
+      await dev.run({options, hooks});
 
       const configurationHooks: DevServiceConfigurationHooks = {
-        ip: new AsyncSeriesWaterfallHook(['ip']),
-        port: new AsyncSeriesWaterfallHook(['port']),
+        ip: new WaterfallHook(),
+        port: new WaterfallHook(),
       };
-      await hooks.configure.promise(configurationHooks);
+      await hooks.configure.run(configurationHooks);
 
-      const context = await hooks.context.promise({});
+      const context = await hooks.context.run({});
 
-      const steps = await hooks.steps.promise(
+      const steps = await hooks.steps.run(
         [],
         {
           config: configurationHooks,
@@ -136,34 +111,19 @@ export async function runDev(
               delegate,
             );
 
-            const devTaskHooks: DevProjectTaskHooks = {
-              project: new AsyncSeriesHook(['project', 'projectDevHooks']),
-              package: new AsyncSeriesHook(['pkg', 'packageDevHooks']),
-              webApp: new AsyncSeriesHook(['app', 'webAppDevHooks']),
-              service: new AsyncSeriesHook(['service', 'serviceDevHooks']),
-            };
-
-            await dev.promise({options, hooks: devTaskHooks, workspace});
-
             const hooks: DevPackageHooks = {
-              configure: new AsyncSeriesHook(['buildTarget', 'options']),
-              context: new AsyncSeriesWaterfallHook(['context']),
-              steps: new AsyncSeriesWaterfallHook([
-                'steps',
-                'details',
-                'context',
-              ]),
+              configure: new SeriesHook(),
+              context: new WaterfallHook(),
+              steps: new WaterfallHook(),
             };
 
-            await devTaskHooks.project.promise({project: pkg, hooks});
-            await devTaskHooks.package.promise({pkg, hooks});
+            await dev.run({options, hooks});
 
             const configurationHooks: DevPackageConfigurationHooks = {};
-            await hooks.configure.promise(configurationHooks);
+            await hooks.configure.run(configurationHooks);
 
-            const context = await hooks.context.promise({});
-
-            const steps = await hooks.steps.promise(
+            const context = await hooks.context.run({});
+            const steps = await hooks.steps.run(
               [],
               {
                 config: configurationHooks,
@@ -177,11 +137,11 @@ export async function runDev(
       ).flat();
 
   const configurationHooks = {};
-  await devTaskHooks.configure.promise(configurationHooks);
+  await devTaskHooks.configure.run(configurationHooks);
 
   const [pre, post] = await Promise.all([
-    devTaskHooks.pre.promise([], {configuration: configurationHooks}),
-    devTaskHooks.post.promise([], {configuration: configurationHooks}),
+    devTaskHooks.pre.run([], {configuration: configurationHooks}),
+    devTaskHooks.post.run([], {configuration: configurationHooks}),
   ]);
 
   const {skip, skipPre, skipPost} = options;

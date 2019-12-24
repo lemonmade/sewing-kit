@@ -1,6 +1,7 @@
 import {resolve, relative} from 'path';
 
 import {Package, PackageEntry} from '@sewing-kit/model';
+import {ProjectPluginContext} from '@sewing-kit/plugins';
 import {createStep} from '@sewing-kit/ui';
 
 interface WriteEntriesOptions {
@@ -16,7 +17,7 @@ export enum ExportStyle {
 }
 
 export function createWriteEntriesStep(
-  pkg: Package,
+  {project}: Pick<ProjectPluginContext<Package>, 'project' | 'api'>,
   options: WriteEntriesOptions,
 ) {
   return createStep(async () => {
@@ -27,24 +28,24 @@ export function createWriteEntriesStep(
       exclude,
     } = options;
 
-    const sourceRoot = resolve(pkg.root, 'src');
+    const sourceRoot = resolve(project.root, 'src');
 
-    for (const entry of pkg.entries) {
+    for (const entry of project.entries) {
       if (exclude?.(entry) ?? false) continue;
 
-      const absoluteEntryPath = (await pkg.fs.hasDirectory(entry.root))
-        ? pkg.fs.resolvePath(entry.root, 'index')
-        : pkg.fs.resolvePath(entry.root);
+      const absoluteEntryPath = (await project.fs.hasDirectory(entry.root))
+        ? project.fs.resolvePath(entry.root, 'index')
+        : project.fs.resolvePath(entry.root);
 
       const relativeFromSourceRoot = relative(sourceRoot, absoluteEntryPath);
       const destinationInOutput = resolve(outputPath, relativeFromSourceRoot);
       const relativeFromRoot = normalizedRelative(
-        pkg.root,
+        project.root,
         destinationInOutput,
       );
 
       if (exportStyle === ExportStyle.CommonJs) {
-        await pkg.fs.write(
+        await project.fs.write(
           `${entry.name || 'index'}${extension}`,
           `module.exports = require(${JSON.stringify(relativeFromRoot)});`,
         );
@@ -56,8 +57,8 @@ export function createWriteEntriesStep(
       let content = '';
 
       try {
-        content = await pkg.fs.read(
-          (await pkg.fs.glob(`${absoluteEntryPath}.*`))[0],
+        content = await project.fs.read(
+          (await project.fs.glob(`${absoluteEntryPath}.*`))[0],
         );
 
         // export default ...
@@ -69,7 +70,7 @@ export function createWriteEntriesStep(
         // intentional no-op
       }
 
-      await pkg.fs.write(
+      await project.fs.write(
         `${entry.name || 'index'}${extension}`,
         [
           `export * from ${JSON.stringify(relativeFromRoot)};`,

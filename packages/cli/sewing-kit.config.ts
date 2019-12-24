@@ -4,5 +4,5 @@ import {createSewingKitPackagePlugin} from '../../config/sewing-kit';
 export default createPackage((pkg) => {
   pkg.runtime(Runtime.Node);
   pkg.binary({name: 'sewing-kit', root: './src/index', aliases: ['sk']});
-  pkg.plugin(createSewingKitPackagePlugin());
+  pkg.use(createSewingKitPackagePlugin());
 });

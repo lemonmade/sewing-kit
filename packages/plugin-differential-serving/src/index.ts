@@ -1,4 +1,1 @@
-export {
-  differentialServingPlugin,
-  createDifferentialServingPlugin,
-} from './plugin-differential-serving';
+export {differentialServing, Options} from './plugin-differential-serving';

@@ -1,7 +1,9 @@
-import {AsyncSeriesWaterfallHook, AsyncSeriesHook} from 'tapable';
-
 import {run} from '@sewing-kit/ui';
-import {TypeCheckWorkspaceConfigurationHooks} from '@sewing-kit/hooks';
+import {
+  WaterfallHook,
+  SeriesHook,
+  TypeCheckWorkspaceConfigurationHooks,
+} from '@sewing-kit/hooks';
 import {TypeCheckOptions, TypeCheckWorkspaceTaskHooks} from '@sewing-kit/tasks';
 
 import {TaskContext, createWorkspaceTasksAndApplyPlugins} from './common';
@@ -16,26 +18,25 @@ export async function runTypeCheck(
   );
 
   const hooks: TypeCheckWorkspaceTaskHooks = {
-    configure: new AsyncSeriesHook(['configurationHooks']),
-    pre: new AsyncSeriesWaterfallHook(['steps', 'stepDetails']),
-    steps: new AsyncSeriesWaterfallHook(['steps', 'stepDetails']),
-    post: new AsyncSeriesWaterfallHook(['steps', 'stepDetails']),
+    configure: new SeriesHook(),
+    pre: new WaterfallHook(),
+    steps: new WaterfallHook(),
+    post: new WaterfallHook(),
   };
 
-  await typeCheck.promise({
+  await typeCheck.run({
     hooks,
     options,
-    workspace,
   });
 
   const configurationHooks: TypeCheckWorkspaceConfigurationHooks = {};
-  await hooks.configure.promise(configurationHooks);
+  await hooks.configure.run(configurationHooks);
 
-  const pre = await hooks.pre.promise([], {configuration: configurationHooks});
-  const steps = await hooks.steps.promise([], {
+  const pre = await hooks.pre.run([], {configuration: configurationHooks});
+  const steps = await hooks.steps.run([], {
     configuration: configurationHooks,
   });
-  const post = await hooks.post.promise([], {
+  const post = await hooks.post.run([], {
     configuration: configurationHooks,
   });
 

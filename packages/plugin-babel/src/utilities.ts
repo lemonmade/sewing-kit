@@ -4,8 +4,12 @@ import {sync as glob} from 'glob';
 
 import {createStep} from '@sewing-kit/ui';
 import {BuildPackageConfigurationHooks} from '@sewing-kit/hooks';
-import {Package} from '@sewing-kit/model';
-import {toArgs, MissingPluginError, PluginApi} from '@sewing-kit/plugins';
+import {
+  toArgs,
+  Package,
+  MissingPluginError,
+  ProjectPluginContext,
+} from '@sewing-kit/plugins';
 
 interface CompileBabelOptions {
   readonly configFile: string;
@@ -14,8 +18,7 @@ interface CompileBabelOptions {
 }
 
 export function createCompileBabelStep(
-  pkg: Package,
-  api: PluginApi,
+  {project: pkg, api}: Pick<ProjectPluginContext<Package>, 'project' | 'api'>,
   config: BuildPackageConfigurationHooks,
   options: CompileBabelOptions,
 ) {
@@ -35,8 +38,8 @@ export function createCompileBabelStep(
     }
 
     const [babelConfig, babelIgnorePatterns] = await Promise.all([
-      config.babelConfig.promise({}),
-      config.babelIgnorePatterns.promise([]),
+      config.babelConfig.run({}),
+      config.babelIgnorePatterns.run([]),
     ]);
 
     await api.write(
@@ -44,7 +47,7 @@ export function createCompileBabelStep(
       `module.exports=${JSON.stringify(babelConfig)};`,
     );
 
-    const extensions = await config.babelExtensions.promise([]);
+    const extensions = await config.babelExtensions.run([]);
     const sourceRoot = resolve(pkg.root, 'src');
 
     await step.exec('node_modules/.bin/babel', [
