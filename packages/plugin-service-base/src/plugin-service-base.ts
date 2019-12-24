@@ -49,10 +49,10 @@ export function buildServiceWithWebpack({
           );
         });
 
-        hooks.steps.hook((steps, {config}, {webpackBuildManager}) => {
+        hooks.steps.hook((steps, {configuration, webpackBuildManager}) => {
           const step = api.createStep({}, async () => {
             const stats = await buildWebpack(
-              await createWebpackConfig(config, project, workspace, {
+              await createWebpackConfig(configuration, project, workspace, {
                 mode: toMode(options.simulateEnv),
               }),
             );
@@ -79,7 +79,7 @@ export function buildServiceWithWebpack({
           );
         });
 
-        hooks.steps.hook((steps, {config}, {webpackBuildManager}) => {
+        hooks.steps.hook((steps, {configuration, webpackBuildManager}) => {
           return [
             ...steps,
             api.createStep(
@@ -89,12 +89,12 @@ export function buildServiceWithWebpack({
                 const {default: webpack} = await import('webpack');
 
                 const [port, ip = 'localhost'] = await Promise.all([
-                  config.port.run(defaultPort),
-                  config.ip.run(defaultIp),
+                  configuration.port.run(defaultPort),
+                  configuration.ip.run(defaultIp),
                 ]);
 
                 const webpackConfig = await createWebpackConfig(
-                  config,
+                  configuration,
                   project,
                   workspace,
                   {

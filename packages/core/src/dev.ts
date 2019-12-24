@@ -2,11 +2,8 @@ import {
   SeriesHook,
   WaterfallHook,
   DevServiceHooks,
-  DevServiceConfigurationHooks,
   DevWebAppHooks,
-  DevWebAppConfigurationHooks,
   DevPackageHooks,
-  DevPackageConfigurationHooks,
 } from '@sewing-kit/hooks';
 import {DevTaskOptions, DevWorkspaceTaskHooks} from '@sewing-kit/tasks';
 import {run} from '@sewing-kit/ui';
@@ -24,6 +21,7 @@ export async function runDev(
   const {dev} = await createWorkspaceTasksAndApplyPlugins(workspace, delegate);
 
   const devTaskHooks: DevWorkspaceTaskHooks = {
+    configureHooks: new WaterfallHook(),
     configure: new SeriesHook(),
     pre: new WaterfallHook(),
     post: new WaterfallHook(),
@@ -43,22 +41,19 @@ export async function runDev(
       );
 
       const hooks: DevWebAppHooks = {
-        context: new WaterfallHook(),
         configure: new SeriesHook(),
+        configureHooks: new WaterfallHook(),
+        context: new WaterfallHook(),
         steps: new WaterfallHook(),
       };
 
       await dev.run({options, hooks});
 
-      const configurationHooks: DevWebAppConfigurationHooks = {};
-      await hooks.configure.run(configurationHooks);
+      const configuration = await hooks.configureHooks.run({});
+      await hooks.configure.run(configuration);
 
-      const context = await hooks.context.run({});
-      const steps = await hooks.steps.run(
-        [],
-        {config: configurationHooks},
-        context,
-      );
+      const context = await hooks.context.run({configuration});
+      const steps = await hooks.steps.run([], context);
 
       return {steps, webApp};
     }),
@@ -73,6 +68,7 @@ export async function runDev(
       );
 
       const hooks: DevServiceHooks = {
+        configureHooks: new WaterfallHook(),
         configure: new SeriesHook(),
         context: new WaterfallHook(),
         steps: new WaterfallHook(),
@@ -80,21 +76,14 @@ export async function runDev(
 
       await dev.run({options, hooks});
 
-      const configurationHooks: DevServiceConfigurationHooks = {
+      const configuration = await hooks.configureHooks.run({
         ip: new WaterfallHook(),
         port: new WaterfallHook(),
-      };
-      await hooks.configure.run(configurationHooks);
+      });
+      await hooks.configure.run(configuration);
 
-      const context = await hooks.context.run({});
-
-      const steps = await hooks.steps.run(
-        [],
-        {
-          config: configurationHooks,
-        },
-        context,
-      );
+      const context = await hooks.context.run({configuration});
+      const steps = await hooks.steps.run([], context);
 
       return {service, steps};
     }),
@@ -112,6 +101,7 @@ export async function runDev(
             );
 
             const hooks: DevPackageHooks = {
+              configureHooks: new WaterfallHook(),
               configure: new SeriesHook(),
               context: new WaterfallHook(),
               steps: new WaterfallHook(),
@@ -119,29 +109,23 @@ export async function runDev(
 
             await dev.run({options, hooks});
 
-            const configurationHooks: DevPackageConfigurationHooks = {};
-            await hooks.configure.run(configurationHooks);
+            const configuration = await hooks.configureHooks.run({});
+            await hooks.configure.run(configuration);
 
-            const context = await hooks.context.run({});
-            const steps = await hooks.steps.run(
-              [],
-              {
-                config: configurationHooks,
-              },
-              context,
-            );
+            const context = await hooks.context.run({configuration});
+            const steps = await hooks.steps.run([], context);
 
             return {pkg, steps};
           }),
         )
       ).flat();
 
-  const configurationHooks = {};
-  await devTaskHooks.configure.run(configurationHooks);
+  const configuration = await devTaskHooks.configureHooks.run({});
+  await devTaskHooks.configure.run(configuration);
 
   const [pre, post] = await Promise.all([
-    devTaskHooks.pre.run([], {configuration: configurationHooks}),
-    devTaskHooks.post.run([], {configuration: configurationHooks}),
+    devTaskHooks.pre.run([], {configuration}),
+    devTaskHooks.post.run([], {configuration}),
   ]);
 
   const {skip, skipPre, skipPost} = options;

@@ -3,7 +3,6 @@ import {
   WaterfallHook,
   TestPackageHooks,
   TestWebAppHooks,
-  TestWorkspaceConfigurationHooks,
 } from '@sewing-kit/hooks';
 import {TestTaskOptions, TestWorkspaceTaskHooks} from '@sewing-kit/tasks';
 import {Package, WebApp, Service} from '@sewing-kit/model';
@@ -22,6 +21,7 @@ export async function runTests(
   const hooks: TestWorkspaceTaskHooks = {
     context: new WaterfallHook(),
     configure: new SeriesHook(),
+    configureHooks: new WaterfallHook(),
     pre: new WaterfallHook(),
     post: new WaterfallHook(),
     steps: new WaterfallHook(),
@@ -31,10 +31,10 @@ export async function runTests(
 
   await test.run({hooks, options});
 
-  const rootConfigHooks: TestWorkspaceConfigurationHooks = {};
-  await hooks.configure.run(rootConfigHooks);
+  const configuration = await hooks.configureHooks.run({});
+  await hooks.configure.run(configuration);
 
-  const context = await hooks.context.run({});
+  const context = await hooks.context.run({configuration});
 
   await Promise.all(
     workspace.projects.map(async (project) => {
@@ -46,30 +46,33 @@ export async function runTests(
 
       if (project instanceof Package) {
         const hooks: TestPackageHooks = {
+          configureHooks: new WaterfallHook(),
           configure: new SeriesHook(),
         };
 
         await testProject.run({hooks, options, context});
-        await hooks.configure.run({});
+        await hooks.configure.run(await hooks.configureHooks.run({}));
       } else if (project instanceof WebApp) {
         const hooks: TestWebAppHooks = {
+          configureHooks: new WaterfallHook(),
           configure: new SeriesHook(),
         };
 
         await testProject.run({hooks, options, context});
-        await hooks.configure.run({});
+        await hooks.configure.run(await hooks.configureHooks.run({}));
       } else if (project instanceof Service) {
         const hooks: TestWebAppHooks = {
+          configureHooks: new WaterfallHook(),
           configure: new SeriesHook(),
         };
 
         await testProject.run({hooks, options, context});
-        await hooks.configure.run({});
+        await hooks.configure.run(await hooks.configureHooks.run({}));
       }
     }),
   );
 
-  const stepDetails = {configuration: rootConfigHooks, context};
+  const stepDetails = {configuration, context};
   const pre = await hooks.pre.run([], stepDetails);
   const steps = await hooks.steps.run([], stepDetails);
   const post = await hooks.post.run([], stepDetails);

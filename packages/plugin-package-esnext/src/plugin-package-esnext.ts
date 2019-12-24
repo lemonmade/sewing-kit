@@ -86,7 +86,7 @@ export function buildEsNextOutput() {
       );
     });
 
-    hooks.steps.hook((steps, {config, variant: {esnext}}) => {
+    hooks.steps.hook((steps, {configuration, variant: {esnext}}) => {
       if (!esnext) {
         return steps;
       }
@@ -95,7 +95,7 @@ export function buildEsNextOutput() {
 
       return [
         ...steps,
-        createCompileBabelStep(context, config, {
+        createCompileBabelStep(context, configuration, {
           outputPath,
           extension: EXTENSION,
           configFile: 'babel.esnext.js',

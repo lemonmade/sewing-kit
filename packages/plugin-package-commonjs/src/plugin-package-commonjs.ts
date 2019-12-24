@@ -52,7 +52,7 @@ export function buildCommonJsOutput() {
       });
     });
 
-    hooks.steps.hook((steps, {config, variant: {commonjs}}) => {
+    hooks.steps.hook((steps, {configuration, variant: {commonjs}}) => {
       if (!commonjs) {
         return steps;
       }
@@ -61,7 +61,7 @@ export function buildCommonJsOutput() {
 
       return [
         ...steps,
-        createCompileBabelStep(context, config, {
+        createCompileBabelStep(context, configuration, {
           outputPath,
           configFile: 'babel.cjs.js',
         }),

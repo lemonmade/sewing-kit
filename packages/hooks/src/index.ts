@@ -114,28 +114,26 @@ export interface BuildPackageConfigurationHooks
   extends BuildPackageConfigurationCoreHooks,
     Partial<BuildPackageConfigurationCustomHooks> {}
 
-export interface BuildPackageStepContext {}
+export interface BuildPackageStepCustomContext {}
 
-export interface BuildPackageStepDetails {
+interface BuildPackageStepCoreContext {
   readonly variant: Partial<BuildPackageOptions>;
-  readonly config: BuildPackageConfigurationHooks;
+  readonly configuration: BuildPackageConfigurationHooks;
 }
+
+export interface BuildPackageStepContext
+  extends BuildPackageStepCoreContext,
+    Partial<BuildPackageStepCustomContext> {}
 
 export interface BuildPackageHooks {
   readonly variants: WaterfallHook<readonly Partial<BuildPackageOptions>[]>;
-
+  readonly configureHooks: WaterfallHook<BuildPackageConfigurationHooks>;
   readonly configure: SeriesHook<
     BuildPackageConfigurationHooks,
     Partial<BuildPackageOptions>
   >;
-
-  readonly context: WaterfallHook<Partial<BuildPackageStepContext>>;
-
-  readonly steps: WaterfallHook<
-    readonly Step[],
-    BuildPackageStepDetails,
-    Partial<BuildPackageStepContext>
-  >;
+  readonly context: WaterfallHook<BuildPackageStepContext>;
+  readonly steps: WaterfallHook<readonly Step[], BuildPackageStepContext>;
 }
 
 // SERVICE
@@ -148,22 +146,21 @@ export interface BuildServiceConfigurationHooks
   extends BuildServiceConfigurationCoreHooks,
     Partial<BuildServiceConfigurationCustomHooks> {}
 
-export interface BuildServiceStepContext {}
+export interface BuildServiceStepCustomContext {}
 
-export interface BuildServiceStepDetails {
-  readonly config: BuildServiceConfigurationHooks;
+interface BuildServiceStepCoreContext {
+  readonly configuration: BuildServiceConfigurationHooks;
 }
 
+export interface BuildServiceStepContext
+  extends BuildServiceStepCoreContext,
+    Partial<BuildServiceStepCustomContext> {}
+
 export interface BuildServiceHooks {
+  readonly configureHooks: WaterfallHook<BuildServiceConfigurationHooks>;
   readonly configure: SeriesHook<BuildServiceConfigurationHooks>;
-
-  readonly context: WaterfallHook<Partial<BuildServiceStepContext>>;
-
-  readonly steps: WaterfallHook<
-    readonly Step[],
-    BuildServiceStepDetails,
-    Partial<BuildServiceStepContext>
-  >;
+  readonly context: WaterfallHook<BuildServiceStepContext>;
+  readonly steps: WaterfallHook<readonly Step[], BuildServiceStepContext>;
 }
 
 // WEB APP
@@ -178,28 +175,26 @@ export interface BuildWebAppConfigurationHooks
   extends BuildWebAppConfigurationCoreHooks,
     Partial<BuildWebAppConfigurationCustomHooks> {}
 
-export interface BuildWebAppStepContext {}
+export interface BuildWebAppStepCustomContext {}
 
-export interface BuildWebAppStepDetails {
+interface BuildWebAppStepCoreContext {
   readonly variant: Partial<BuildWebAppOptions>;
-  readonly config: BuildWebAppConfigurationHooks;
+  readonly configuration: BuildWebAppConfigurationHooks;
 }
+
+export interface BuildWebAppStepContext
+  extends BuildWebAppStepCoreContext,
+    Partial<BuildWebAppStepCustomContext> {}
 
 export interface BuildWebAppHooks {
   readonly variants: WaterfallHook<Partial<BuildWebAppOptions>[]>;
-
+  readonly configureHooks: WaterfallHook<BuildWebAppConfigurationHooks>;
   readonly configure: SeriesHook<
     BuildWebAppConfigurationHooks,
     Partial<BuildWebAppOptions>
   >;
-
-  readonly context: WaterfallHook<Partial<BuildWebAppStepContext>>;
-
-  readonly steps: WaterfallHook<
-    readonly Step[],
-    BuildWebAppStepDetails,
-    Partial<BuildWebAppStepContext>
-  >;
+  readonly context: WaterfallHook<BuildWebAppStepContext>;
+  readonly steps: WaterfallHook<readonly Step[], BuildWebAppStepContext>;
 }
 
 // WORKSPACE
@@ -224,20 +219,21 @@ export interface DevPackageConfigurationHooks
   extends DevPackageConfigurationCoreHooks,
     Partial<DevPackageConfigurationCustomHooks> {}
 
-export interface DevPackageStepDetails {
-  readonly config: DevPackageConfigurationHooks;
+export interface DevPackageStepCustomContext {}
+
+interface DevPackageStepCoreContext {
+  readonly configuration: DevPackageConfigurationHooks;
 }
 
-export interface DevPackageStepContext {}
+export interface DevPackageStepContext
+  extends DevPackageStepCoreContext,
+    Partial<DevPackageStepCustomContext> {}
 
 export interface DevPackageHooks {
+  readonly configureHooks: WaterfallHook<DevPackageConfigurationHooks>;
   readonly configure: SeriesHook<DevPackageConfigurationHooks>;
-  readonly context: WaterfallHook<Partial<DevPackageStepContext>>;
-  readonly steps: WaterfallHook<
-    Step[],
-    DevPackageStepDetails,
-    Partial<DevPackageStepContext>
-  >;
+  readonly context: WaterfallHook<DevPackageStepContext>;
+  readonly steps: WaterfallHook<Step[], DevPackageStepContext>;
 }
 
 // SERVICE
@@ -253,20 +249,21 @@ export interface DevServiceConfigurationHooks
   extends DevServiceConfigurationCoreHooks,
     Partial<DevServiceConfigurationCustomHooks> {}
 
-export interface DevServiceStepDetails {
-  readonly config: DevServiceConfigurationHooks;
+export interface DevServiceStepCustomContext {}
+
+interface DevServiceStepCoreContext {
+  readonly configuration: DevServiceConfigurationHooks;
 }
 
-export interface DevServiceStepContext {}
+export interface DevServiceStepContext
+  extends DevServiceStepCoreContext,
+    Partial<DevServiceStepCustomContext> {}
 
 export interface DevServiceHooks {
+  readonly configureHooks: WaterfallHook<DevServiceConfigurationHooks>;
   readonly configure: SeriesHook<DevServiceConfigurationHooks>;
-  readonly context: WaterfallHook<Partial<DevServiceStepContext>>;
-  readonly steps: WaterfallHook<
-    readonly Step[],
-    DevServiceStepDetails,
-    Partial<DevServiceStepContext>
-  >;
+  readonly context: WaterfallHook<DevServiceStepContext>;
+  readonly steps: WaterfallHook<readonly Step[], DevServiceStepContext>;
 }
 
 // WEB APP
@@ -277,20 +274,21 @@ export interface DevWebAppConfigurationHooks
   extends DevWebAppConfigurationCoreHooks,
     Partial<DevWebAppConfigurationCustomHooks> {}
 
-export interface DevWebAppStepDetails {
-  readonly config: DevWebAppConfigurationHooks;
+export interface DevWebAppStepCustomContext {}
+
+interface DevWebAppStepCoreContext {
+  readonly configuration: DevWebAppConfigurationHooks;
 }
 
-export interface DevWebAppStepContext {}
+export interface DevWebAppStepContext
+  extends DevWebAppStepCoreContext,
+    Partial<DevWebAppStepCustomContext> {}
 
 export interface DevWebAppHooks {
+  readonly configureHooks: WaterfallHook<DevWebAppConfigurationHooks>;
   readonly configure: SeriesHook<DevWebAppConfigurationHooks>;
-  readonly context: WaterfallHook<Partial<DevWebAppStepContext>>;
-  readonly steps: WaterfallHook<
-    Step[],
-    DevWebAppStepDetails,
-    Partial<DevWebAppStepContext>
-  >;
+  readonly context: WaterfallHook<DevWebAppStepContext>;
+  readonly steps: WaterfallHook<Step[], DevWebAppStepContext>;
 }
 
 // WORKSPACE
@@ -324,7 +322,9 @@ export interface LintWorkspaceConfigurationHooks
 
 export interface TestProjectCustomWorkspaceContext {}
 
-interface TestProjectCoreWorkspaceContext {}
+interface TestProjectCoreWorkspaceContext {
+  readonly configuration: TestWorkspaceConfigurationHooks;
+}
 
 export interface TestProjectWorkspaceContext
   extends TestProjectCoreWorkspaceContext,
@@ -347,9 +347,10 @@ interface TestWebAppConfigurationCoreHooks {}
 export interface TestWebAppConfigurationHooks
   extends TestProjectConfigurationHooks,
     TestWebAppConfigurationCoreHooks,
-    Partial<TestWebAppConfigurationCoreHooks> {}
+    Partial<TestWebAppConfigurationCustomHooks> {}
 
 export interface TestWebAppHooks {
+  readonly configureHooks: WaterfallHook<TestWebAppConfigurationHooks>;
   readonly configure: SeriesHook<TestWebAppConfigurationHooks>;
 }
 
@@ -365,6 +366,7 @@ export interface TestServiceConfigurationHooks
     Partial<TestServiceConfigurationCoreHooks> {}
 
 export interface TestServiceHooks {
+  readonly configureHooks: WaterfallHook<TestServiceConfigurationHooks>;
   readonly configure: SeriesHook<TestServiceConfigurationHooks>;
 }
 
@@ -380,6 +382,7 @@ export interface TestPackageConfigurationHooks
     Partial<TestPackageConfigurationCoreHooks> {}
 
 export interface TestPackageHooks {
+  readonly configureHooks: WaterfallHook<TestPackageConfigurationHooks>;
   readonly configure: SeriesHook<TestPackageConfigurationHooks>;
 }
 

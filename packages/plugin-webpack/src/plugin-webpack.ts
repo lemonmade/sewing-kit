@@ -2,10 +2,9 @@ import {
   Task,
   Service,
   WebApp,
-  addHooks,
-  createProjectPlugin,
   Project,
   WaterfallHook,
+  createProjectPlugin,
 } from '@sewing-kit/plugins';
 
 interface WebpackHooks {
@@ -49,7 +48,8 @@ declare module '@sewing-kit/hooks' {
 
 const PLUGIN = 'SewingKit.Webpack';
 
-const addWebpackHooks = addHooks<Partial<WebpackHooks>>(() => ({
+const addWebpackHooks = (hooks: any) => ({
+  ...hooks,
   webpackRules: new WaterfallHook(),
   webpackConfig: new WaterfallHook(),
   webpackPlugins: new WaterfallHook(),
@@ -59,28 +59,26 @@ const addWebpackHooks = addHooks<Partial<WebpackHooks>>(() => ({
   webpackEntries: new WaterfallHook(),
   webpackExtensions: new WaterfallHook(),
   webpackAliases: new WaterfallHook(),
-}));
+});
 
 export function webpack() {
   return createProjectPlugin<Service | WebApp>(
     PLUGIN,
     ({tasks: {build, dev}}) => {
       build.hook(({hooks}) => {
-        hooks.context.hook((context) => ({
+        hooks.configureHooks.hook(addWebpackHooks);
+        hooks.context.hook((context: any) => ({
           ...context,
           webpackBuildManager: new BuildManager(),
         }));
-
-        hooks.configure.hook(addWebpackHooks);
       });
 
       dev.hook(({hooks}) => {
-        hooks.context.hook((context) => ({
+        hooks.configure.hook(addWebpackHooks);
+        hooks.context.hook((context: any) => ({
           ...context,
           webpackBuildManager: new BuildManager(),
         }));
-
-        hooks.configure.hook(addWebpackHooks);
       });
     },
   );

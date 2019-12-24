@@ -80,7 +80,7 @@ export function buildEsModulesOutput() {
       configure.babelConfig?.hook(updateBabelPreset);
     });
 
-    hooks.steps.hook((steps, {config, variant: {esmodules}}) => {
+    hooks.steps.hook((steps, {configuration, variant: {esmodules}}) => {
       if (!esmodules) {
         return steps;
       }
@@ -89,7 +89,7 @@ export function buildEsModulesOutput() {
 
       return [
         ...steps,
-        createCompileBabelStep(context, config, {
+        createCompileBabelStep(context, configuration, {
           outputPath,
           extension: '.mjs',
           configFile: 'babel.esm.js',

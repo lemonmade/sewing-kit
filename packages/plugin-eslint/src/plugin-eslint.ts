@@ -1,6 +1,5 @@
 import {
   toArgs,
-  addHooks,
   WaterfallHook,
   createWorkspaceLintPlugin,
   DiagnosticError,
@@ -24,16 +23,13 @@ declare module '@sewing-kit/hooks' {
 
 const PLUGIN = 'SewingKit.Eslint';
 
-const addRootConfigurationHooks = addHooks<
-  import('@sewing-kit/hooks').LintWorkspaceConfigurationHooks
->(() => ({
-  eslintExtensions: new WaterfallHook(),
-  eslintFlags: new WaterfallHook(),
-}));
-
 export function eslint() {
   return createWorkspaceLintPlugin(PLUGIN, ({hooks, options, api}) => {
-    hooks.configure.hook(addRootConfigurationHooks);
+    hooks.configureHooks.hook((hooks) => ({
+      ...hooks,
+      eslintExtensions: new WaterfallHook(),
+      eslintFlags: new WaterfallHook(),
+    }));
 
     hooks.steps.hook((steps, {configuration}) => [
       ...steps,

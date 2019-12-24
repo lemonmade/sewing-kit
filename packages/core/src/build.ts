@@ -2,11 +2,8 @@ import {
   WaterfallHook,
   SeriesHook,
   BuildServiceHooks,
-  BuildServiceConfigurationHooks,
   BuildWebAppHooks,
-  BuildWebAppConfigurationHooks,
   BuildPackageHooks,
-  BuildPackageConfigurationHooks,
 } from '@sewing-kit/hooks';
 import {BuildTaskOptions, BuildWorkspaceTaskHooks} from '@sewing-kit/tasks';
 import {run, Step, Loggable, LogLevel} from '@sewing-kit/ui';
@@ -30,6 +27,7 @@ export async function runBuild(
   );
 
   const buildTaskHooks: BuildWorkspaceTaskHooks = {
+    configureHooks: new WaterfallHook(),
     configure: new SeriesHook(),
     pre: new WaterfallHook(),
     post: new WaterfallHook(),
@@ -53,6 +51,7 @@ export async function runBuild(
         steps: new WaterfallHook(),
         context: new WaterfallHook(),
         configure: new SeriesHook(),
+        configureHooks: new WaterfallHook(),
       };
 
       await build.run({
@@ -65,20 +64,12 @@ export async function runBuild(
       const stepsForVariant = async (
         variant: ArrayElement<typeof variants>,
       ) => {
-        const configurationHooks: BuildWebAppConfigurationHooks = {};
+        const configuration = await hooks.configureHooks.run({});
+        await hooks.configure.run(configuration, variant);
 
-        await hooks.configure.run(configurationHooks, variant);
+        const context = await hooks.context.run({variant, configuration});
 
-        const context = await hooks.context.run({});
-
-        return hooks.steps.run(
-          [],
-          {
-            variant,
-            config: configurationHooks,
-          },
-          context,
-        );
+        return hooks.steps.run([], context);
       };
 
       const steps =
@@ -117,22 +108,16 @@ export async function runBuild(
         steps: new WaterfallHook(),
         context: new WaterfallHook(),
         configure: new SeriesHook(),
+        configureHooks: new WaterfallHook(),
       };
 
       await build.run({options, hooks});
 
-      const configurationHooks: BuildServiceConfigurationHooks = {};
-      await hooks.configure.run(configurationHooks);
+      const configuration = await hooks.configureHooks.run({});
+      await hooks.configure.run(configuration);
 
-      const context = await hooks.context.run({});
-
-      const steps = await hooks.steps.run(
-        [],
-        {
-          config: configurationHooks,
-        },
-        context,
-      );
+      const context = await hooks.context.run({configuration});
+      const steps = await hooks.steps.run([], context);
 
       return {service, steps};
     }),
@@ -151,6 +136,7 @@ export async function runBuild(
         steps: new WaterfallHook(),
         context: new WaterfallHook(),
         configure: new SeriesHook(),
+        configureHooks: new WaterfallHook(),
       };
 
       await build.run({hooks, options});
@@ -159,20 +145,11 @@ export async function runBuild(
 
       const steps = await Promise.all(
         variants.map(async (variant) => {
-          const configurationHooks: BuildPackageConfigurationHooks = {};
+          const configuration = await hooks.configureHooks.run({});
+          await hooks.configure.run(configuration, variant);
 
-          await hooks.configure.run(configurationHooks, variant);
-
-          const context = await hooks.context.run({});
-
-          const steps = await hooks.steps.run(
-            [],
-            {
-              variant,
-              config: configurationHooks,
-            },
-            context,
-          );
+          const context = await hooks.context.run({variant, configuration});
+          const steps = await hooks.steps.run([], context);
 
           return createStepFromNestedSteps({
             steps,
@@ -188,12 +165,12 @@ export async function runBuild(
     }),
   );
 
-  const configurationHooks = {};
-  await buildTaskHooks.configure.run(configurationHooks);
+  const configuration = await buildTaskHooks.configureHooks.run({});
+  await buildTaskHooks.configure.run(configuration);
 
   const [pre, post] = await Promise.all([
-    buildTaskHooks.pre.run([], {configuration: configurationHooks}),
-    buildTaskHooks.post.run([], {configuration: configurationHooks}),
+    buildTaskHooks.pre.run([], {configuration}),
+    buildTaskHooks.post.run([], {configuration}),
   ]);
 
   const {skip, skipPre, skipPost} = options;

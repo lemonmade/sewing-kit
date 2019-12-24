@@ -1,9 +1,5 @@
 import {run} from '@sewing-kit/ui';
-import {
-  SeriesHook,
-  WaterfallHook,
-  LintWorkspaceConfigurationHooks,
-} from '@sewing-kit/hooks';
+import {SeriesHook, WaterfallHook} from '@sewing-kit/hooks';
 import {LintTaskOptions, LintWorkspaceTaskHooks} from '@sewing-kit/tasks';
 
 import {TaskContext, createWorkspaceTasksAndApplyPlugins} from './common';
@@ -15,6 +11,7 @@ export async function runLint(
   const {lint} = await createWorkspaceTasksAndApplyPlugins(workspace, delegate);
 
   const hooks: LintWorkspaceTaskHooks = {
+    configureHooks: new WaterfallHook(),
     configure: new SeriesHook(),
     pre: new WaterfallHook(),
     steps: new WaterfallHook(),
@@ -26,15 +23,15 @@ export async function runLint(
     options,
   });
 
-  const configurationHooks: LintWorkspaceConfigurationHooks = {};
-  await hooks.configure.run(configurationHooks);
+  const configuration = await hooks.configureHooks.run({});
+  await hooks.configure.run(configuration);
 
-  const pre = await hooks.pre.run([], {configuration: configurationHooks});
+  const pre = await hooks.pre.run([], {configuration});
   const steps = await hooks.steps.run([], {
-    configuration: configurationHooks,
+    configuration,
   });
   const post = await hooks.post.run([], {
-    configuration: configurationHooks,
+    configuration,
   });
 
   const {skip, skipPre, skipPost} = options;

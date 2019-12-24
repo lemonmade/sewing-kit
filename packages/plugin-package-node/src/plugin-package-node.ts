@@ -61,7 +61,7 @@ export function buildNodeOutput() {
       );
     });
 
-    hooks.steps.hook((steps, {config, variant: {node}}) => {
+    hooks.steps.hook((steps, {configuration, variant: {node}}) => {
       if (!node) {
         return steps;
       }
@@ -70,7 +70,7 @@ export function buildNodeOutput() {
 
       return [
         ...steps,
-        createCompileBabelStep(context, config, {
+        createCompileBabelStep(context, configuration, {
           outputPath,
           configFile: 'babel.node.js',
         }),

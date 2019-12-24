@@ -7,7 +7,6 @@ import {
   createWorkspaceTestPlugin,
   createProjectPlugin,
   toArgs,
-  addHooks,
   MissingPluginError,
 } from '@sewing-kit/plugins';
 
@@ -61,30 +60,6 @@ declare module '@sewing-kit/hooks' {
   }
 }
 
-const addProjectConfigurationHooks = addHooks<
-  import('@sewing-kit/hooks').TestProjectConfigurationHooks
->(() => ({
-  jestExtensions: new WaterfallHook(),
-  jestEnvironment: new WaterfallHook(),
-  jestModuleMapper: new WaterfallHook(),
-  jestSetupEnv: new WaterfallHook(),
-  jestSetupTests: new WaterfallHook(),
-  jestTransforms: new WaterfallHook(),
-  jestTestMatch: new WaterfallHook(),
-  jestConfig: new WaterfallHook(),
-}));
-
-const addWorkspaceConfigurationHooks = addHooks<
-  import('@sewing-kit/hooks').TestWorkspaceConfigurationHooks
->(() => ({
-  jestSetupEnv: new WaterfallHook(),
-  jestSetupTests: new WaterfallHook(),
-  jestWatchIgnore: new WaterfallHook(),
-  jestWatchPlugins: new WaterfallHook(),
-  jestConfig: new WaterfallHook(),
-  jestFlags: new WaterfallHook(),
-}));
-
 interface JestFlags {
   ci?: boolean;
   config?: string;
@@ -111,10 +86,18 @@ export function jest() {
       >();
       const rootConfigPath = api.configPath('jest/root.config.js');
 
-      hooks.configure.hook((hooks) => {
-        addWorkspaceConfigurationHooks(hooks);
+      hooks.configureHooks.hook((hooks) => ({
+        ...hooks,
+        jestSetupEnv: new WaterfallHook(),
+        jestSetupTests: new WaterfallHook(),
+        jestWatchIgnore: new WaterfallHook(),
+        jestWatchPlugins: new WaterfallHook(),
+        jestConfig: new WaterfallHook(),
+        jestFlags: new WaterfallHook(),
+      }));
 
-        hooks.jestWatchIgnore!.hook((watchIgnore) => [
+      hooks.configure.hook((configure) => {
+        configure.jestWatchIgnore!.hook((watchIgnore) => [
           ...watchIgnore,
           '/tmp/',
           api.resolvePath(),
@@ -122,13 +105,13 @@ export function jest() {
           ...workspace.projects.map((project) => project.fs.buildPath()),
         ]);
 
-        hooks.jestWatchPlugins!.hook((watchPlugins) => [
+        configure.jestWatchPlugins!.hook((watchPlugins) => [
           ...watchPlugins,
           'jest-watch-typeahead/filename',
           'jest-watch-typeahead/testname',
         ]);
 
-        hooks.jestSetupEnv!.hook(async (setupEnvFiles) => {
+        configure.jestSetupEnv!.hook(async (setupEnvFiles) => {
           const packageSetupEnvFiles = ([] as string[]).concat(
             ...(await Promise.all([
               workspace.fs.glob('tests/setup/environment.*'),
@@ -139,7 +122,7 @@ export function jest() {
           return [...setupEnvFiles, ...packageSetupEnvFiles];
         });
 
-        hooks.jestSetupTests!.hook(async (setupTestsFiles) => {
+        configure.jestSetupTests!.hook(async (setupTestsFiles) => {
           const packageSetupTestsFiles = ([] as string[]).concat(
             ...(await Promise.all([
               workspace.fs.glob('tests/setup/tests.*'),
@@ -297,12 +280,22 @@ export const jestConfigurationHooks = createProjectPlugin(
     });
 
     test.hook(({hooks, context}) => {
-      hooks.configure.hook((hooks) => {
-        addProjectConfigurationHooks(hooks);
+      hooks.configureHooks.hook((hooks) => ({
+        ...hooks,
+        jestExtensions: new WaterfallHook(),
+        jestEnvironment: new WaterfallHook(),
+        jestModuleMapper: new WaterfallHook(),
+        jestSetupEnv: new WaterfallHook(),
+        jestSetupTests: new WaterfallHook(),
+        jestTransforms: new WaterfallHook(),
+        jestTestMatch: new WaterfallHook(),
+        jestConfig: new WaterfallHook(),
+      }));
 
-        context.jestProjectConfigurations!.set(project, hooks);
+      hooks.configure.hook((configure) => {
+        context.jestProjectConfigurations!.set(project, configure);
 
-        hooks.jestSetupEnv!.hook(async (setupEnvFiles) => {
+        configure.jestSetupEnv!.hook(async (setupEnvFiles) => {
           const packageSetupEnvFiles = ([] as string[]).concat(
             ...(await Promise.all([
               project.fs.glob('tests/setup/environment.*'),
@@ -313,7 +306,7 @@ export const jestConfigurationHooks = createProjectPlugin(
           return [...setupEnvFiles, ...packageSetupEnvFiles];
         });
 
-        hooks.jestSetupTests!.hook(async (setupTestsFiles) => {
+        configure.jestSetupTests!.hook(async (setupTestsFiles) => {
           const packageSetupTestsFiles = ([] as string[]).concat(
             ...(await Promise.all([
               project.fs.glob('tests/setup/tests.*'),
@@ -324,7 +317,7 @@ export const jestConfigurationHooks = createProjectPlugin(
           return [...setupTestsFiles, ...packageSetupTestsFiles];
         });
 
-        hooks.jestModuleMapper!.hook((moduleMap) => {
+        configure.jestModuleMapper!.hook((moduleMap) => {
           return workspace.packages.reduce(
             (all, pkg) => ({
               ...all,

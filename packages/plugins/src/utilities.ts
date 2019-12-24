@@ -1,17 +1,5 @@
 import {paramCase} from 'change-case';
 
-type OptionalKeys<T> = {
-  [K in keyof T]-?: undefined extends T[K] ? K : never;
-}[keyof T];
-
-type HookAdder<T> = () => {[K in OptionalKeys<T>]?: T[K]};
-
-export function addHooks<T>(adder: HookAdder<T>): (hooks: T) => void {
-  return (hooks) => {
-    Object.assign(hooks, adder());
-  };
-}
-
 export function toArgs(flags: object, {dasherize = false} = {}) {
   return Object.entries(flags).reduce<string[]>((all, [key, value]) => {
     const newArgs: string[] = [];

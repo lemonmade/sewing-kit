@@ -70,6 +70,7 @@ interface TypeCheckWorkspaceStepDetails {
 }
 
 export interface TypeCheckWorkspaceTaskHooks {
+  readonly configureHooks: WaterfallHook<TypeCheckWorkspaceConfigurationHooks>;
   readonly configure: SeriesHook<TypeCheckWorkspaceConfigurationHooks>;
   readonly pre: WaterfallHook<readonly Step[], TypeCheckWorkspaceStepDetails>;
   readonly steps: WaterfallHook<readonly Step[], TypeCheckWorkspaceStepDetails>;
@@ -98,6 +99,7 @@ interface LintWorkspaceStepDetails {
 }
 
 export interface LintWorkspaceTaskHooks {
+  readonly configureHooks: WaterfallHook<LintWorkspaceConfigurationHooks>;
   readonly configure: SeriesHook<LintWorkspaceConfigurationHooks>;
   readonly pre: WaterfallHook<Step[], LintWorkspaceStepDetails>;
   readonly steps: WaterfallHook<Step[], LintWorkspaceStepDetails>;
@@ -125,16 +127,12 @@ export interface TestTaskOptions {
   readonly skipPost?: string[];
 }
 
-interface TestWorkspaceStepDetails {
-  readonly context: TestProjectWorkspaceContext;
-  readonly configuration: TestWorkspaceConfigurationHooks;
-}
-
 export interface TestWorkspaceTaskHooks {
-  readonly pre: WaterfallHook<Step[], TestWorkspaceStepDetails>;
-  readonly post: WaterfallHook<Step[], TestWorkspaceStepDetails>;
-  readonly steps: WaterfallHook<Step[], TestWorkspaceStepDetails>;
+  readonly pre: WaterfallHook<Step[], TestProjectWorkspaceContext>;
+  readonly post: WaterfallHook<Step[], TestProjectWorkspaceContext>;
+  readonly steps: WaterfallHook<Step[], TestProjectWorkspaceContext>;
   readonly configure: SeriesHook<TestWorkspaceConfigurationHooks>;
+  readonly configureHooks: WaterfallHook<TestWorkspaceConfigurationHooks>;
   readonly context: WaterfallHook<TestProjectWorkspaceContext>;
 }
 
@@ -171,14 +169,15 @@ export interface BuildTaskOptions {
   readonly skipPost?: string[];
 }
 
-interface BuildStepDetails {
+interface BuildStepContext {
   readonly configuration: BuildWorkspaceConfigurationHooks;
 }
 
 export interface BuildWorkspaceTaskHooks {
+  readonly configureHooks: WaterfallHook<BuildWorkspaceConfigurationHooks>;
   readonly configure: SeriesHook<BuildWorkspaceConfigurationHooks>;
-  readonly pre: WaterfallHook<readonly Step[], BuildStepDetails>;
-  readonly post: WaterfallHook<readonly Step[], BuildStepDetails>;
+  readonly pre: WaterfallHook<readonly Step[], BuildStepContext>;
+  readonly post: WaterfallHook<readonly Step[], BuildStepContext>;
 }
 
 export type BuildProjectTaskHooks<Type extends Project> = Type extends Package
@@ -215,6 +214,7 @@ interface DevWorkspaceStepDetails {
 }
 
 export interface DevWorkspaceTaskHooks {
+  readonly configureHooks: WaterfallHook<DevWorkspaceConfigurationHooks>;
   readonly configure: SeriesHook<DevWorkspaceConfigurationHooks>;
   readonly pre: WaterfallHook<readonly Step[], DevWorkspaceStepDetails>;
   readonly post: WaterfallHook<readonly Step[], DevWorkspaceStepDetails>;

@@ -3,7 +3,6 @@ import {cpus} from 'os';
 import {
   WebApp,
   Service,
-  addHooks,
   WaterfallHook,
   createProjectPlugin,
 } from '@sewing-kit/plugins';
@@ -28,15 +27,16 @@ interface Options {
 const PLUGIN = 'SewingKit.Sass';
 const HAPPYPACK_ID = 'sass';
 
-const addSassHooks = addHooks(() => ({
-  sassIncludePaths: new WaterfallHook(),
-}));
-
 export function sass({sassIncludes = []}: Options = {}) {
   return createProjectPlugin<WebApp | Service>(
     PLUGIN,
     ({tasks: {build, test}}) => {
       build.hook(({hooks, options: {sourceMaps}}) => {
+        hooks.configureHooks.hook((hooks: any) => ({
+          ...hooks,
+          sassIncludePaths: new WaterfallHook(),
+        }));
+
         hooks.configure.hook(
           (
             configure: Partial<
@@ -44,8 +44,6 @@ export function sass({sassIncludes = []}: Options = {}) {
                 import('@sewing-kit/hooks').BuildServiceConfigurationHooks
             >,
           ) => {
-            addSassHooks(configure);
-
             configure.webpackRules?.hook((rules) => [
               ...rules,
               {

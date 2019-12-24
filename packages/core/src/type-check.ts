@@ -1,9 +1,5 @@
 import {run} from '@sewing-kit/ui';
-import {
-  WaterfallHook,
-  SeriesHook,
-  TypeCheckWorkspaceConfigurationHooks,
-} from '@sewing-kit/hooks';
+import {WaterfallHook, SeriesHook} from '@sewing-kit/hooks';
 import {TypeCheckOptions, TypeCheckWorkspaceTaskHooks} from '@sewing-kit/tasks';
 
 import {TaskContext, createWorkspaceTasksAndApplyPlugins} from './common';
@@ -18,6 +14,7 @@ export async function runTypeCheck(
   );
 
   const hooks: TypeCheckWorkspaceTaskHooks = {
+    configureHooks: new WaterfallHook(),
     configure: new SeriesHook(),
     pre: new WaterfallHook(),
     steps: new WaterfallHook(),
@@ -29,15 +26,15 @@ export async function runTypeCheck(
     options,
   });
 
-  const configurationHooks: TypeCheckWorkspaceConfigurationHooks = {};
-  await hooks.configure.run(configurationHooks);
+  const configuration = await hooks.configureHooks.run({});
+  await hooks.configure.run(configuration);
 
-  const pre = await hooks.pre.run([], {configuration: configurationHooks});
+  const pre = await hooks.pre.run([], {configuration});
   const steps = await hooks.steps.run([], {
-    configuration: configurationHooks,
+    configuration,
   });
   const post = await hooks.post.run([], {
-    configuration: configurationHooks,
+    configuration,
   });
 
   const {skip, skipPre, skipPost} = options;

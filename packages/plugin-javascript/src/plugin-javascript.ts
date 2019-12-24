@@ -17,22 +17,22 @@ const PLUGIN = 'SewingKit.JavaScript';
 export function javascript() {
   return createProjectPlugin(PLUGIN, ({tasks: {dev, build, test}}) => {
     test.hook(({hooks}) => {
-      hooks.configure.hook((hooks) => {
+      hooks.configure.hook((configure) => {
         // Unfortunately, some packages (like `graphql`) use `.mjs` for esmodule
         // versions of the file, which Jest can't parse. To avoid transforming
         // those otherwise-fine files, we prefer .js for tests only.
-        hooks.jestExtensions?.hook((extensions) => [
+        configure.jestExtensions?.hook((extensions) => [
           '.js',
           '.mjs',
           ...extensions,
         ]);
 
-        hooks.jestTransforms?.hook((transforms, {babelTransform}) => ({
+        configure.jestTransforms?.hook((transforms, {babelTransform}) => ({
           ...transforms,
           ['^.+\\.[m|j]s$']: babelTransform,
         }));
 
-        hooks.babelConfig?.hook((babelConfig) => ({
+        configure.babelConfig?.hook((babelConfig) => ({
           ...babelConfig,
           presets: [
             ...(babelConfig.presets ?? []),

@@ -4,7 +4,6 @@ import {
   Env,
   WebApp,
   Workspace,
-  addHooks,
   WaterfallHook,
   DiagnosticError,
   MissingPluginError,
@@ -26,11 +25,6 @@ declare module '@sewing-kit/hooks' {
     readonly assetServerPort: WaterfallHook<number | undefined>;
   }
 }
-
-const addDevServerHooks = addHooks(() => ({
-  assetServerIp: new WaterfallHook(),
-  assetServerPort: new WaterfallHook(),
-}));
 
 enum BuildStatus {
   Building,
@@ -87,10 +81,10 @@ export function buildWebAppWithWebpack({
           );
         });
 
-        hooks.steps.hook((steps, {config}, {webpackBuildManager}) => {
+        hooks.steps.hook((steps, {configuration, webpackBuildManager}) => {
           const step = api.createStep({}, async () => {
             const stats = await buildWebpack(
-              await createWebpackConfig(config, project, workspace, {
+              await createWebpackConfig(configuration, project, workspace, {
                 mode: toMode(options.simulateEnv),
               }),
             );
@@ -103,9 +97,13 @@ export function buildWebAppWithWebpack({
       });
 
       dev.hook(({hooks}) => {
-        hooks.configure.hook((hooks) => {
-          addDevServerHooks(hooks);
+        hooks.configureHooks.hook((hooks) => ({
+          ...hooks,
+          assetServerIp: new WaterfallHook(),
+          assetServerPort: new WaterfallHook(),
+        }));
 
+        hooks.configure.hook((hooks) => {
           hooks.webpackOutputDirectory?.hook(() =>
             workspace.fs.buildPath('apps'),
           );
@@ -125,7 +123,7 @@ export function buildWebAppWithWebpack({
           );
         });
 
-        hooks.steps.hook((steps, {config}, {webpackBuildManager}) => {
+        hooks.steps.hook((steps, {configuration, webpackBuildManager}) => {
           return [
             ...steps,
             api.createStep({indefinite: true}, async () => {
@@ -134,8 +132,8 @@ export function buildWebAppWithWebpack({
               const {default: Koa} = await import('koa');
 
               const [port, ip = 'localhost'] = await Promise.all([
-                config.assetServerPort?.run(defaultPort),
-                config.assetServerIp?.run(defaultIp),
+                configuration.assetServerPort?.run(defaultPort),
+                configuration.assetServerIp?.run(defaultIp),
               ]);
 
               if (port == null) {
@@ -150,12 +148,12 @@ export function buildWebAppWithWebpack({
                 status: BuildStatus.Building,
               });
 
-              config.webpackPublicPath!.hook(
+              configuration.webpackPublicPath!.hook(
                 () => `http://${ip}:${port}/assets`,
               );
 
               const webpackConfig = await createWebpackConfig(
-                config,
+                configuration,
                 project,
                 workspace,
                 {

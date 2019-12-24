@@ -2,7 +2,6 @@ import {join, resolve, relative} from 'path';
 import {copy, utimes, symlink} from 'fs-extra';
 
 import {
-  addHooks,
   Package,
   Workspace,
   WaterfallHook,
@@ -115,7 +114,10 @@ export function workspaceTypeScript() {
     });
 
     build.hook(({hooks, options}) => {
-      hooks.configure.hook(addTypeScriptWorkspaceConfigurationHooks);
+      hooks.configureHooks.hook((hooks: any) => ({
+        ...hooks,
+        typescriptHeap: new WaterfallHook(),
+      }));
 
       if (workspace.private) {
         return;
@@ -141,7 +143,10 @@ export function workspaceTypeScript() {
     });
 
     typeCheck.hook(({hooks, options}) => {
-      hooks.configure.hook(addTypeScriptWorkspaceConfigurationHooks);
+      hooks.configureHooks.hook((hooks) => ({
+        ...hooks,
+        typescriptHeap: new WaterfallHook(),
+      }));
 
       hooks.pre.hook((steps) => {
         const newSteps = [...steps];
@@ -428,15 +433,6 @@ function normalizedRelative(from: string, to: string) {
   const rel = relative(from, to);
   return rel.startsWith('.') ? rel : `./${rel}`;
 }
-
-const addTypeScriptWorkspaceConfigurationHooks = addHooks<
-  Pick<
-    import('@sewing-kit/hooks').TypeCheckWorkspaceConfigurationHooks,
-    'typescriptHeap'
-  >
->(() => ({
-  typescriptHeap: new WaterfallHook(),
-}));
 
 function addBaseBabelPreset(babelConfig: BabelConfig) {
   return {
