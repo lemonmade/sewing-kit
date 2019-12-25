@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/plugin-package-node",
   "license": "MIT",
-  "version": "0.0.34",
+  "version": "0.0.35",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -10,7 +10,7 @@
   "dependencies": {
     "@sewing-kit/hooks": "^0.0.14",
     "@sewing-kit/plugin-babel": "^0.0.29",
-    "@sewing-kit/plugin-javascript": "^0.0.32",
+    "@sewing-kit/plugin-javascript": "^0.0.33",
     "@sewing-kit/plugin-package-utilities": "^0.0.21",
     "@sewing-kit/plugins": "^0.0.12",
     "immer": "^5.0.0"
