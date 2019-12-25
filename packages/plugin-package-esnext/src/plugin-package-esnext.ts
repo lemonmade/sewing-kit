@@ -91,7 +91,7 @@ export function buildEsNextOutput() {
         return steps;
       }
 
-      const outputPath = project.fs.buildPath('cjs');
+      const outputPath = project.fs.buildPath('esnext');
 
       return [
         ...steps,
