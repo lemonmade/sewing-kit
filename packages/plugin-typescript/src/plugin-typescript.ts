@@ -54,6 +54,7 @@ export function typescript() {
         ) => {
           configure.babelConfig?.hook(addTypeScriptBabelConfig);
           configure.babelExtensions?.hook(addTypeScriptExtensions);
+          configure.webpackExtensions?.hook(addTypeScriptExtensions);
           configure.webpackRules?.hook(async (rules) => {
             const options = await configure.babelConfig?.run({});
 
@@ -80,7 +81,8 @@ export function typescript() {
               import('@sewing-kit/hooks').DevServiceConfigurationHooks
           >,
         ) => {
-          configure.babelConfig?.hook(addBaseBabelPreset);
+          configure.babelConfig?.hook(addTypeScriptBabelConfig);
+          configure.webpackExtensions?.hook(addTypeScriptExtensions);
           configure.webpackRules?.hook(async (rules) => {
             const options = await configure.babelConfig?.run({});
 
@@ -432,16 +434,6 @@ async function getOutputPath(pkg: Package) {
 function normalizedRelative(from: string, to: string) {
   const rel = relative(from, to);
   return rel.startsWith('.') ? rel : `./${rel}`;
-}
-
-function addBaseBabelPreset(babelConfig: BabelConfig) {
-  return {
-    ...babelConfig,
-    presets: [
-      ...(babelConfig.presets ?? []),
-      require.resolve('@sewing-kit/babel-preset'),
-    ],
-  };
 }
 
 function addTypeScriptExtensions(extensions: readonly string[]) {

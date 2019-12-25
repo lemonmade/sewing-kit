@@ -1,11 +1,11 @@
 import {join} from 'path';
+import getPort from 'get-port';
 
 import {
   Env,
   WebApp,
   Workspace,
   WaterfallHook,
-  DiagnosticError,
   MissingPluginError,
   createProjectPlugin,
   createProjectDevPlugin,
@@ -131,18 +131,13 @@ export function buildWebAppWithWebpack({
               const {default: koaWebpack} = await import('koa-webpack');
               const {default: Koa} = await import('koa');
 
-              const [port, ip = 'localhost'] = await Promise.all([
+              const [
+                port = await getPort(),
+                ip = 'localhost',
+              ] = await Promise.all([
                 configuration.assetServerPort?.run(defaultPort),
                 configuration.assetServerIp?.run(defaultIp),
               ]);
-
-              if (port == null) {
-                throw new DiagnosticError({
-                  title: `Failed to start asset server for web app ${project.name}`,
-                  suggestion: (fmt) =>
-                    fmt`Pass the {code assetServer.port} option to {code buildWebAppWithWebpack()}, or provide a hook that specifies a port on the {code dev.webApp.configure.assetServerPort} hook.`,
-                });
-              }
 
               const store = createSimpleStore<State>({
                 status: BuildStatus.Building,

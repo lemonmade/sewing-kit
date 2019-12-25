@@ -58,7 +58,8 @@ export function javascript() {
           >,
         ) => {
           configure.babelConfig?.hook(addBaseBabelPreset);
-          configure.babelExtensions?.hook(addJsExtensions);
+          configure.babelExtensions?.hook(addJavaScriptExtensions);
+          configure.webpackExtensions?.hook(addJavaScriptExtensions);
           configure.webpackRules?.hook(async (rules) => {
             const options = await configure.babelConfig?.run({});
 
@@ -86,6 +87,7 @@ export function javascript() {
           >,
         ) => {
           configure.babelConfig?.hook(addBaseBabelPreset);
+          configure.webpackExtensions?.hook(addJavaScriptExtensions);
           configure.webpackRules?.hook(async (rules) => {
             const options = await configure.babelConfig?.run({});
 
@@ -127,6 +129,6 @@ function addBaseBabelPreset(babelConfig: BabelConfig) {
   };
 }
 
-function addJsExtensions(extensions: readonly string[]) {
+function addJavaScriptExtensions(extensions: readonly string[]) {
   return ['.mjs', '.js', ...extensions];
 }

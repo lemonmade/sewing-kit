@@ -74,7 +74,7 @@ export function webpack() {
       });
 
       dev.hook(({hooks}) => {
-        hooks.configure.hook(addWebpackHooks);
+        hooks.configureHooks.hook(addWebpackHooks);
         hooks.context.hook((context: any) => ({
           ...context,
           webpackBuildManager: new BuildManager(),
@@ -92,7 +92,7 @@ interface WebpackConfigurationChangePluginOptions {
 type ValueOrArray<Value> = Value | Value[];
 type ValueOrGetter<Value> = Value | (() => Value | Promise<Value>);
 
-export function addWebpackRules(
+export function webpackRules(
   rules: ValueOrGetter<ValueOrArray<import('webpack').Rule>>,
   options: WebpackConfigurationChangePluginOptions = {},
 ) {
@@ -107,7 +107,7 @@ export function addWebpackRules(
   );
 }
 
-export function addWebpackPlugins(
+export function webpackPlugins(
   plugins: ValueOrGetter<ValueOrArray<import('webpack').Plugin>>,
   options: WebpackConfigurationChangePluginOptions = {},
 ) {
@@ -122,7 +122,7 @@ export function addWebpackPlugins(
   );
 }
 
-export function addWebpackAliases(
+export function webpackAliases(
   aliases: ValueOrGetter<{[key: string]: string}>,
   options: WebpackConfigurationChangePluginOptions = {},
 ) {
@@ -141,7 +141,7 @@ export function noopModuleWithWebpack(
   module: RegExp,
   options?: WebpackConfigurationChangePluginOptions,
 ) {
-  return addWebpackPlugins(
+  return webpackPlugins(
     async () =>
       new (await import('webpack')).NormalModuleReplacementPlugin(
         module,

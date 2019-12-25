@@ -1,8 +1,8 @@
 export {
   BuildManager,
   webpack,
-  addWebpackRules,
-  addWebpackPlugins,
-  addWebpackAliases,
+  webpackRules,
+  webpackPlugins,
+  webpackAliases,
   noopModuleWithWebpack,
 } from './plugin-webpack';
