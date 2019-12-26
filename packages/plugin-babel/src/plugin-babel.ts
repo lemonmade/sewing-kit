@@ -3,24 +3,14 @@ import {BabelConfig} from './types';
 
 interface BabelHooks {
   readonly babelConfig: WaterfallHook<BabelConfig>;
-  readonly babelIgnorePatterns: WaterfallHook<readonly string[]>;
-}
-
-interface BabelPackageBuildHooks extends BabelHooks {
   readonly babelExtensions: WaterfallHook<readonly string[]>;
+  readonly babelIgnorePatterns: WaterfallHook<readonly string[]>;
 }
 
 declare module '@sewing-kit/hooks' {
   interface TestProjectConfigurationCustomHooks extends BabelHooks {}
-
-  interface BuildPackageConfigurationCustomHooks
-    extends BabelPackageBuildHooks {}
-  interface BuildWebAppConfigurationCustomHooks extends BabelHooks {}
-  interface BuildServiceConfigurationCustomHooks extends BabelHooks {}
-
-  interface DevPackageConfigurationCustomHooks extends BabelHooks {}
-  interface DevWebAppConfigurationCustomHooks extends BabelHooks {}
-  interface DevServiceConfigurationCustomHooks extends BabelHooks {}
+  interface BuildProjectConfigurationCustomHooks extends BabelHooks {}
+  interface DevProjectConfigurationCustomHooks extends BabelHooks {}
 }
 
 const PLUGIN = 'SewingKit.Babel';

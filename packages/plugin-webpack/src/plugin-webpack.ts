@@ -22,28 +22,15 @@ interface WebpackHooks {
   readonly webpackAliases: WaterfallHook<{[key: string]: string}>;
 }
 
-interface WebpackDevContext {
-  readonly webpackBuildManager: BuildManager;
-}
-
-interface WebpackBuildContext {
+interface WebpackContext {
   readonly webpackBuildManager: BuildManager;
 }
 
 declare module '@sewing-kit/hooks' {
-  interface BuildWebAppConfigurationCustomHooks extends WebpackHooks {}
-  interface BuildServiceConfigurationCustomHooks
-    extends Omit<WebpackHooks, 'webpackPublicPath'> {}
-
-  interface DevWebAppConfigurationCustomHooks extends WebpackHooks {}
-  interface DevServiceConfigurationCustomHooks
-    extends Omit<WebpackHooks, 'webpackPublicPath'> {}
-
-  interface BuildWebAppStepContext extends WebpackBuildContext {}
-  interface BuildServiceStepContext extends WebpackBuildContext {}
-
-  interface DevWebAppStepContext extends WebpackDevContext {}
-  interface DevServiceStepContext extends WebpackDevContext {}
+  interface BuildProjectConfigurationCustomHooks extends WebpackHooks {}
+  interface DevProjectConfigurationCustomHooks extends WebpackHooks {}
+  interface BuildProjectStepCustomContext extends WebpackContext {}
+  interface DevProjectStepCustomContext extends WebpackContext {}
 }
 
 const PLUGIN = 'SewingKit.Webpack';
@@ -62,26 +49,23 @@ const addWebpackHooks = (hooks: any) => ({
 });
 
 export function webpack() {
-  return createProjectPlugin<Service | WebApp>(
-    PLUGIN,
-    ({tasks: {build, dev}}) => {
-      build.hook(({hooks}) => {
-        hooks.configureHooks.hook(addWebpackHooks);
-        hooks.context.hook((context: any) => ({
-          ...context,
-          webpackBuildManager: new BuildManager(),
-        }));
-      });
+  return createProjectPlugin(PLUGIN, ({tasks: {build, dev}}) => {
+    build.hook(({hooks}) => {
+      hooks.configureHooks.hook(addWebpackHooks);
+      hooks.context.hook((context: any) => ({
+        ...context,
+        webpackBuildManager: new BuildManager(),
+      }));
+    });
 
-      dev.hook(({hooks}) => {
-        hooks.configureHooks.hook(addWebpackHooks);
-        hooks.context.hook((context: any) => ({
-          ...context,
-          webpackBuildManager: new BuildManager(),
-        }));
-      });
-    },
-  );
+    dev.hook(({hooks}) => {
+      hooks.configureHooks.hook(addWebpackHooks);
+      hooks.context.hook((context: any) => ({
+        ...context,
+        webpackBuildManager: new BuildManager(),
+      }));
+    });
+  });
 }
 
 interface WebpackConfigurationChangePluginOptions {
