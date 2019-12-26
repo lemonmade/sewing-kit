@@ -89,36 +89,34 @@ export async function runDev(
     }),
   );
 
-  const packageSteps = workspace.private
-    ? []
-    : (
-        await Promise.all(
-          workspace.packages.map(async (pkg) => {
-            const {dev} = await createProjectTasksAndApplyPlugins(
-              pkg,
-              workspace,
-              delegate,
-            );
+  const packageSteps = (
+    await Promise.all(
+      workspace.packages.map(async (pkg) => {
+        const {dev} = await createProjectTasksAndApplyPlugins(
+          pkg,
+          workspace,
+          delegate,
+        );
 
-            const hooks: DevPackageHooks = {
-              configureHooks: new WaterfallHook(),
-              configure: new SeriesHook(),
-              context: new WaterfallHook(),
-              steps: new WaterfallHook(),
-            };
+        const hooks: DevPackageHooks = {
+          configureHooks: new WaterfallHook(),
+          configure: new SeriesHook(),
+          context: new WaterfallHook(),
+          steps: new WaterfallHook(),
+        };
 
-            await dev.run({options, hooks});
+        await dev.run({options, hooks});
 
-            const configuration = await hooks.configureHooks.run({});
-            await hooks.configure.run(configuration);
+        const configuration = await hooks.configureHooks.run({});
+        await hooks.configure.run(configuration);
 
-            const context = await hooks.context.run({configuration});
-            const steps = await hooks.steps.run([], context);
+        const context = await hooks.context.run({configuration});
+        const steps = await hooks.steps.run([], context);
 
-            return {pkg, steps};
-          }),
-        )
-      ).flat();
+        return {pkg, steps};
+      }),
+    )
+  ).flat();
 
   const configuration = await devTaskHooks.configureHooks.run({});
   await devTaskHooks.configure.run(configuration);
