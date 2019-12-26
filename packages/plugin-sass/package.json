@@ -1,15 +1,15 @@
 {
   "name": "@sewing-kit/plugin-sass",
   "license": "MIT",
-  "version": "0.0.29",
+  "version": "0.0.30",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/hooks": "^0.0.14",
-    "@sewing-kit/plugins": "^0.0.12",
+    "@sewing-kit/hooks": "^0.0.15",
+    "@sewing-kit/plugins": "^0.0.13",
     "@types/happypack": "^5.0.0",
     "cache-loader": "^4.1.0",
     "css-loader": "^3.2.1",
@@ -22,7 +22,7 @@
     "tapable": "^1.1.3"
   },
   "optionalDependencies": {
-    "@sewing-kit/plugin-jest": "^0.0.27",
-    "@sewing-kit/plugin-webpack": "^0.0.27"
+    "@sewing-kit/plugin-jest": "^0.0.28",
+    "@sewing-kit/plugin-webpack": "^0.0.28"
   }
 }
