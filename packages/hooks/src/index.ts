@@ -106,7 +106,7 @@ export class WaterfallHook<
 
 export interface BuildProjectConfigurationCustomHooks {}
 export interface BuildProjectConfigurationCoreHooks {}
-export interface BuildPackageConfigurationHooks
+export interface BuildProjectConfigurationHooks
   extends BuildProjectConfigurationCoreHooks,
     Partial<BuildProjectConfigurationCustomHooks> {}
 
@@ -127,7 +127,8 @@ export interface BuildPackageConfigurationCoreHooks
   extends BuildProjectConfigurationCoreHooks {}
 
 export interface BuildPackageConfigurationHooks
-  extends BuildPackageConfigurationCoreHooks,
+  extends BuildProjectConfigurationHooks,
+    BuildPackageConfigurationCoreHooks,
     Partial<BuildPackageConfigurationCustomHooks> {}
 
 export interface BuildPackageStepCustomContext
@@ -162,7 +163,8 @@ export interface BuildServiceConfigurationCoreHooks
   extends BuildProjectConfigurationCoreHooks {}
 
 export interface BuildServiceConfigurationHooks
-  extends BuildServiceConfigurationCoreHooks,
+  extends BuildProjectConfigurationHooks,
+    BuildServiceConfigurationCoreHooks,
     Partial<BuildServiceConfigurationCustomHooks> {}
 
 export interface BuildServiceStepCustomContext
@@ -194,7 +196,8 @@ export interface BuildWebAppConfigurationCoreHooks
   extends BuildProjectConfigurationCoreHooks {}
 
 export interface BuildWebAppConfigurationHooks
-  extends BuildWebAppConfigurationCoreHooks,
+  extends BuildProjectConfigurationHooks,
+    BuildWebAppConfigurationCoreHooks,
     Partial<BuildWebAppConfigurationCustomHooks> {}
 
 export interface BuildWebAppStepCustomContext
@@ -238,7 +241,7 @@ export interface BuildWorkspaceConfigurationHooks
 
 export interface DevProjectConfigurationCustomHooks {}
 export interface DevProjectConfigurationCoreHooks {}
-export interface DevPackageConfigurationHooks
+export interface DevProjectConfigurationHooks
   extends DevProjectConfigurationCoreHooks,
     Partial<DevProjectConfigurationCustomHooks> {}
 
@@ -255,7 +258,8 @@ export interface DevPackageConfigurationCustomHooks
 export interface DevPackageConfigurationCoreHooks
   extends DevProjectConfigurationCoreHooks {}
 export interface DevPackageConfigurationHooks
-  extends DevPackageConfigurationCoreHooks,
+  extends DevProjectConfigurationHooks,
+    DevPackageConfigurationCoreHooks,
     Partial<DevPackageConfigurationCustomHooks> {}
 
 export interface DevPackageStepCustomContext
@@ -288,7 +292,8 @@ export interface DevServiceConfigurationCoreHooks
 }
 
 export interface DevServiceConfigurationHooks
-  extends DevServiceConfigurationCoreHooks,
+  extends DevProjectConfigurationHooks,
+    DevServiceConfigurationCoreHooks,
     Partial<DevServiceConfigurationCustomHooks> {}
 
 export interface DevServiceStepCustomContext
@@ -316,7 +321,8 @@ export interface DevWebAppConfigurationCustomHooks
 export interface DevWebAppConfigurationCoreHooks
   extends DevProjectConfigurationCoreHooks {}
 export interface DevWebAppConfigurationHooks
-  extends DevWebAppConfigurationCoreHooks,
+  extends DevProjectConfigurationHooks,
+    DevWebAppConfigurationCoreHooks,
     Partial<DevWebAppConfigurationCustomHooks> {}
 
 export interface DevWebAppStepCustomContext
