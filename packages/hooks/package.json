@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/hooks",
   "license": "MIT",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",

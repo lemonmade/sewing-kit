@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/config",
   "license": "MIT",
-  "version": "0.0.26",
+  "version": "0.0.27",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -12,9 +12,9 @@
     "@babel/preset-typescript": "^7.7.4",
     "@babel/register": "^7.7.4",
     "@sewing-kit/babel-preset": "^0.0.8",
-    "@sewing-kit/hooks": "^0.0.15",
+    "@sewing-kit/hooks": "^0.0.16",
     "@sewing-kit/model": "^0.0.8",
-    "@sewing-kit/plugins": "^0.0.13",
+    "@sewing-kit/plugins": "^0.0.14",
     "@sewing-kit/ui": "^0.0.17",
     "fs-extra": "^8.1.0"
   }

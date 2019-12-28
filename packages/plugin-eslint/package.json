@@ -1,15 +1,15 @@
 {
   "name": "@sewing-kit/plugin-eslint",
   "license": "MIT",
-  "version": "0.0.25",
+  "version": "0.0.26",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/hooks": "^0.0.15",
-    "@sewing-kit/plugins": "^0.0.13",
+    "@sewing-kit/hooks": "^0.0.16",
+    "@sewing-kit/plugins": "^0.0.14",
     "eslint": "^6.7.1",
     "tapable": "^1.1.3"
   }

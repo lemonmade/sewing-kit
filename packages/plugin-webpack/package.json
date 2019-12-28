@@ -1,14 +1,14 @@
 {
   "name": "@sewing-kit/plugin-webpack",
   "license": "MIT",
-  "version": "0.0.28",
+  "version": "0.0.29",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/plugins": "^0.0.13",
+    "@sewing-kit/plugins": "^0.0.14",
     "@types/webpack": "^4.41.0",
     "tapable": "^1.1.3",
     "webpack": "^4.41.2"
