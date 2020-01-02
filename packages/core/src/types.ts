@@ -1,11 +1,9 @@
-import {ExecaChildProcess, Options as ExecaOptions} from 'execa';
-
-export type Formatter = (
+export type LogFormatter = (
   strings: TemplateStringsArray,
   ...interpolated: Loggable[]
 ) => string;
 
-export type Loggable = ((format: Formatter) => string) | string;
+export type Loggable = ((format: LogFormatter) => string) | string;
 
 export enum LogLevel {
   Errors,
@@ -17,6 +15,8 @@ export enum LogLevel {
 export interface LogOptions {
   level?: LogLevel;
 }
+
+export type Log = (loggable: Loggable, options?: LogOptions) => void;
 
 export interface StepResources {
   readonly cpu?: number;
@@ -39,9 +39,9 @@ export interface StepRunner {
   status(status: Loggable): void;
   exec(
     file: string,
-    args?: readonly string[] | ExecaOptions,
-    options?: ExecaOptions,
-  ): ExecaChildProcess;
+    args?: readonly string[] | import('execa').Options,
+    options?: import('execa').Options,
+  ): import('execa').ExecaChildProcess;
   runNested(steps: readonly Step[]): Promise<void>;
 }
 

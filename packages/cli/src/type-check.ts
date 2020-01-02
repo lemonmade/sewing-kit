@@ -1,33 +1,61 @@
-import {createCommand} from './common';
+import {WaterfallHook, SeriesHook} from '@sewing-kit/hooks';
+import {TypeCheckOptions, TypeCheckWorkspaceTaskHooks} from '@sewing-kit/tasks';
+
+import {run} from './runner';
+import {
+  createCommand,
+  TaskContext,
+  createWorkspaceTasksAndApplyPlugins,
+} from './common';
 
 export const typeCheck = createCommand(
   {
     '--watch': Boolean,
     '--cache': Boolean,
-    '--include': [String],
-    '--skip': [String],
-    '--skip-pre': [String],
-    '--skip-post': [String],
   },
-  async (
-    {
-      '--watch': watch,
-      '--cache': cache = true,
-      '--include': include,
-      '--skip': skip,
-      '--skip-pre': skipPre,
-      '--skip-post': skipPost,
-    },
-    context,
-  ) => {
-    const {runTypeCheck} = await import('@sewing-kit/core');
+  async ({'--watch': watch, '--cache': cache = true}, context) => {
     await runTypeCheck(context, {
       watch,
       cache,
-      include,
-      skip,
-      skipPre,
-      skipPost,
     });
   },
 );
+
+async function runTypeCheck(context: TaskContext, options: TypeCheckOptions) {
+  const {workspace} = context;
+  const {typeCheck} = await createWorkspaceTasksAndApplyPlugins(context);
+
+  const hooks: TypeCheckWorkspaceTaskHooks = {
+    configureHooks: new WaterfallHook(),
+    configure: new SeriesHook(),
+    pre: new WaterfallHook(),
+    steps: new WaterfallHook(),
+    post: new WaterfallHook(),
+  };
+
+  await typeCheck.run({
+    hooks,
+    options,
+  });
+
+  const configuration = await hooks.configureHooks.run({});
+  await hooks.configure.run(configuration);
+
+  const pre = await hooks.pre.run([], {configuration});
+  const steps = await hooks.steps.run([], {
+    configuration,
+  });
+  const post = await hooks.post.run([], {
+    configuration,
+  });
+
+  await run(context, {
+    title: 'type-check',
+    pre,
+    post,
+    steps: steps.map((step) => ({step, target: workspace})),
+    epilogue(log) {
+      log((fmt) => fmt`{success type-check completed successfully!}`);
+    },
+  });
+}

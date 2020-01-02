@@ -14,12 +14,17 @@
   "dependencies": {
     "@sewing-kit/config": "^0.0.28",
     "@sewing-kit/core": "^0.0.34",
-    "@sewing-kit/model": "^0.0.9",
+    "@sewing-kit/hooks": "*",
+    "@sewing-kit/model": "^0.0.8",
     "@sewing-kit/plugins": "^0.0.15",
-    "@sewing-kit/ui": "^0.0.18",
+    "@sewing-kit/tasks": "*",
+    "ansi-escapes": "^4.3.0",
     "arg": "^4.1.2",
+    "chalk": "^3.0.0",
     "core-js": ">=3.0.0 <4.0.0",
-    "glob": "^7.1.6"
+    "execa": "^4.0.0",
+    "glob": "^7.1.6",
+    "supports-hyperlinks": "^2.0.0"
   },
   "devDependencies": {
     "@types/core-js": "^2.5.2",

@@ -1,4 +1,4 @@
-export {DiagnosticError, LogLevel, Loggable} from '@sewing-kit/ui';
+export {DiagnosticError, LogLevel, Loggable} from '@sewing-kit/core';
 export {Task, Env, WorkspaceTasks, ProjectTasks} from '@sewing-kit/tasks';
 export {SeriesHook, WaterfallHook} from '@sewing-kit/hooks';
 export {

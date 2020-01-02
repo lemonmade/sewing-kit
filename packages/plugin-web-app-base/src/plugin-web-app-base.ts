@@ -342,6 +342,6 @@ function toMode(env: Env) {
   }
 }
 
-function indefinite(run: import('@sewing-kit/ui').Step['run']): typeof run {
+function indefinite(run: import('@sewing-kit/core').Step['run']): typeof run {
   return (step) => step.indefinite(() => run(step));
 }

@@ -17,8 +17,9 @@ import {
   DevPackageHooks,
   DevServiceHooks,
 } from '@sewing-kit/hooks';
-import {Step} from '@sewing-kit/ui';
 import {Package, WebApp, Service, Project} from '@sewing-kit/model';
+
+type Step = import('@sewing-kit/core').Step;
 
 export enum Env {
   Development = 'development',
@@ -60,10 +61,6 @@ export interface ProjectTasks<Type extends Project> {
 export interface TypeCheckOptions {
   readonly watch?: boolean;
   readonly cache?: boolean;
-  readonly include?: string[];
-  readonly skip?: readonly string[];
-  readonly skipPre?: readonly string[];
-  readonly skipPost?: readonly string[];
 }
 
 interface TypeCheckWorkspaceStepDetails {
@@ -89,11 +86,7 @@ export interface TypeCheckWorkspaceTask {
 
 export interface LintTaskOptions {
   readonly fix?: boolean;
-  readonly include?: string[];
-  readonly skip?: string[];
   readonly cache?: boolean;
-  readonly skipPre?: string[];
-  readonly skipPost?: string[];
 }
 
 interface LintWorkspaceStepDetails {
@@ -124,10 +117,6 @@ export interface TestTaskOptions {
   readonly testPattern?: string;
   readonly testNamePattern?: string;
   readonly updateSnapshots?: boolean;
-  readonly include?: string[];
-  readonly skip?: string[];
-  readonly skipPre?: string[];
-  readonly skipPost?: string[];
 }
 
 export interface TestWorkspaceTaskHooks {
@@ -167,10 +156,6 @@ export interface BuildTaskOptions {
   readonly simulateEnv: Env;
   readonly sourceMaps?: boolean;
   readonly cache?: boolean;
-  readonly skip?: string[];
-  readonly include?: string[];
-  readonly skipPre?: string[];
-  readonly skipPost?: string[];
 }
 
 interface BuildStepContext {
@@ -208,10 +193,6 @@ export interface BuildProjectTask<Type extends Project> {
 
 export interface DevTaskOptions {
   readonly sourceMaps?: boolean;
-  readonly include?: string[];
-  readonly skip?: string[];
-  readonly skipPre?: string[];
-  readonly skipPost?: string[];
 }
 
 interface DevWorkspaceStepDetails {

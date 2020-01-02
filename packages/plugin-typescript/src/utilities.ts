@@ -4,17 +4,19 @@ import {symlink, utimes} from 'fs-extra';
 import {BabelConfig} from '@sewing-kit/plugin-babel';
 import {Package} from '@sewing-kit/plugins';
 
-export const addTypeScriptBabelConfig = (config: BabelConfig) => ({
-  ...config,
-  plugins: [
-    ...(config.plugins ?? []),
-    [require.resolve('@babel/plugin-proposal-decorators'), {legacy: true}],
-  ],
-  presets: [
-    ...(config.presets ?? []),
-    require.resolve('@babel/preset-typescript'),
-  ],
-});
+export const addTypeScriptBabelConfig = (config: BabelConfig): BabelConfig => {
+  return {
+    ...config,
+    plugins: [
+      ...(config.plugins ?? []),
+      [require.resolve('@babel/plugin-proposal-decorators'), {legacy: true}],
+    ],
+    presets: [
+      ...(config.presets ?? []),
+      require.resolve('@babel/preset-typescript'),
+    ],
+  };
+};
 
 export enum EntryStrategy {
   Symlink,

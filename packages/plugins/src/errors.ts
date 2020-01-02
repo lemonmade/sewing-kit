@@ -1,4 +1,4 @@
-import {DiagnosticError} from '@sewing-kit/ui';
+import {DiagnosticError} from '@sewing-kit/core';
 
 export class MissingPluginError extends DiagnosticError {
   constructor(plugin: string) {

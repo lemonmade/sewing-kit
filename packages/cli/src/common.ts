@@ -1,20 +1,50 @@
-import {basename} from 'path';
 import {Readable, Writable} from 'stream';
-import arg, {Result} from 'arg';
-import {sync as glob} from 'glob';
+import arg, {Result, Spec} from 'arg';
 
-import {LogLevel} from '@sewing-kit/ui';
-import {loadConfig, ConfigurationKind} from '@sewing-kit/config/load';
-import {ProjectPlugin} from '@sewing-kit/plugins';
-import {SewingKitDelegate} from '@sewing-kit/core';
-import {Package, Service, WebApp, Workspace, Project} from '@sewing-kit/model';
+import {loadWorkspace, LoadedWorkspace} from '@sewing-kit/config/load';
+import {AnyPlugin, PluginApi} from '@sewing-kit/plugins';
+import {WaterfallHook, SeriesHook} from '@sewing-kit/hooks';
+import {WorkspaceTasks, ProjectTasks} from '@sewing-kit/tasks';
+import {Step, isDiagnosticError, Log, LogLevel} from '@sewing-kit/core';
+import {Package, Service, WebApp} from '@sewing-kit/model';
 
-export function createCommand<Flags extends {[key: string]: any}>(
+import {Ui} from './ui';
+
+export interface TaskContext extends LoadedWorkspace {
+  readonly ui: Ui;
+  readonly steps: StepTracker;
+}
+
+export enum StepInclusionFlag {
+  SkipStep = '--skip-step',
+  SkipPreStep = '--skip-pre-step',
+  SkipPostStep = '--skip-post-step',
+  IsolateStep = '--isolate-step',
+  IsolatePreStep = '--isolate-pre-step',
+  IsolatePostStep = '--isolate-post-step',
+}
+
+interface StepInclusionOptions {
+  readonly skipSteps?: readonly string[];
+  readonly skipPreSteps?: readonly string[];
+  readonly skipPostSteps?: readonly string[];
+  readonly isolateSteps?: readonly string[];
+  readonly isolatePreSteps?: readonly string[];
+  readonly isolatePostSteps?: readonly string[];
+}
+
+const defaultStepInclusionFlags = {
+  [StepInclusionFlag.SkipStep]: [String] as [StringConstructor],
+  [StepInclusionFlag.SkipPreStep]: [String] as [StringConstructor],
+  [StepInclusionFlag.SkipPostStep]: [String] as [StringConstructor],
+  [StepInclusionFlag.IsolateStep]: [String] as [StringConstructor],
+  [StepInclusionFlag.IsolatePreStep]: [String] as [StringConstructor],
+  [StepInclusionFlag.IsolatePostStep]: [String] as [StringConstructor],
+};
+
+export function createCommand<Flags extends Spec>(
   flagSpec: Flags,
-  run: (
-    flags: Result<Flags>,
-    context: import('@sewing-kit/core').TaskContext,
-  ) => Promise<void>,
+  run: (flags: Result<Flags>, context: TaskContext) => Promise<void>,
 ) {
   return async (
     argv: string[],
@@ -28,122 +58,189 @@ export function createCommand<Flags extends {[key: string]: any}>(
       };
     } = {},
   ) => {
-    const {Ui, DiagnosticError} = await import('@sewing-kit/ui');
-
     const {
       '--root': root = process.cwd(),
       '--log-level': logLevel,
       ...flags
-    } = arg({...flagSpec, '--root': String, '--log-level': String}, {argv});
+    } = arg(
+      {
+        ...flagSpec,
+        '--root': String,
+        '--log-level': String,
+        ...defaultStepInclusionFlags,
+      },
+      {argv},
+    );
 
     const ui = new Ui({
       ...(internalOptions as any),
       level: mapLogLevel(logLevel as any),
     });
 
+    const steps = new StepTracker(createInclusionOptions(flags as any));
+
     try {
-      const packages = new Set<Package>();
-      const webApps = new Set<WebApp>();
-      const services = new Set<Service>();
-      const pluginMap = new WeakMap<Project, readonly ProjectPlugin[]>();
-
-      const configFiles = glob('**/sewing-kit.config.*', {
-        cwd: root as string,
-        ignore: ['**/node_modules/**', '**/build/**'],
-        absolute: true,
-      });
-
-      const loadedConfigs = await Promise.all(configFiles.map(loadConfig));
-      const workspaceConfigs = loadedConfigs.filter(
-        (config) =>
-          config.workspacePlugins.length > 0 ||
-          config.kind === ConfigurationKind.Workspace,
-      );
-
-      if (workspaceConfigs.length > 1) {
-        // needs a better error, showing files/ what workspace plugins exist
-        throw new DiagnosticError({
-          title: `Multiple workspace configurations found`,
-          content: `Found ${workspaceConfigs.length} workspace configurations. Only one sewing-kit config can declare workspace plugins and/ or use the createWorkspace() utility from @sewing-kit/config`,
-        });
-      }
-
-      const [workspaceConfig] = workspaceConfigs;
-
-      if (
-        workspaceConfig?.workspacePlugins.length > 0 &&
-        workspaceConfig.kind !== ConfigurationKind.Workspace &&
-        loadedConfigs.length > 1
-      ) {
-        // needs a better error, showing which project
-        throw new DiagnosticError({
-          title: `Invalid workspace plugins in project configuration`,
-          content: `You declared workspace plugins in a project, but this is only supported for workspace with a single project.`,
-          suggestion: `Move the workspace plugins to a root sewing-kit config file, and include them using the createWorkspace() function from @sewing-kit/config`,
-        });
-      }
-
-      for (const {kind, options, projectPlugins} of loadedConfigs) {
-        switch (kind) {
-          case ConfigurationKind.Package: {
-            const pkg = new Package({
-              entries: [
-                {root: './src/index', runtime: (options as any).runtime},
-              ],
-              ...options,
-            } as any);
-            packages.add(pkg);
-            pluginMap.set(pkg, projectPlugins);
-            break;
-          }
-          case ConfigurationKind.WebApp: {
-            const webApp = new WebApp({entry: './index', ...options} as any);
-            webApps.add(webApp);
-            pluginMap.set(webApp, projectPlugins);
-            break;
-          }
-          case ConfigurationKind.Service: {
-            const service = new Service({entry: './index', ...options} as any);
-            services.add(service);
-            pluginMap.set(service, projectPlugins);
-            break;
-          }
-        }
-      }
-
-      const workspace = new Workspace({
-        root: root as string,
-        name: basename(root as string),
-        ...(workspaceConfig?.options ?? {}),
-        webApps: [...webApps],
-        packages: [...packages],
-        services: [...services],
-      });
-
-      const delegate: SewingKitDelegate = {
-        pluginsForProject: (project) => pluginMap.get(project) ?? [],
-        pluginsForWorkspace: (targetWorkspace) =>
-          targetWorkspace === workspace
-            ? workspaceConfig?.workspacePlugins ?? []
-            : [],
-      };
-
-      await run(flags as any, {workspace, ui, delegate});
+      const {workspace, plugins} = await loadWorkspace(root as string);
+      await run(flags as any, {workspace, ui, plugins, steps});
     } catch (error) {
-      if (error instanceof DiagnosticError) {
-        ui.log(error.message);
-      } else {
-        ui.log(
-          'The following unexpected error occurred. Please raise an issue on [the sewing-kit repo](https://github.com/Shopify/sewing-kit).',
-        );
-        ui.log(error.message);
-        ui.log(error.stack);
-      }
-
+      logError(error, ui.error);
       // eslint-disable-next-line require-atomic-updates
       process.exitCode = 1;
     }
   };
+}
+
+export async function createWorkspaceTasksAndApplyPlugins(
+  context: TaskContext,
+) {
+  const {workspace, plugins: pluginSource} = context;
+
+  const tasks: WorkspaceTasks = {
+    build: new SeriesHook(),
+    dev: new SeriesHook(),
+    test: new SeriesHook(),
+    lint: new SeriesHook(),
+    typeCheck: new SeriesHook(),
+  };
+
+  const plugins = pluginSource.pluginsForWorkspace(workspace);
+
+  for (const plugin of plugins) {
+    const api = createPluginApi(plugin, context);
+    await plugin.run?.({api, workspace, tasks: wrapValue(plugin, tasks)});
+  }
+
+  return tasks;
+}
+
+export async function createProjectTasksAndApplyPlugins<
+  Type extends WebApp | Package | Service
+>(project: Type, context: TaskContext) {
+  const {workspace, plugins: pluginSource} = context;
+
+  const tasks: ProjectTasks<Type> = {
+    build: new SeriesHook(),
+    dev: new SeriesHook(),
+    test: new SeriesHook(),
+  };
+
+  const plugins = pluginSource.pluginsForProject(project);
+
+  for (const plugin of plugins) {
+    const api = createPluginApi(plugin, context);
+    await plugin.run?.({
+      api,
+      project,
+      workspace,
+      tasks: wrapValue(plugin, tasks),
+    });
+  }
+
+  return tasks;
+}
+
+function createPluginApi(
+  plugin: AnyPlugin,
+  {steps, workspace}: TaskContext,
+): PluginApi {
+  const resolvePath: PluginApi['resolvePath'] = (...parts) =>
+    workspace.fs.resolvePath('.sewing-kit', ...parts);
+
+  return {
+    createStep,
+    resolvePath,
+    read: (path) => workspace.fs.read(resolvePath(path)),
+    write: (path, contents) => workspace.fs.write(resolvePath(path), contents),
+    configPath: (...parts) => resolvePath('config', ...parts),
+    cachePath: (...parts) => resolvePath('cache', ...parts),
+    tmpPath: (...parts) => resolvePath('tmp', ...parts),
+  };
+
+  function createStep(
+    options: Omit<Step, 'run' | 'source'>,
+    run: Step['run'],
+  ): Step {
+    const step = {run, source: plugin, ...normalizeOptions(options)};
+    steps.setSource(step, plugin);
+    return step;
+  }
+}
+
+export function createStep(
+  options: Omit<Step, 'run' | 'source'>,
+  run: Step['run'],
+): Step {
+  return {run, ...normalizeOptions(options)};
+}
+
+function createInclusionOptions(
+  flags: Result<typeof defaultStepInclusionFlags>,
+): StepInclusionOptions {
+  return {
+    skipSteps: flags[StepInclusionFlag.SkipStep],
+    skipPreSteps: flags[StepInclusionFlag.SkipPreStep],
+    skipPostSteps: flags[StepInclusionFlag.SkipPostStep],
+    isolateSteps: flags[StepInclusionFlag.IsolateStep],
+    isolatePreSteps: flags[StepInclusionFlag.IsolatePreStep],
+    isolatePostSteps: flags[StepInclusionFlag.IsolatePostStep],
+  };
+}
+
+function wrapValue<T>(plugin: AnyPlugin, value: T): T {
+  if (typeof value !== 'object' || value == null) {
+    return value;
+  }
+
+  const updatedParts: {[key: string]: any} = {};
+
+  for (const [key, propValue] of Object.entries(value)) {
+    if (propValue instanceof WaterfallHook || propValue instanceof SeriesHook) {
+      updatedParts[key] = new Proxy(propValue, {
+        get(target, key, receiver) {
+          const realValue = Reflect.get(target, key, receiver);
+
+          if (key !== 'hook') {
+            return realValue;
+          }
+
+          return function hook(
+            hookOrId: string | Function,
+            maybeHook?: Function,
+          ) {
+            return typeof hookOrId === 'string'
+              ? realValue.call(
+                  propValue,
+                  hookOrId,
+                  wrapHook(plugin, maybeHook!),
+                )
+              : realValue.call(
+                  propValue,
+                  plugin.id,
+                  wrapHook(plugin, hookOrId),
+                );
+          };
+        },
+      });
+    } else {
+      const updatedValue = wrapValue(plugin, propValue);
+      if (updatedValue !== propValue) updatedParts[key] = updatedValue;
+    }
+  }
+
+  return Object.keys(updatedParts).length > 0
+    ? {...value, ...updatedParts}
+    : value;
+}
+
+function wrapHook(plugin: AnyPlugin, hook: Function) {
+  return (first: any, ...rest: any[]) =>
+    hook(wrapValue(plugin, first), ...rest);
+}
+
+function normalizeOptions(
+  step: Parameters<typeof createStep>[0],
+): Omit<Step, 'run' | 'source'> {
+  return step;
 }
 
 function mapLogLevel(level?: string) {
@@ -162,5 +259,72 @@ function mapLogLevel(level?: string) {
       return LogLevel.Debug;
     default:
       throw new Error(`Unrecognized --log-level option: ${level}`);
+  }
+}
+
+export function logError(error: any, log: Log) {
+  if (isDiagnosticError(error)) {
+    log(
+      (fmt) =>
+        fmt`{error Error} ${error.title || 'An unexpected error occurred'}`,
+    );
+
+    if (error.content) {
+      log('\n');
+      log(error.content);
+    }
+
+    if (error.suggestion) {
+      log('\n');
+      log((fmt) => fmt`{emphasis What do I do next?}`);
+      log(error.suggestion);
+    }
+
+    if (error.stack) {
+      log('\n');
+      log((fmt) => fmt`{subdued ${error.stack!}}`);
+    }
+  } else {
+    log(
+      (fmt) =>
+        fmt`🧵 The following unexpected error occurred. We want to provide more useful suggestions when errors occur, so please open an issue on {link the sewing-kit repo https://github.com/Shopify/sewing-kit} so that we can improve this message.`,
+    );
+
+    if (error.all != null) {
+      log(error.all);
+      log(error.stack);
+    } else if (error.stderr != null) {
+      log(error.stderr);
+      log(error.stack);
+    } else if (error.stdout == null) {
+      log(error.stack);
+    } else {
+      log(error.stdout);
+      log(error.stack);
+    }
+  }
+}
+
+class StepTracker {
+  private sources = new WeakMap<Step, AnyPlugin>();
+  private parents = new WeakMap<Step, Step>();
+
+  constructor(public readonly inclusion: StepInclusionOptions) {}
+
+  setSource(step: Step, plugin: AnyPlugin) {
+    this.sources.set(step, plugin);
+  }
+
+  getSource(step: Step) {
+    return this.sources.get(step);
+  }
+
+  setStepParent(step: Step, parent: Step) {
+    this.parents.set(step, parent);
+  }
+
+  getStepAncestors(step: Step): readonly Step[] {
+    const parent = this.parents.get(step);
+    return parent ? [parent, ...this.getStepAncestors(parent)] : [];
   }
 }

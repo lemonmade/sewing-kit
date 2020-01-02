@@ -4,7 +4,7 @@ import {
   ProjectPlugin,
   PLUGIN_MARKER,
 } from '@sewing-kit/plugins';
-import {DiagnosticError} from '@sewing-kit/ui';
+import {DiagnosticError} from '@sewing-kit/core';
 
 type WritableValue<T> = T extends readonly (infer U)[] ? U[] : T;
 

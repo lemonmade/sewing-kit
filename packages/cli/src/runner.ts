@@ -9,9 +9,10 @@ import {
   LogOptions,
   StepResources,
   StepRunner as NestedStepRunner,
-} from './types';
+} from '@sewing-kit/core';
+
+import {TaskContext, logError, StepInclusionFlag} from './common';
 import {Ui} from './ui';
-import {logError} from './errors';
 
 type Arguments<T> = T extends (...args: infer U) => any ? U : never;
 
@@ -19,7 +20,11 @@ const symbols = '⠄⠆⠇⠋⠙⠸⠰⠠⠰⠸⠙⠋⠇⠆';
 
 interface FlagNames {
   readonly skip?: string;
-  readonly include?: string;
+  readonly isolate?: string;
+}
+
+interface RunnerOptions {
+  readonly flagNames?: FlagNames;
 }
 
 interface StepCounts {
@@ -62,31 +67,34 @@ export interface StepDetails {
   readonly target: StepTarget;
 }
 
-export interface StepGroupDetails {
-  readonly steps: readonly StepDetails[];
-  readonly skip?: readonly string[];
-  readonly include?: readonly string[];
-  readonly flagNames?: FlagNames;
-}
-
 export interface RunOptions {
   readonly title: string;
-  readonly pre: StepGroupDetails;
-  readonly post: StepGroupDetails;
-  readonly steps: StepGroupDetails;
+  readonly pre: readonly Step[];
+  readonly post: readonly Step[];
+  readonly steps: readonly StepDetails[];
   epilogue?(log: Ui['log']): any;
 }
 
+interface StepGroupDetails {
+  readonly steps: readonly StepDetails[];
+  readonly skip?: readonly string[];
+  readonly isolate?: readonly string[];
+  readonly flagNames?: FlagNames;
+  readonly label: string;
+  readonly separator: boolean;
+}
+
 export async function run(
-  ui: Ui,
+  context: TaskContext,
   {title, pre, post, steps, epilogue}: RunOptions,
 ) {
+  const {ui, workspace, steps: stepTracker} = context;
+
   let tick = 0;
   let lastPersistentContentSize = 0;
 
   const isInteractive = process.stdout.isTTY;
   const logQueue: Arguments<Ui['log']>[] = [];
-
   const pastAlerts = new PersistentSection();
   const activeStepGroup = new PersistentSection();
   const persistentSections = new Set<PersistentSection>([
@@ -146,13 +154,10 @@ export async function run(
     label,
     skip,
     steps,
-    include,
+    isolate,
     separator,
     flagNames,
-  }: StepGroupDetails & {
-    readonly label: string;
-    readonly separator: boolean;
-  }) => {
+  }: StepGroupDetails) => {
     if (steps.length === 0) {
       return;
     }
@@ -166,7 +171,7 @@ export async function run(
     let failedSteps = 0;
     let hasLogged = false;
 
-    const checkStep = createChecker(skip, include);
+    const checkStep = createChecker(skip, isolate);
 
     const groupLog: typeof log = (loggable, options) => {
       if (!hasLogged) {
@@ -231,11 +236,7 @@ export async function run(
           (fmt) => fmt`${loggable} {subdued (started by "${parent.label}")}`,
         );
 
-      async function runNested(
-        steps: readonly Step[],
-        target: StepTarget,
-        parents: readonly Step[],
-      ) {
+      async function runNested(steps: readonly Step[], target: StepTarget) {
         if (steps.length === 0) {
           return;
         }
@@ -243,8 +244,9 @@ export async function run(
         focused.counts.total += steps.length;
 
         for (const step of steps) {
+          stepTracker.setStepParent(step, parent);
           subStepLog((fmt) => fmt`starting sub-step {info ${step.label!}}`);
-          groupLog(createStepDebugLog(step, parents, target, flagNames));
+          groupLog(createStepDebugLog(step, target, context, {flagNames}));
 
           const permission = checkStep(step);
 
@@ -254,13 +256,13 @@ export async function run(
           ) {
             focused.counts.skip += 1;
 
-            subStepLog((fmt) => fmt`skipped sub-step: {info ${step.label!}}`);
+            subStepLog((fmt) => fmt`skipped sub-step {info ${step.label!}}`);
 
             groupLog(
               (fmt) =>
                 `skip reason: ${
                   permission === StepRunPermission.Excluded
-                    ? fmt`not included in include patterns: {code ${include!.join(
+                    ? fmt`not isolated in isolate patterns: {code ${isolate!.join(
                         ' ',
                       )}}`
                     : fmt`omitted by skip patterns: {code ${skip!.join(' ')}}`
@@ -289,8 +291,7 @@ export async function run(
                 );
                 log(loggable, options);
               },
-              runNested: (steps) =>
-                runNested(steps, target, [...parents, step]),
+              runNested: (steps) => runNested(steps, target),
             });
 
             // eslint-disable-next-line require-atomic-updates
@@ -324,7 +325,7 @@ export async function run(
           groupLog((fmt) => fmt`log from ${parent.label}`, options);
           log(loggable, options);
         },
-        runNested: (steps) => runNested(steps, target, [parent]),
+        runNested: (steps) => runNested(steps, target),
       };
     };
 
@@ -340,7 +341,7 @@ export async function run(
         };
 
         groupLog((fmt) => fmt`starting step {info ${step.label}}`);
-        groupLog(createStepDebugLog(step, [], target, flagNames), {
+        groupLog(createStepDebugLog(step, target, context, {flagNames}), {
           level: LogLevel.Debug,
         });
 
@@ -357,7 +358,7 @@ export async function run(
             (fmt) =>
               `skip reason: ${
                 permission === StepRunPermission.Excluded
-                  ? fmt`not included in include patterns: {code ${include!.join(
+                  ? fmt`not isolated in isolate patterns: {code ${isolate!.join(
                       ' ',
                     )}}`
                   : fmt`omitted by skip patterns: {code ${skip!.join(' ')}}`
@@ -374,7 +375,7 @@ export async function run(
         // - Project: {project id, usable for --focus}
         // - Step ancestry (parents and children, highlight this step)
         // - Plugin hierarchy for the source plugin (leads them back to the plugin
-        //   they actually included that did something weird!)
+        //   they actually isolated that did something weird!)
         // - Resource usage/ waited for other tasks
 
         // Something like:
@@ -420,9 +421,41 @@ export async function run(
   try {
     log((fmt) => fmt`🧵 {title ${title}}\n`);
 
-    await runSteps({label: 'pre', separator: false, ...pre});
-    await runSteps({label: title, separator: true, ...steps});
-    await runSteps({label: 'post', separator: true, ...post});
+    await runSteps({
+      label: 'pre',
+      separator: false,
+      steps: pre.map((step) => ({target: workspace, step})),
+      skip: stepTracker.inclusion.skipPreSteps,
+      isolate: stepTracker.inclusion.isolatePreSteps,
+      flagNames: {
+        skip: StepInclusionFlag.SkipPreStep,
+        isolate: StepInclusionFlag.IsolatePreStep,
+      },
+    });
+
+    await runSteps({
+      label: title,
+      separator: true,
+      steps,
+      skip: stepTracker.inclusion.skipSteps,
+      isolate: stepTracker.inclusion.isolateSteps,
+      flagNames: {
+        skip: StepInclusionFlag.SkipStep,
+        isolate: StepInclusionFlag.IsolateStep,
+      },
+    });
+
+    await runSteps({
+      label: 'post',
+      separator: true,
+      steps: post.map((step) => ({target: workspace, step})),
+      skip: stepTracker.inclusion.skipPostSteps,
+      isolate: stepTracker.inclusion.isolatePostSteps,
+      flagNames: {
+        skip: StepInclusionFlag.SkipPostStep,
+        isolate: StepInclusionFlag.IsolatePostStep,
+      },
+    });
 
     if (epilogue) {
       logSeparator();
@@ -432,7 +465,7 @@ export async function run(
     update();
   } catch (error) {
     update();
-    logError(error, ui);
+    logError(error, ui.error.bind(ui));
     // eslint-disable-next-line require-atomic-updates
     process.exitCode = 1;
   } finally {
@@ -537,36 +570,36 @@ enum StepRunPermission {
   Skipped,
   NotSkipped,
   Excluded,
-  NotExcluded,
-  NotExcludedAndNotSkipped,
+  Isolated,
+  IsolatedAndNotSkipped,
 }
 
-function createChecker(skip?: readonly string[], include?: readonly string[]) {
+function createChecker(skip?: readonly string[], isolate?: readonly string[]) {
   const isExplicitlySkipped = skip?.length
     ? createCheckerFromIds(skip)
     : undefined;
 
-  const isExplicitlyIncluded = include?.length
-    ? createCheckerFromIds(include)
+  const isExplicitlyIsolated = isolate?.length
+    ? createCheckerFromIds(isolate)
     : undefined;
 
   return (step: Step) => {
-    if (isCorePluginId(step.id)) {
+    if (isCoreId(step.id)) {
       return StepRunPermission.Default;
     }
 
-    if (isExplicitlyIncluded && !isExplicitlyIncluded(step))
+    if (isExplicitlyIsolated && !isExplicitlyIsolated(step))
       return StepRunPermission.Excluded;
 
     if (isExplicitlySkipped) {
       if (isExplicitlySkipped(step)) return StepRunPermission.Skipped;
-      return isExplicitlyIncluded
-        ? StepRunPermission.NotExcludedAndNotSkipped
+      return isExplicitlyIsolated
+        ? StepRunPermission.IsolatedAndNotSkipped
         : StepRunPermission.NotSkipped;
     }
 
-    return isExplicitlyIncluded
-      ? StepRunPermission.NotExcluded
+    return isExplicitlyIsolated
+      ? StepRunPermission.Isolated
       : StepRunPermission.Default;
   };
 }
@@ -588,51 +621,43 @@ function createCheckerFromIds(ids: readonly string[]) {
   return (step: Step) => regex.test(step.id);
 }
 
-interface Plugin {
-  readonly id: string;
-  readonly package: string;
-  readonly parent?: Plugin;
-}
-
 function createStepDebugLog(
   step: Step,
-  ancestors: readonly Step[],
   target: StepTarget,
-  {skip, include}: FlagNames = {},
+  context: TaskContext,
+  {flagNames: {skip, isolate} = {}}: RunnerOptions = {},
 ): Loggable {
-  const source = step.source as Plugin | undefined;
-
-  // const projectPart =
   const targetPart: Loggable =
     target instanceof Workspace
       ? (fmt) =>
           fmt`workspace {emphasis ${target.name}} {subdued (${target.root})}`
       : (fmt) => fmt`${target.id} {subdued (${target.root})}`;
-  const sourcePart = createStepDebugSourceLog(step);
+  const sourcePart = createStepDebugSourceLog(step, context);
 
   let flagsPart: Loggable;
 
-  if (source != null) {
-    const includeContent = [
-      step.id,
-      ...ancestors
-        .map((ancestor) => (isCorePluginId(ancestor.id) ? false : ancestor.id))
-        .filter(Boolean),
-    ];
+  const isolateContent = [
+    step.id,
+    ...context.steps
+      .getStepAncestors(step)
+      .map((ancestor) => (isCoreId(ancestor.id) ? false : ancestor.id))
+      .filter(Boolean),
+  ];
 
-    if (skip && include) {
+  if (!isCoreId(step.id)) {
+    if (skip && isolate) {
       flagsPart = (fmt) =>
-        fmt`\n\nto skip this step, add {code --${skip} ${
+        fmt`\n\nto skip this step, add {code ${skip} ${
           step.id
-        }} to your command.\nto isolate this step, add {code --${include} ${includeContent.join(
+        }} to your command.\nto isolate this step, add {code ${isolate} ${isolateContent.join(
           ',',
         )}} to your command.`;
     } else if (skip) {
       flagsPart = (fmt) =>
-        fmt`\n\nto skip this step, add {code --${skip} ${step.id}} to your command.`;
-    } else if (include) {
+        fmt`\n\nto skip this step, add {code ${skip} ${step.id}} to your command.`;
+    } else if (isolate) {
       flagsPart = (fmt) =>
-        fmt`\n\nto isolate this step, add {code --${include} ${includeContent.join(
+        fmt`\n\nto isolate this step, add {code ${isolate} ${isolateContent.join(
           ',',
         )}} to your command.`;
     }
@@ -646,7 +671,7 @@ function createStepDebugLog(
     )}}${sourcePart}${flagsPart}\n`;
 }
 
-function isCorePluginId(id: string) {
+function isCoreId(id: string) {
   return id.startsWith('SewingKit.');
 }
 
@@ -654,23 +679,22 @@ function label(text: string): Loggable {
   return `${text}:`.padEnd(8, ' ');
 }
 
-function createStepDebugSourceLog(step: Step): Loggable {
-  const source = step.source as Plugin;
-
-  const stack: string[] = source ? [source.id] : [];
-
-  let currentParent = source?.parent;
-
-  while (currentParent != null) {
-    stack.push(currentParent.id);
-    currentParent = currentParent.parent;
-  }
-
-  const [userAdded, ...rest] = stack.reverse();
-  const restPart = rest.length > 0 ? ` > ${rest.join(' > ')}` : '';
+function createStepDebugSourceLog(
+  step: Step,
+  {plugins, steps}: TaskContext,
+): Loggable {
+  const source = steps.getSource(step);
 
   if (source == null)
     return (fmt) => fmt`created by Sewing Kit {subdued (can’t be skipped)}`;
+
+  const stack = [
+    source.id,
+    ...plugins.ancestorsForPlugin(source).map(({id}) => id),
+  ];
+
+  const [userAdded, ...rest] = stack.reverse();
+  const restPart = rest.length > 0 ? ` > ${rest.join(' > ')}` : '';
 
   return (fmt) =>
     fmt`${

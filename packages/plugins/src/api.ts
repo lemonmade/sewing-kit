@@ -1,4 +1,4 @@
-type Step = import('@sewing-kit/ui').Step;
+type Step = import('@sewing-kit/core').Step;
 
 export interface PluginApi {
   read(path: string): Promise<string>;

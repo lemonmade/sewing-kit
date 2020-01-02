@@ -8,11 +8,6 @@
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/config": "^0.0.28",
-    "@sewing-kit/hooks": "^0.0.17",
-    "@sewing-kit/model": "^0.0.9",
-    "@sewing-kit/plugins": "^0.0.15",
-    "@sewing-kit/tasks": "^0.0.13",
-    "@sewing-kit/ui": "^0.0.18"
+    "@types/execa": "^2.0.0"
   }
 }

@@ -11,7 +11,9 @@ import {
   WorkspacePluginContext,
 } from '@sewing-kit/plugins';
 
-import {BabelConfig} from '@sewing-kit/plugin-babel';
+import {addTypeScriptBabelConfig} from './utilities';
+
+import {} from '@sewing-kit/plugin-babel';
 import {} from '@sewing-kit/plugin-jest';
 import {} from '@sewing-kit/plugin-eslint';
 import {} from '@sewing-kit/plugin-webpack';
@@ -330,18 +332,6 @@ export function createRunTypeScriptStep(
     },
   );
 }
-
-const addTypeScriptBabelConfig = (config: BabelConfig): BabelConfig => ({
-  ...config,
-  plugins: [
-    ...(config.plugins ?? []),
-    [require.resolve('@babel/plugin-proposal-decorators'), {legacy: true}],
-  ],
-  presets: [
-    ...(config.presets ?? []),
-    require.resolve('@babel/preset-typescript'),
-  ],
-});
 
 export enum EntryStrategy {
   Symlink,

@@ -6,5 +6,5 @@
     "rootDir": "src"
   },
   "include": ["src/**/*.ts"],
-  "references": [{"path": "../ui"}, {"path": "../tasks"}, {"path": "../model"}]
+  "references": [{"path": "../tasks"}, {"path": "../model"}]
 }

@@ -1,4 +1,19 @@
-import {createCommand} from './common';
+import {
+  SeriesHook,
+  WaterfallHook,
+  TestPackageHooks,
+  TestWebAppHooks,
+} from '@sewing-kit/hooks';
+import {TestTaskOptions, TestWorkspaceTaskHooks} from '@sewing-kit/tasks';
+import {Package, WebApp, Service} from '@sewing-kit/model';
+
+import {run} from './runner';
+import {
+  createCommand,
+  TaskContext,
+  createWorkspaceTasksAndApplyPlugins,
+  createProjectTasksAndApplyPlugins,
+} from './common';
 
 export const test = createCommand(
   {
@@ -8,10 +23,6 @@ export const test = createCommand(
     '--debug': Boolean,
     '--update-snapshots': Boolean,
     '--test-name-pattern': String,
-    '--include': [String],
-    '--skip': [String],
-    '--skip-pre': [String],
-    '--skip-post': [String],
   },
   async (
     {
@@ -21,15 +32,9 @@ export const test = createCommand(
       '--test-name-pattern': testNamePattern,
       '--update-snapshots': updateSnapshots,
       '--no-watch': noWatch,
-      '--include': include,
-      '--skip': skip,
-      '--skip-pre': skipPre,
-      '--skip-post': skipPost,
     },
     context,
   ) => {
-    const {runTests} = await import('@sewing-kit/core');
-
     await runTests(context, {
       debug,
       coverage,
@@ -37,10 +42,78 @@ export const test = createCommand(
       testNamePattern,
       updateSnapshots,
       watch: noWatch == null ? noWatch : !noWatch,
-      include,
-      skip,
-      skipPre,
-      skipPost,
     });
   },
 );
+
+async function runTests(taskContext: TaskContext, options: TestTaskOptions) {
+  const {workspace} = taskContext;
+
+  const hooks: TestWorkspaceTaskHooks = {
+    context: new WaterfallHook(),
+    configure: new SeriesHook(),
+    configureHooks: new WaterfallHook(),
+    pre: new WaterfallHook(),
+    post: new WaterfallHook(),
+    steps: new WaterfallHook(),
+  };
+
+  const {test} = await createWorkspaceTasksAndApplyPlugins(taskContext);
+
+  await test.run({hooks, options});
+
+  const configuration = await hooks.configureHooks.run({});
+  await hooks.configure.run(configuration);
+
+  const context = await hooks.context.run({configuration});
+
+  await Promise.all(
+    workspace.projects.map(async (project) => {
+      const {test: testProject} = await createProjectTasksAndApplyPlugins(
+        project,
+        taskContext,
+      );
+
+      if (project instanceof Package) {
+        const hooks: TestPackageHooks = {
+          configureHooks: new WaterfallHook(),
+          configure: new SeriesHook(),
+        };
+
+        await testProject.run({hooks, options, context});
+        await hooks.configure.run(await hooks.configureHooks.run({}));
+      } else if (project instanceof WebApp) {
+        const hooks: TestWebAppHooks = {
+          configureHooks: new WaterfallHook(),
+          configure: new SeriesHook(),
+        };
+
+        await testProject.run({hooks, options, context});
+        await hooks.configure.run(await hooks.configureHooks.run({}));
+      } else if (project instanceof Service) {
+        const hooks: TestWebAppHooks = {
+          configureHooks: new WaterfallHook(),
+          configure: new SeriesHook(),
+        };
+
+        await testProject.run({hooks, options, context});
+        await hooks.configure.run(await hooks.configureHooks.run({}));
+      }
+    }),
+  );
+
+  const stepDetails = {configuration, context};
+  const pre = await hooks.pre.run([], stepDetails);
+  const steps = await hooks.steps.run([], stepDetails);
+  const post = await hooks.post.run([], stepDetails);
+
+  await run(taskContext, {
+    title: 'test',
+    pre,
+    post,
+    steps: steps.map((step) => ({step, target: workspace})),
+    epilogue(log) {
+      log((fmt) => fmt`{success tests completed successfully!}`);
+    },
+  });
+}

@@ -1,10 +1,11 @@
 import {clearScreenDown, clearLine, moveCursor, cursorTo} from 'readline';
-
 import {link} from 'ansi-escapes';
 import chalk from 'chalk';
 import {supportsHyperlink} from 'supports-hyperlinks';
 
-import {LogLevel, LogOptions, Loggable, Formatter} from './types';
+import {LogLevel, LogOptions, Loggable, LogFormatter} from '@sewing-kit/core';
+
+export {LogLevel, LogOptions, Loggable, LogFormatter};
 
 interface Options {
   stdin: NodeJS.ReadStream;
@@ -62,7 +63,7 @@ function createFormatter(stream: NodeJS.WriteStream) {
 }
 
 class FormattedStream {
-  private readonly formatter: Formatter;
+  private readonly formatter: LogFormatter;
 
   constructor(private readonly stream: NodeJS.WriteStream) {
     this.formatter = createFormatter(stream);
@@ -104,25 +105,25 @@ export class Ui {
     this.level = level;
   }
 
-  log(value: Loggable, {level = LogLevel.Info}: LogOptions = {}) {
+  log = (value: Loggable, {level = LogLevel.Info}: LogOptions = {}) => {
     if (!this.canLogLevel(level)) {
       return;
     }
 
     this.stdout.write(value);
     this.stdout.write('\n');
-  }
+  };
 
-  error(value: Loggable, {level = LogLevel.Info}: LogOptions = {}) {
+  error = (value: Loggable, {level = LogLevel.Info}: LogOptions = {}) => {
     if (!this.canLogLevel(level)) {
       return;
     }
 
     this.stderr.write(value);
     this.stderr.write('\n');
-  }
+  };
 
-  canLogLevel(level: LogLevel) {
+  canLogLevel = (level: LogLevel) => {
     return this.level >= level;
-  }
+  };
 }

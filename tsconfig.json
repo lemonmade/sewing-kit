@@ -2,7 +2,6 @@
   "files": [],
   "include": [],
   "references": [
-    {"path": "./packages/ui"},
     {"path": "./packages/model"},
     {"path": "./packages/hooks"},
     {"path": "./packages/tasks"},

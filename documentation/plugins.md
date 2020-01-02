@@ -21,7 +21,7 @@ Once plugins are called, they should make use of the many hooks provided by the 
 
 ## Tools
 
-The `@sewing-kit/plugins` library provides most of the helpers you’ll need to create a plugin. Most notably, this package exports the `createPlugin` and `PluginTarget` values, which are needed to define a valid plugin. `@sewing-kit/hooks` provides most of the hooks used in the various sewing-kit tasks. These types are generally unnecessary, but if you are adding additional hooks (for example, `@sewing-kit/plugin-webpack` adds additional hooks to some parts of the build task), you will need to [augment the `@sewing-kit/hooks` module](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation). `@sewing-kit/ui` is also typically needed for any plugin dealing with `Steps`, a key UI concept used by several different tasks.
+The `@sewing-kit/plugins` library provides most of the helpers you’ll need to create a plugin. Most notably, this package exports the `createPlugin` and `PluginTarget` values, which are needed to define a valid plugin. `@sewing-kit/hooks` provides most of the hooks used in the various sewing-kit tasks. These types are generally unnecessary, but if you are adding additional hooks (for example, `@sewing-kit/plugin-webpack` adds additional hooks to some parts of the build task), you will need to [augment the `@sewing-kit/hooks` module](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation).
 
 ## Styleguide
 
