@@ -1,18 +1,18 @@
 {
   "name": "@sewing-kit/core",
   "license": "MIT",
-  "version": "0.0.33",
+  "version": "0.0.34",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/config": "^0.0.27",
-    "@sewing-kit/hooks": "^0.0.16",
-    "@sewing-kit/model": "^0.0.8",
-    "@sewing-kit/plugins": "^0.0.14",
-    "@sewing-kit/tasks": "^0.0.12",
-    "@sewing-kit/ui": "^0.0.17"
+    "@sewing-kit/config": "^0.0.28",
+    "@sewing-kit/hooks": "^0.0.17",
+    "@sewing-kit/model": "^0.0.9",
+    "@sewing-kit/plugins": "^0.0.15",
+    "@sewing-kit/tasks": "^0.0.13",
+    "@sewing-kit/ui": "^0.0.18"
   }
 }

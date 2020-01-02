@@ -1,14 +1,14 @@
 {
   "name": "@sewing-kit/hooks",
   "license": "MIT",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/ui": "^0.0.17",
+    "@sewing-kit/ui": "^0.0.18",
     "@types/tapable": "^1.0.4",
     "tapable": "^1.1.3"
   }

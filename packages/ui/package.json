@@ -1,14 +1,14 @@
 {
   "name": "@sewing-kit/ui",
   "license": "MIT",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/model": "*",
+    "@sewing-kit/model": "^0.0.9",
     "ansi-escapes": "^4.3.0",
     "chalk": "^3.0.0",
     "execa": "^3.4.0",
