@@ -18,7 +18,7 @@ export const lint = createCommand(
   },
 );
 
-async function runLint(context: TaskContext, options: LintTaskOptions) {
+export async function runLint(context: TaskContext, options: LintTaskOptions) {
   const {workspace} = context;
   const {lint} = await createWorkspaceTasksAndApplyPlugins(context);
 

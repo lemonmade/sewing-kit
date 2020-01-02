@@ -21,7 +21,10 @@ export const typeCheck = createCommand(
   },
 );
 
-async function runTypeCheck(context: TaskContext, options: TypeCheckOptions) {
+export async function runTypeCheck(
+  context: TaskContext,
+  options: TypeCheckOptions,
+) {
   const {workspace} = context;
   const {typeCheck} = await createWorkspaceTasksAndApplyPlugins(context);
 

@@ -26,7 +26,10 @@ export const dev = createCommand(
   },
 );
 
-async function runDev(taskContext: TaskContext, options: DevTaskOptions) {
+export async function runDev(
+  taskContext: TaskContext,
+  options: DevTaskOptions,
+) {
   const {workspace} = taskContext;
   const {dev} = await createWorkspaceTasksAndApplyPlugins(taskContext);
 

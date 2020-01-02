@@ -11,6 +11,7 @@
     "@sewing-kit/hooks": "^0.0.17",
     "@sewing-kit/model": "^0.0.9",
     "@sewing-kit/tasks": "^0.0.13",
+    "@sewing-kit/core": "*",
     "change-case": "^4.1.0",
     "tapable": "^1.1.3"
   }

@@ -1,5 +1,7 @@
 # Sewing Kit
 
+> An opinionated orchestrator of web development tools,
+
 Understanding the architecture about this project is mostly about understanding the problem it seeks to solve. In short, that there is a complex matrix of tasks and tools involved in web development, and sewing kit’s job is to model those concepts in a way that enables us to give web developers a world-class starting point; a set of configuration for those tools that will maximize both end user and developer happiness, and that aligns with the technology bets we are making as a company. The matrix modeled by `sewing-kit`
 
 - **Tasks**: when actively working on or verifying a project, we might be linting, testing, type checking, building, developing, or deploying (others might exist too; sewing-kit seeks to model them). **[link to CLI command landing page]**

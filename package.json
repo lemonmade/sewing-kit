@@ -5,7 +5,7 @@
   "scripts": {
     "bootstrap:to-source": "babel-node --extensions .ts,.tsx,.mjs,.js ./scripts/bootstrap",
     "bootstrap": "lerna bootstrap && yarn bootstrap:to-source && tsc --build",
-    "sk:from-source": "babel-node --extensions .ts,.tsx,.mjs,.js -- ./packages/cli/src/index",
+    "sk:from-source": "babel-node --extensions .ts,.tsx,.mjs,.js -- ./packages/cli/src/cli",
     "sk": "yarn bootstrap:to-source && yarn sk:from-source",
     "sewing-kit": "yarn sk",
     "build": "yarn sk build",

@@ -46,7 +46,10 @@ export const test = createCommand(
   },
 );
 
-async function runTests(taskContext: TaskContext, options: TestTaskOptions) {
+export async function runTests(
+  taskContext: TaskContext,
+  options: TestTaskOptions,
+) {
   const {workspace} = taskContext;
 
   const hooks: TestWorkspaceTaskHooks = {

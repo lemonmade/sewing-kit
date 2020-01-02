@@ -47,7 +47,10 @@ function normalizeEnv(rawEnv: string | undefined) {
   return /prod(?:uction)?/i.test(rawEnv) ? Env.Production : Env.Development;
 }
 
-async function runBuild(taskContext: TaskContext, options: BuildTaskOptions) {
+export async function runBuild(
+  taskContext: TaskContext,
+  options: BuildTaskOptions,
+) {
   const {workspace} = taskContext;
   const {build} = await createWorkspaceTasksAndApplyPlugins(taskContext);
 

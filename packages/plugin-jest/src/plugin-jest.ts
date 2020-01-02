@@ -192,7 +192,7 @@ export function jest() {
                   const config = await hooks.jestConfig!.run({
                     displayName: project.name,
                     rootDir: project.root,
-                    testRegex: `.*\\.test\\.(${extensions.join('|')})$`,
+                    testRegex: `.+\\.test\\.(${extensions.join('|')})$`,
                     moduleFileExtensions: extensions,
                     testEnvironment: environment,
                     moduleNameMapper: moduleMapper,
