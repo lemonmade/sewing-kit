@@ -77,15 +77,28 @@ export async function runTests(
   const steps = await hooks.steps.run([], stepDetails);
   const post = await hooks.post.run([], stepDetails);
 
-  const {skip, skipPre, skipPost} = options;
+  const {include, skip, skipPre, skipPost} = options;
 
-  await run(ui, async (runner) => {
-    runner.title('test');
-
-    await runner.pre(pre, skipPre);
-    await runner.steps(steps, {skip, id: 'test', separator: pre.length > 0});
-    await runner.post(post, skipPost);
-
-    runner.epilogue((fmt) => fmt`{success testing completed successfully}`);
+  await run(ui, {
+    title: 'test',
+    pre: {
+      steps: pre.map((step) => ({step, target: workspace})),
+      skip: skipPre,
+      flagNames: {skip: 'skip-pre', include: 'include-pre'},
+    },
+    post: {
+      steps: post.map((step) => ({step, target: workspace})),
+      skip: skipPost,
+      flagNames: {skip: 'skip-post', include: 'include-post'},
+    },
+    steps: {
+      steps: steps.map((step) => ({step, target: workspace})),
+      skip,
+      include,
+      flagNames: {skip: 'skip', include: 'include'},
+    },
+    epilogue(log) {
+      log((fmt) => fmt`{success tests completed successfully!}`);
+    },
   });
 }

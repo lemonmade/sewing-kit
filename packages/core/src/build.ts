@@ -6,10 +6,10 @@ import {
   BuildPackageHooks,
 } from '@sewing-kit/hooks';
 import {BuildTaskOptions, BuildWorkspaceTaskHooks} from '@sewing-kit/tasks';
-import {run, Step, Loggable, LogLevel} from '@sewing-kit/ui';
-import {createStep} from '@sewing-kit/plugins';
+import {run, LogLevel} from '@sewing-kit/ui';
 
 import {
+  createStep,
   TaskContext,
   createWorkspaceTasksAndApplyPlugins,
   createProjectTasksAndApplyPlugins,
@@ -72,27 +72,39 @@ export async function runBuild(
         return hooks.steps.run([], context);
       };
 
-      const steps =
-        variants.length > 1
-          ? await Promise.all(
-              variants.map(async (variant) => {
-                return createStepFromNestedSteps({
-                  steps: await stepsForVariant(variant),
-                  label: (fmt) =>
-                    fmt`Build {emphasis ${stringifyVariant(
-                      variant,
-                    )}} web app variant`,
-                });
-              }),
-            )
-          : [
-              createStepFromNestedSteps({
-                steps: await stepsForVariant({}),
-                label: (fmt) => fmt`Build web app`,
-              }),
-            ];
+      return Promise.all(
+        variants.map(async (variant) => {
+          const steps = await stepsForVariant(variant);
 
-      return {webApp, steps};
+          const variantLabel: import('@sewing-kit/ui').Loggable =
+            variants.length > 1
+              ? (fmt) =>
+                  fmt`web app {emphasis ${
+                    webApp.name
+                  }} variant {subdued ${stringifyVariant(variant)}}`
+              : (fmt) => fmt`web app {emphasis ${webApp.name}}`;
+
+          const step = createStep(
+            {
+              id:
+                variants.length > 1
+                  ? 'SewingKit.BuildPackageVariant'
+                  : 'SewingKit.BuildPackage',
+              label: (fmt) => fmt`build ${variantLabel}`,
+            },
+            async (step) => {
+              if (steps.length === 0) {
+                step.log('no build steps available', {level: LogLevel.Debug});
+                return;
+              }
+
+              await step.runNested(steps);
+            },
+          );
+
+          return {step, target: webApp};
+        }),
+      );
     }),
   );
 
@@ -119,7 +131,25 @@ export async function runBuild(
       const context = await hooks.context.run({configuration});
       const steps = await hooks.steps.run([], context);
 
-      return {service, steps};
+      const serviceLabel: import('@sewing-kit/ui').Loggable = (fmt) =>
+        fmt`service {emphasis ${service.name}}`;
+
+      const step = createStep(
+        {
+          id: 'SewingKit.BuildService',
+          label: (fmt) => fmt`build ${serviceLabel}`,
+        },
+        async (step) => {
+          if (steps.length === 0) {
+            step.log('no build steps available', {level: LogLevel.Debug});
+            return;
+          }
+
+          await step.runNested(steps);
+        },
+      );
+
+      return {step, target: service};
     }),
   );
 
@@ -143,7 +173,7 @@ export async function runBuild(
 
       const variants = await hooks.variants.run([]);
 
-      const steps = await Promise.all(
+      return Promise.all(
         variants.map(async (variant) => {
           const configuration = await hooks.configureHooks.run({});
           await hooks.configure.run(configuration, variant);
@@ -151,19 +181,43 @@ export async function runBuild(
           const context = await hooks.context.run({variant, configuration});
           const steps = await hooks.steps.run([], context);
 
-          return createStepFromNestedSteps({
-            steps,
-            label: (fmt) =>
-              fmt`Build {emphasis ${stringifyVariant(
-                variant,
-              )}} package variant`,
-          });
+          const variantLabel: import('@sewing-kit/ui').Loggable =
+            variants.length > 1
+              ? (fmt) =>
+                  fmt`package {emphasis ${
+                    pkg.name
+                  }} variant {subdued ${stringifyVariant(variant)}}`
+              : (fmt) => fmt`package {emphasis ${pkg.name}}`;
+
+          const step = createStep(
+            {
+              id:
+                variants.length > 1
+                  ? 'SewingKit.BuildWebAppVariant'
+                  : 'SewingKit.BuildWebApp',
+              label: (fmt) => fmt`build ${variantLabel}`,
+            },
+            async (step) => {
+              if (steps.length === 0) {
+                step.log('no build steps available', {level: LogLevel.Debug});
+                return;
+              }
+
+              await step.runNested(steps);
+            },
+          );
+
+          return {step, target: pkg};
         }),
       );
-
-      return {pkg, steps};
     }),
   );
+
+  const allSteps = [
+    ...packageSteps.flat(),
+    ...webAppSteps.flat(),
+    ...serviceSteps.flat(),
+  ];
 
   const configuration = await buildTaskHooks.configureHooks.run({});
   await buildTaskHooks.configure.run(configuration);
@@ -173,30 +227,29 @@ export async function runBuild(
     buildTaskHooks.post.run([], {configuration}),
   ]);
 
-  const {skip, skipPre, skipPost} = options;
+  const {include, skip, skipPre, skipPost} = options;
 
-  await run(ui, async (runner) => {
-    runner.title('build');
-
-    await runner.pre(pre, skipPre);
-
-    runner.separator();
-
-    for (const {webApp, steps} of webAppSteps) {
-      await runner.steps(steps, {id: webApp.name, skip});
-    }
-
-    for (const {pkg, steps} of packageSteps) {
-      await runner.steps(steps, {id: pkg.name, skip});
-    }
-
-    for (const {service, steps} of serviceSteps) {
-      await runner.steps(steps, {id: service.name, skip});
-    }
-
-    await runner.post(post, skipPost);
-
-    runner.epilogue((fmt) => fmt`{success build completed successfully!}`);
+  await run(ui, {
+    title: 'build',
+    pre: {
+      steps: pre.map((step) => ({step, target: workspace})),
+      skip: skipPre,
+      flagNames: {skip: 'skip-pre', include: 'include-pre'},
+    },
+    post: {
+      steps: post.map((step) => ({step, target: workspace})),
+      skip: skipPost,
+      flagNames: {skip: 'skip-post', include: 'include-post'},
+    },
+    steps: {
+      steps: allSteps,
+      skip,
+      include,
+      flagNames: {skip: 'skip', include: 'include'},
+    },
+    epilogue(log) {
+      log((fmt) => fmt`{success build completed successfully!}`);
+    },
   });
 }
 
@@ -206,33 +259,4 @@ function stringifyVariant(variant: object) {
       return value === true ? key : `${key}: ${value}`;
     })
     .join(', ');
-}
-
-function createStepFromNestedSteps({
-  steps,
-  label,
-}: {
-  readonly steps: readonly Step[];
-  readonly label: Loggable;
-}) {
-  return createStep({label}, async (stepRunner) => {
-    await Promise.all(
-      steps.map(async (step) => {
-        if (step.label) {
-          stepRunner.log(
-            (fmt) => fmt`starting sub-step: {info ${step.label!}}`,
-            {
-              level: LogLevel.Debug,
-            },
-          );
-        } else {
-          stepRunner.log(`starting unlabeled sub-step`, {
-            level: LogLevel.Debug,
-          });
-        }
-
-        await step.run(stepRunner);
-      }),
-    );
-  });
 }

@@ -17,69 +17,73 @@ export function createWriteEntriesStep(
   {project, api}: Pick<ProjectPluginContext<Package>, 'project' | 'api'>,
   options: WriteEntriesOptions,
 ) {
-  return api.createStep(async () => {
-    const {
-      extension = '.js',
-      outputPath,
-      exportStyle = ExportStyle.CommonJs,
-      exclude,
-    } = options;
+  return api.createStep(
+    {id: 'Package.WriteEntries', label: 'write entrypoint files'},
+    async () => {
+      const {
+        extension = '.js',
+        outputPath,
+        exportStyle = ExportStyle.CommonJs,
+        exclude,
+      } = options;
 
-    const sourceRoot = resolve(project.root, 'src');
+      const sourceRoot = resolve(project.root, 'src');
 
-    for (const entry of project.entries) {
-      if (exclude?.(entry) ?? false) continue;
+      for (const entry of project.entries) {
+        if (exclude?.(entry) ?? false) continue;
 
-      const absoluteEntryPath = (await project.fs.hasDirectory(entry.root))
-        ? project.fs.resolvePath(entry.root, 'index')
-        : project.fs.resolvePath(entry.root);
+        const absoluteEntryPath = (await project.fs.hasDirectory(entry.root))
+          ? project.fs.resolvePath(entry.root, 'index')
+          : project.fs.resolvePath(entry.root);
 
-      const relativeFromSourceRoot = relative(sourceRoot, absoluteEntryPath);
-      const destinationInOutput = resolve(outputPath, relativeFromSourceRoot);
-      const relativeFromRoot = normalizedRelative(
-        project.root,
-        destinationInOutput,
-      );
+        const relativeFromSourceRoot = relative(sourceRoot, absoluteEntryPath);
+        const destinationInOutput = resolve(outputPath, relativeFromSourceRoot);
+        const relativeFromRoot = normalizedRelative(
+          project.root,
+          destinationInOutput,
+        );
 
-      if (exportStyle === ExportStyle.CommonJs) {
+        if (exportStyle === ExportStyle.CommonJs) {
+          await project.fs.write(
+            `${entry.name || 'index'}${extension}`,
+            `module.exports = require(${JSON.stringify(relativeFromRoot)});`,
+          );
+
+          continue;
+        }
+
+        let hasDefault = true;
+        let content = '';
+
+        try {
+          content = await project.fs.read(
+            (await project.fs.glob(`${absoluteEntryPath}.*`))[0],
+          );
+
+          // export default ...
+          // export {Foo as default} from ...
+          // export {default} from ...
+          hasDefault =
+            /(?:export|as) default\b/.test(content) ||
+            /{default}/.test(content);
+        } catch {
+          // intentional no-op
+        }
+
         await project.fs.write(
           `${entry.name || 'index'}${extension}`,
-          `module.exports = require(${JSON.stringify(relativeFromRoot)});`,
+          [
+            `export * from ${JSON.stringify(relativeFromRoot)};`,
+            hasDefault
+              ? `export {default} from ${JSON.stringify(relativeFromRoot)};`
+              : false,
+          ]
+            .filter(Boolean)
+            .join('\n'),
         );
-
-        continue;
       }
-
-      let hasDefault = true;
-      let content = '';
-
-      try {
-        content = await project.fs.read(
-          (await project.fs.glob(`${absoluteEntryPath}.*`))[0],
-        );
-
-        // export default ...
-        // export {Foo as default} from ...
-        // export {default} from ...
-        hasDefault =
-          /(?:export|as) default\b/.test(content) || /{default}/.test(content);
-      } catch {
-        // intentional no-op
-      }
-
-      await project.fs.write(
-        `${entry.name || 'index'}${extension}`,
-        [
-          `export * from ${JSON.stringify(relativeFromRoot)};`,
-          hasDefault
-            ? `export {default} from ${JSON.stringify(relativeFromRoot)};`
-            : false,
-        ]
-          .filter(Boolean)
-          .join('\n'),
-      );
-    }
-  });
+    },
+  );
 }
 
 function normalizedRelative(from: string, to: string) {

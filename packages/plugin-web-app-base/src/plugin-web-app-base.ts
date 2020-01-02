@@ -82,15 +82,18 @@ export function buildWebAppWithWebpack({
         });
 
         hooks.steps.hook((steps, {configuration, webpackBuildManager}) => {
-          const step = api.createStep({}, async () => {
-            const stats = await buildWebpack(
-              await createWebpackConfig(configuration, project, workspace, {
-                mode: toMode(options.simulateEnv),
-              }),
-            );
+          const step = api.createStep(
+            {id: 'WebAppBase.WebpackBuild', label: 'run webpack'},
+            async () => {
+              const stats = await buildWebpack(
+                await createWebpackConfig(configuration, project, workspace, {
+                  mode: toMode(options.simulateEnv),
+                }),
+              );
 
-            webpackBuildManager?.emit(project, stats);
-          });
+              webpackBuildManager?.emit(project, stats);
+            },
+          );
 
           return [...steps, step];
         });
@@ -126,70 +129,75 @@ export function buildWebAppWithWebpack({
         hooks.steps.hook((steps, {configuration, webpackBuildManager}) => {
           return [
             ...steps,
-            api.createStep({indefinite: true}, async () => {
-              const {default: webpack} = await import('webpack');
-              const {default: koaWebpack} = await import('koa-webpack');
-              const {default: Koa} = await import('koa');
+            api.createStep(
+              {
+                id: 'WebAppBase.WebpackWatch',
+                label: 'start webpack in watch mode',
+              },
+              indefinite(async () => {
+                const {default: webpack} = await import('webpack');
+                const {default: koaWebpack} = await import('koa-webpack');
+                const {default: Koa} = await import('koa');
 
-              const [
-                port = await getPort(),
-                ip = 'localhost',
-              ] = await Promise.all([
-                configuration.assetServerPort?.run(defaultPort),
-                configuration.assetServerIp?.run(defaultIp),
-              ]);
+                const [
+                  port = await getPort(),
+                  ip = 'localhost',
+                ] = await Promise.all([
+                  configuration.assetServerPort?.run(defaultPort),
+                  configuration.assetServerIp?.run(defaultIp),
+                ]);
 
-              const store = createSimpleStore<State>({
-                status: BuildStatus.Building,
-              });
+                const store = createSimpleStore<State>({
+                  status: BuildStatus.Building,
+                });
 
-              configuration.webpackPublicPath!.hook(
-                () => `http://${ip}:${port}/assets`,
-              );
+                configuration.webpackPublicPath!.hook(
+                  () => `http://${ip}:${port}/assets`,
+                );
 
-              const webpackConfig = await createWebpackConfig(
-                configuration,
-                project,
-                workspace,
-                {
-                  mode: 'development',
-                },
-              );
+                const webpackConfig = await createWebpackConfig(
+                  configuration,
+                  project,
+                  workspace,
+                  {
+                    mode: 'development',
+                  },
+                );
 
-              const compiler = webpack(webpackConfig);
+                const compiler = webpack(webpackConfig);
 
-              compiler.hooks.compile.tap(PLUGIN, () => {
-                store.set({status: BuildStatus.Building});
-              });
+                compiler.hooks.compile.tap(PLUGIN, () => {
+                  store.set({status: BuildStatus.Building});
+                });
 
-              compiler.hooks.done.tap(PLUGIN, (stats) => {
-                webpackBuildManager?.emit(project, stats);
+                compiler.hooks.done.tap(PLUGIN, (stats) => {
+                  webpackBuildManager?.emit(project, stats);
 
-                if (stats.hasErrors()) {
-                  store.set({status: BuildStatus.BuildError, stats});
-                } else {
-                  store.set({status: BuildStatus.Done, stats});
-                }
-              });
+                  if (stats.hasErrors()) {
+                    store.set({status: BuildStatus.BuildError, stats});
+                  } else {
+                    store.set({status: BuildStatus.Done, stats});
+                  }
+                });
 
-              compiler.hooks.failed.tap(PLUGIN, (error) => {
-                store.set({status: BuildStatus.Error, error});
-              });
+                compiler.hooks.failed.tap(PLUGIN, (error) => {
+                  store.set({status: BuildStatus.Error, error});
+                });
 
-              const app = new Koa();
+                const app = new Koa();
 
-              app.use(async (ctx, next) => {
-                ctx.set('Access-Control-Allow-Origin', '*');
-                ctx.set('Timing-Allow-Origin', '*');
-                await next();
-              });
+                app.use(async (ctx, next) => {
+                  ctx.set('Access-Control-Allow-Origin', '*');
+                  ctx.set('Timing-Allow-Origin', '*');
+                  await next();
+                });
 
-              app.use(async (ctx, next) => {
-                const state = store.get();
+                app.use(async (ctx, next) => {
+                  const state = store.get();
 
-                if (state.status === BuildStatus.Building) {
-                  ctx.type = 'application/javascript';
-                  ctx.body = `
+                  if (state.status === BuildStatus.Building) {
+                    ctx.type = 'application/javascript';
+                    ctx.body = `
                     const event = new CustomEvent('SewingKit.BrowserAssetCompiling', {asset: ${JSON.stringify(
                       ctx.URL.href,
                     )}});
@@ -212,25 +220,26 @@ export function buildWebAppWithWebpack({
                       document.body.appendChild(root);
                     }
                   `;
-                  return;
-                }
+                    return;
+                  }
 
-                await next();
-              });
+                  await next();
+                });
 
-              app.use(
-                await koaWebpack({
-                  compiler,
-                  hotClient: false,
-                  devMiddleware: {logLevel: 'silent'} as any,
-                }),
-              );
+                app.use(
+                  await koaWebpack({
+                    compiler,
+                    hotClient: false,
+                    devMiddleware: {logLevel: 'silent'} as any,
+                  }),
+                );
 
-              app.listen(port, ip, () => {
-                // eslint-disable-next-line no-console
-                console.log(`Asset server listening on ${ip}:${port}`);
-              });
-            }),
+                app.listen(port, ip, () => {
+                  // eslint-disable-next-line no-console
+                  console.log(`Asset server listening on ${ip}:${port}`);
+                });
+              }),
+            ),
           ];
         });
       });
@@ -331,4 +340,8 @@ function toMode(env: Env) {
     default:
       return 'development';
   }
+}
+
+function indefinite(run: import('@sewing-kit/ui').Step['run']): typeof run {
+  return (step) => step.indefinite(() => run(step));
 }

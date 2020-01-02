@@ -6,7 +6,7 @@ export enum Runtime {
 }
 
 export enum ProjectKind {
-  WebApp,
-  Service,
-  Package,
+  WebApp = 'web-app',
+  Service = 'service',
+  Package = 'package',
 }

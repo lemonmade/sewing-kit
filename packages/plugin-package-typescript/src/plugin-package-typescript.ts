@@ -28,28 +28,39 @@ export function buildTypeScriptDefinitions({
 
       hooks.steps.hook((steps) => [
         ...steps,
-        api.createStep({label: 'Writing type definitions'}, async () => {
-          await Promise.all(
-            project.entries.map((entry) =>
-              remove(project.fs.resolvePath(`${entry.name || 'index'}.d.ts`)),
-            ),
-          );
-
-          if (typesAtRoot) {
-            const outputPath = await getOutputPath(project);
-            const files = await project.fs.glob(
-              project.fs.resolvePath(outputPath, '**/*.d.ts'),
-            );
-
+        api.createStep(
+          {
+            id: 'PackageTypeScript.WriteTypeDefinitions',
+            label: 'write type definitions',
+          },
+          async () => {
             await Promise.all(
-              files.map((file) =>
-                copy(file, project.fs.resolvePath(relative(outputPath, file))),
+              project.entries.map((entry) =>
+                remove(project.fs.resolvePath(`${entry.name || 'index'}.d.ts`)),
               ),
             );
-          } else {
-            writeTypeScriptEntries(project, {strategy: EntryStrategy.ReExport});
-          }
-        }),
+
+            if (typesAtRoot) {
+              const outputPath = await getOutputPath(project);
+              const files = await project.fs.glob(
+                project.fs.resolvePath(outputPath, '**/*.d.ts'),
+              );
+
+              await Promise.all(
+                files.map((file) =>
+                  copy(
+                    file,
+                    project.fs.resolvePath(relative(outputPath, file)),
+                  ),
+                ),
+              );
+            } else {
+              writeTypeScriptEntries(project, {
+                strategy: EntryStrategy.ReExport,
+              });
+            }
+          },
+        ),
       ]);
     },
   );

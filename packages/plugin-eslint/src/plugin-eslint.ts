@@ -33,7 +33,7 @@ export function eslint() {
 
     hooks.steps.hook((steps, {configuration}) => [
       ...steps,
-      api.createStep({label: 'Linting scripts with ESLint'}, async (step) => {
+      api.createStep({id: 'ESLint.Lint', label: 'run eslint'}, async (step) => {
         const {fix = false} = options;
         const extensions = await configuration.eslintExtensions!.run([]);
         const args = toArgs(

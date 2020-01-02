@@ -1,8 +1,7 @@
-import {Ui} from '@sewing-kit/ui';
+import {Ui, Step} from '@sewing-kit/ui';
 import {
   AnyPlugin,
   PluginApi,
-  createStep,
   WorkspacePlugin,
   ProjectPlugin,
   ProjectPluginContext,
@@ -31,7 +30,6 @@ export async function createWorkspaceTasksAndApplyPlugins(
   workspace: Workspace,
   delegate: SewingKitDelegate,
 ) {
-  const api = createPluginApi(workspace);
   const tasks: WorkspaceTasks = {
     build: new SeriesHook(),
     dev: new SeriesHook(),
@@ -43,6 +41,7 @@ export async function createWorkspaceTasksAndApplyPlugins(
   const plugins = await delegate.pluginsForWorkspace(workspace);
 
   for (const plugin of plugins) {
+    const api = createPluginApi(plugin, workspace);
     await handleWorkspacePlugin(plugin, {api, tasks, workspace});
   }
 
@@ -64,6 +63,9 @@ async function handleWorkspacePlugin(
   });
 
   for (const child of children) {
+    // Very hacky, not sure how else to store the parent given the weird way I've
+    // organized composing
+    (child as any).parent = plugin;
     await handleWorkspacePlugin(child, context);
   }
 
@@ -73,7 +75,6 @@ async function handleWorkspacePlugin(
 export async function createProjectTasksAndApplyPlugins<
   Type extends WebApp | Package | Service
 >(project: Type, workspace: Workspace, delegate: SewingKitDelegate) {
-  const api = createPluginApi(workspace);
   const tasks: ProjectTasks<Type> = {
     build: new SeriesHook(),
     dev: new SeriesHook(),
@@ -83,6 +84,7 @@ export async function createProjectTasksAndApplyPlugins<
   const plugins = await delegate.pluginsForProject(project);
 
   for (const plugin of plugins) {
+    const api = createPluginApi(plugin, workspace);
     await handleProjectPlugin(plugin, {tasks, api, workspace, project});
   }
 
@@ -104,13 +106,16 @@ async function handleProjectPlugin<Type extends WebApp | Package | Service>(
   });
 
   for (const child of children) {
+    // Very hacky, not sure how else to store the parent given the weird way I've
+    // organized composing
+    (child as any).parent = plugin;
     await handleProjectPlugin(child, context);
   }
 
   await plugin.run?.({...context, tasks: wrapValue(plugin, context.tasks)});
 }
 
-function createPluginApi(workspace: Workspace): PluginApi {
+function createPluginApi(plugin: AnyPlugin, workspace: Workspace): PluginApi {
   const resolvePath: PluginApi['resolvePath'] = (...parts) =>
     workspace.fs.resolvePath('.sewing-kit', ...parts);
 
@@ -123,6 +128,20 @@ function createPluginApi(workspace: Workspace): PluginApi {
     cachePath: (...parts) => resolvePath('cache', ...parts),
     tmpPath: (...parts) => resolvePath('tmp', ...parts),
   };
+
+  function createStep(
+    options: Omit<Step, 'run' | 'source'>,
+    run: Step['run'],
+  ): Step {
+    return {run, source: plugin, ...normalizeOptions(options)};
+  }
+}
+
+export function createStep(
+  options: Omit<Step, 'run' | 'source'>,
+  run: Step['run'],
+): Step {
+  return {run, ...normalizeOptions(options)};
 }
 
 function wrapValue<T>(plugin: AnyPlugin, value: T): T {
@@ -174,4 +193,10 @@ function wrapValue<T>(plugin: AnyPlugin, value: T): T {
 function wrapHook(plugin: AnyPlugin, hook: Function) {
   return (first: any, ...rest: any[]) =>
     hook(wrapValue(plugin, first), ...rest);
+}
+
+function normalizeOptions(
+  step: Parameters<typeof createStep>[0],
+): Omit<Step, 'run' | 'source'> {
+  return step;
 }

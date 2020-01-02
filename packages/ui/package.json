@@ -8,6 +8,7 @@
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
+    "@sewing-kit/model": "*",
     "ansi-escapes": "^4.3.0",
     "chalk": "^3.0.0",
     "execa": "^3.4.0",

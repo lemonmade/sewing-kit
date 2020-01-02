@@ -52,3 +52,10 @@ export class Base {
     return packageJson != null && packageJson.dependency(name) != null;
   }
 }
+
+export function toId(name: string) {
+  return name
+    .split(/[-_]/g)
+    .map((part) => `${part[0].toLocaleUpperCase()}${part.slice(1)}`)
+    .join('');
+}

@@ -37,19 +37,28 @@ export async function runTypeCheck(
     configuration,
   });
 
-  const {skip, skipPre, skipPost} = options;
+  const {skip, include, skipPre, skipPost} = options;
 
-  await run(ui, async (runner) => {
-    runner.title('type-check');
-
-    await runner.pre(pre, skipPre);
-    await runner.steps(steps, {
+  await run(ui, {
+    title: 'type-check',
+    pre: {
+      steps: pre.map((step) => ({step, target: workspace})),
+      skip: skipPre,
+      flagNames: {skip: 'skip-pre', include: 'include-pre'},
+    },
+    post: {
+      steps: post.map((step) => ({step, target: workspace})),
+      skip: skipPost,
+      flagNames: {skip: 'skip-post', include: 'include-post'},
+    },
+    steps: {
+      steps: steps.map((step) => ({step, target: workspace})),
       skip,
-      id: 'type-check',
-      separator: pre.length > 0,
-    });
-    await runner.post(post, skipPost);
-
-    runner.epilogue((fmt) => fmt`{success type-check completed successfully}`);
+      include,
+      flagNames: {skip: 'skip', include: 'include'},
+    },
+    epilogue(log) {
+      log((fmt) => fmt`{success type-check completed successfully!}`);
+    },
   });
 }

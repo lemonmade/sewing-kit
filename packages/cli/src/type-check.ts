@@ -4,6 +4,7 @@ export const typeCheck = createCommand(
   {
     '--watch': Boolean,
     '--cache': Boolean,
+    '--include': [String],
     '--skip': [String],
     '--skip-pre': [String],
     '--skip-post': [String],
@@ -12,6 +13,7 @@ export const typeCheck = createCommand(
     {
       '--watch': watch,
       '--cache': cache = true,
+      '--include': include,
       '--skip': skip,
       '--skip-pre': skipPre,
       '--skip-post': skipPost,
@@ -19,6 +21,13 @@ export const typeCheck = createCommand(
     context,
   ) => {
     const {runTypeCheck} = await import('@sewing-kit/core');
-    await runTypeCheck(context, {watch, cache, skip, skipPre, skipPost});
+    await runTypeCheck(context, {
+      watch,
+      cache,
+      include,
+      skip,
+      skipPre,
+      skipPost,
+    });
   },
 );

@@ -1,5 +1,5 @@
-import {Base, Options as BaseOptions} from './base';
 import {ProjectKind} from './types';
+import {Base, Options as BaseOptions, toId} from './base';
 
 export interface ServiceOptions extends BaseOptions {
   readonly entry?: string;
@@ -10,7 +10,7 @@ export class Service extends Base {
   readonly entry?: string;
 
   get id() {
-    return `service-${this.name}`;
+    return `Service.${toId(this.name)}`;
   }
 
   constructor({entry, ...rest}: ServiceOptions) {

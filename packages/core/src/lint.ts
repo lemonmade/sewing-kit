@@ -34,15 +34,28 @@ export async function runLint(
     configuration,
   });
 
-  const {skip, skipPre, skipPost} = options;
+  const {skip, include, skipPre, skipPost} = options;
 
-  await run(ui, async (runner) => {
-    runner.title('lint');
-
-    await runner.pre(pre, skipPre);
-    await runner.steps(steps, {skip, id: 'lint', separator: pre.length > 0});
-    await runner.post(post, skipPost);
-
-    runner.epilogue((fmt) => fmt`{success linting completed successfully}`);
+  await run(ui, {
+    title: 'lint',
+    pre: {
+      steps: pre.map((step) => ({step, target: workspace})),
+      skip: skipPre,
+      flagNames: {skip: 'skip-pre', include: 'include-pre'},
+    },
+    post: {
+      steps: post.map((step) => ({step, target: workspace})),
+      skip: skipPost,
+      flagNames: {skip: 'skip-post', include: 'include-post'},
+    },
+    steps: {
+      steps: steps.map((step) => ({step, target: workspace})),
+      skip,
+      include,
+      flagNames: {skip: 'skip', include: 'include'},
+    },
+    epilogue(log) {
+      log((fmt) => fmt`{success lint completed successfully!}`);
+    },
   });
 }

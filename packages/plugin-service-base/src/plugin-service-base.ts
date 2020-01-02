@@ -50,15 +50,18 @@ export function buildServiceWithWebpack({
         });
 
         hooks.steps.hook((steps, {configuration, webpackBuildManager}) => {
-          const step = api.createStep({}, async () => {
-            const stats = await buildWebpack(
-              await createWebpackConfig(configuration, project, workspace, {
-                mode: toMode(options.simulateEnv),
-              }),
-            );
+          const step = api.createStep(
+            {id: 'ServiceBase.WebpackBuild', label: 'run webpack'},
+            async () => {
+              const stats = await buildWebpack(
+                await createWebpackConfig(configuration, project, workspace, {
+                  mode: toMode(options.simulateEnv),
+                }),
+              );
 
-            webpackBuildManager?.emit(project, stats);
-          });
+              webpackBuildManager?.emit(project, stats);
+            },
+          );
 
           return [...steps, step];
         });
@@ -83,8 +86,11 @@ export function buildServiceWithWebpack({
           return [
             ...steps,
             api.createStep(
-              {indefinite: true, label: 'Compiling for development mode'},
-              async (step) => {
+              {
+                id: 'ServiceBase.WebpackWatch',
+                label: 'start webpack in watch mode',
+              },
+              indefinite(async (step) => {
                 const {default: Koa} = await import('koa');
                 const {default: webpack} = await import('webpack');
 
@@ -200,7 +206,7 @@ export function buildServiceWithWebpack({
                     }
                   });
                 });
-              },
+              }),
             ),
           ];
         });
@@ -312,4 +318,8 @@ function createSimpleStore<T>(initialState: T) {
       return () => subscribers.delete(subscriber);
     },
   };
+}
+
+function indefinite(run: import('@sewing-kit/ui').Step['run']): typeof run {
+  return (step) => step.indefinite(() => run(step));
 }

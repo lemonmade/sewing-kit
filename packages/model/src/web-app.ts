@@ -1,5 +1,5 @@
-import {Base, Options as BaseOptions} from './base';
 import {ProjectKind} from './types';
+import {Base, Options as BaseOptions, toId} from './base';
 
 export interface ServiceWorkerOptions {
   readonly entry: string;
@@ -24,7 +24,7 @@ export class WebApp extends Base {
   readonly serviceWorker?: ServiceWorker;
 
   get id() {
-    return `webApp-${this.name}`;
+    return `WebApp.${toId(this.name)}`;
   }
 
   constructor({entry, serviceWorker, ...rest}: WebAppOptions) {

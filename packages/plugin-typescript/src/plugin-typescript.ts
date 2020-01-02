@@ -180,7 +180,10 @@ const TSBUILDINFO_FILE = 'tsconfig.tsbuildinfo';
 
 function createCacheSaveStep({workspace, api}: WorkspacePluginContext) {
   return api.createStep(
-    {label: 'Saving TypeScript cache', skip: /(ts|typescript)[-_]?cache/i},
+    {
+      id: 'TypeScript.SaveCache',
+      label: 'save typescript cache',
+    },
     async () => {
       try {
         const {references = []} = JSON.parse(
@@ -245,8 +248,8 @@ function createWriteFallbackEntriesStep({
 }: WorkspacePluginContext) {
   return api.createStep(
     {
-      label: 'Writing TypeScript entries',
-      skip: /(ts|typescript)[-_]?entr(y|ies)/i,
+      id: 'TypeScript.WriteEntries',
+      label: 'write typescript entries',
     },
     async () => {
       await Promise.all(
@@ -264,8 +267,8 @@ function createLoadTypeScriptCacheStep({
 }: WorkspacePluginContext) {
   return api.createStep(
     {
-      label: 'Restoring TypeScript cache',
-      skip: /(ts|typescript)[-_]?cache/i,
+      id: 'TypeScript.RestoreCache',
+      label: 'restore typescript cache',
     },
     async () => {
       try {
@@ -304,7 +307,10 @@ export function createRunTypeScriptStep(
   configure: Partial<TypeScriptTypeCheckingHooks>,
 ) {
   return api.createStep(
-    {label: 'Type checking with TypeScript', skip: /(ts|typescript)/i},
+    {
+      id: 'TypeScript.TypeCheck',
+      label: 'run typescript',
+    },
     async (step) => {
       const heap = await configure.typescriptHeap!.run(0);
       const heapArguments = heap ? [`--max-old-space-size=${heap}`] : [];

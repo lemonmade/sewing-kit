@@ -6,9 +6,10 @@ import {
   DevPackageHooks,
 } from '@sewing-kit/hooks';
 import {DevTaskOptions, DevWorkspaceTaskHooks} from '@sewing-kit/tasks';
-import {run} from '@sewing-kit/ui';
+import {run, LogLevel} from '@sewing-kit/ui';
 
 import {
+  createStep,
   TaskContext,
   createWorkspaceTasksAndApplyPlugins,
   createProjectTasksAndApplyPlugins,
@@ -55,7 +56,22 @@ export async function runDev(
       const context = await hooks.context.run({configuration});
       const steps = await hooks.steps.run([], context);
 
-      return {steps, webApp};
+      const step = createStep(
+        {
+          id: 'SewingKit.DevWebApp',
+          label: (fmt) => fmt`start dev mode for {emphasis ${webApp.name}}`,
+        },
+        async (step) => {
+          if (steps.length === 0) {
+            step.log('no development steps available', {level: LogLevel.Debug});
+            return;
+          }
+
+          await step.runNested(steps);
+        },
+      );
+
+      return {step, target: webApp};
     }),
   );
 
@@ -85,38 +101,68 @@ export async function runDev(
       const context = await hooks.context.run({configuration});
       const steps = await hooks.steps.run([], context);
 
-      return {service, steps};
+      const step = createStep(
+        {
+          id: 'SewingKit.DevService',
+          label: (fmt) => fmt`start dev mode for {emphasis ${service.name}}`,
+        },
+        async (step) => {
+          if (steps.length === 0) {
+            step.log('no development steps available', {level: LogLevel.Debug});
+            return;
+          }
+
+          await step.runNested(steps);
+        },
+      );
+
+      return {step, target: service};
     }),
   );
 
-  const packageSteps = (
-    await Promise.all(
-      workspace.packages.map(async (pkg) => {
-        const {dev} = await createProjectTasksAndApplyPlugins(
-          pkg,
-          workspace,
-          delegate,
-        );
+  const packageSteps = await Promise.all(
+    workspace.packages.map(async (pkg) => {
+      const {dev} = await createProjectTasksAndApplyPlugins(
+        pkg,
+        workspace,
+        delegate,
+      );
 
-        const hooks: DevPackageHooks = {
-          configureHooks: new WaterfallHook(),
-          configure: new SeriesHook(),
-          context: new WaterfallHook(),
-          steps: new WaterfallHook(),
-        };
+      const hooks: DevPackageHooks = {
+        configureHooks: new WaterfallHook(),
+        configure: new SeriesHook(),
+        context: new WaterfallHook(),
+        steps: new WaterfallHook(),
+      };
 
-        await dev.run({options, hooks});
+      await dev.run({options, hooks});
 
-        const configuration = await hooks.configureHooks.run({});
-        await hooks.configure.run(configuration);
+      const configuration = await hooks.configureHooks.run({});
+      await hooks.configure.run(configuration);
 
-        const context = await hooks.context.run({configuration});
-        const steps = await hooks.steps.run([], context);
+      const context = await hooks.context.run({configuration});
+      const steps = await hooks.steps.run([], context);
 
-        return {pkg, steps};
-      }),
-    )
-  ).flat();
+      const step = createStep(
+        {
+          id: 'SewingKit.DevPackage',
+          label: (fmt) => fmt`start dev mode for {emphasis ${pkg.name}}`,
+        },
+        async (step) => {
+          if (steps.length === 0) {
+            step.log('no development steps available', {level: LogLevel.Debug});
+            return;
+          }
+
+          await step.runNested(steps);
+        },
+      );
+
+      return {step, target: pkg};
+    }),
+  );
+
+  const allSteps = [...packageSteps, ...webAppSteps, ...serviceSteps];
 
   const configuration = await devTaskHooks.configureHooks.run({});
   await devTaskHooks.configure.run(configuration);
@@ -126,29 +172,28 @@ export async function runDev(
     devTaskHooks.post.run([], {configuration}),
   ]);
 
-  const {skip, skipPre, skipPost} = options;
+  const {include, skip, skipPre, skipPost} = options;
 
-  await run(ui, async (runner) => {
-    runner.title('dev');
-
-    await runner.pre(pre, skipPre);
-
-    runner.separator();
-
-    for (const {webApp, steps} of webAppSteps) {
-      await runner.steps(steps, {id: webApp.name, skip});
-    }
-
-    for (const {pkg, steps} of packageSteps) {
-      await runner.steps(steps, {id: pkg.name, skip});
-    }
-
-    for (const {service, steps} of serviceSteps) {
-      await runner.steps(steps, {id: service.name, skip});
-    }
-
-    await runner.post(post, skipPost);
-
-    runner.epilogue((fmt) => fmt`{success dev completed successfully!}`);
+  await run(ui, {
+    title: 'dev',
+    pre: {
+      steps: pre.map((step) => ({step, target: workspace})),
+      skip: skipPre,
+      flagNames: {skip: 'skip-pre', include: 'include-pre'},
+    },
+    post: {
+      steps: post.map((step) => ({step, target: workspace})),
+      skip: skipPost,
+      flagNames: {skip: 'skip-post', include: 'include-post'},
+    },
+    steps: {
+      steps: allSteps,
+      skip,
+      include,
+      flagNames: {skip: 'skip', include: 'include'},
+    },
+    epilogue(log) {
+      log((fmt) => fmt`{success dev completed successfully!}`);
+    },
   });
 }

@@ -1,5 +1,5 @@
 import {Runtime, ProjectKind} from './types';
-import {Base, Options as BaseOptions} from './base';
+import {Base, Options as BaseOptions, toId} from './base';
 
 export interface PackageEntryOptions {
   readonly root: string;
@@ -50,7 +50,7 @@ export class Package extends Base {
   readonly binaries: readonly PackageBinary[];
 
   get id() {
-    return `package-${this.name}`;
+    return `Package.${toId(this.name)}`;
   }
 
   get runtimeName() {

@@ -4,6 +4,7 @@ export const build = createCommand(
   {
     '--source-maps': Boolean,
     '--env': String,
+    '--include': [String],
     '--skip': [String],
     '--skip-pre': [String],
     '--skip-post': [String],
@@ -12,6 +13,7 @@ export const build = createCommand(
     {
       '--env': rawEnv,
       '--source-maps': sourceMaps,
+      '--include': include,
       '--skip': skip,
       '--skip-pre': skipPre,
       '--skip-post': skipPost,
@@ -25,6 +27,7 @@ export const build = createCommand(
       env,
       simulateEnv: env,
       sourceMaps,
+      include,
       skip,
       skipPre,
       skipPost,

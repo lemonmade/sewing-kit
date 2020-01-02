@@ -12,5 +12,5 @@
     "types": ["supports-hyperlinks"]
   },
   "include": ["src/**/*.ts"],
-  "references": []
+  "references": [{"path": "../model"}]
 }

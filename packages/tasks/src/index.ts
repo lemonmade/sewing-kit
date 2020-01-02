@@ -60,6 +60,7 @@ export interface ProjectTasks<Type extends Project> {
 export interface TypeCheckOptions {
   readonly watch?: boolean;
   readonly cache?: boolean;
+  readonly include?: string[];
   readonly skip?: readonly string[];
   readonly skipPre?: readonly string[];
   readonly skipPost?: readonly string[];
@@ -88,6 +89,7 @@ export interface TypeCheckWorkspaceTask {
 
 export interface LintTaskOptions {
   readonly fix?: boolean;
+  readonly include?: string[];
   readonly skip?: string[];
   readonly cache?: boolean;
   readonly skipPre?: string[];
@@ -121,7 +123,8 @@ export interface TestTaskOptions {
   readonly coverage?: boolean;
   readonly testPattern?: string;
   readonly testNamePattern?: string;
-  readonly updateSnapshot?: boolean;
+  readonly updateSnapshots?: boolean;
+  readonly include?: string[];
   readonly skip?: string[];
   readonly skipPre?: string[];
   readonly skipPost?: string[];
@@ -165,6 +168,7 @@ export interface BuildTaskOptions {
   readonly sourceMaps?: boolean;
   readonly cache?: boolean;
   readonly skip?: string[];
+  readonly include?: string[];
   readonly skipPre?: string[];
   readonly skipPost?: string[];
 }
@@ -204,6 +208,7 @@ export interface BuildProjectTask<Type extends Project> {
 
 export interface DevTaskOptions {
   readonly sourceMaps?: boolean;
+  readonly include?: string[];
   readonly skip?: string[];
   readonly skipPre?: string[];
   readonly skipPost?: string[];

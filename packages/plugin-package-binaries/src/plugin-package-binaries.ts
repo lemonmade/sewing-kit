@@ -33,9 +33,9 @@ function createWriteBinariesStep({
 
   return api.createStep(
     {
-      label: `Writing ${binaryCount} ${
-        binaryCount > 1 ? 'binaries' : 'binary'
-      }`,
+      id: 'PackageBinaries.WriteBinaries',
+      label:
+        binaryCount === 1 ? 'write binary' : `write ${binaryCount} binaries`,
     },
     async (step) => {
       await Promise.all(

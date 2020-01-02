@@ -4,6 +4,7 @@ export const lint = createCommand(
   {
     '--fix': Boolean,
     '--cache': Boolean,
+    '--include': [String],
     '--skip': [String],
     '--skip-pre': [String],
     '--skip-post': [String],
@@ -12,6 +13,7 @@ export const lint = createCommand(
     {
       '--fix': fix,
       '--cache': cache = true,
+      '--include': include,
       '--skip': skip,
       '--skip-pre': skipPre,
       '--skip-post': skipPost,
@@ -19,6 +21,6 @@ export const lint = createCommand(
     context,
   ) => {
     const {runLint} = await import('@sewing-kit/core');
-    await runLint(context, {fix, cache, skip, skipPre, skipPost});
+    await runLint(context, {fix, cache, include, skip, skipPre, skipPost});
   },
 );

@@ -25,6 +25,7 @@ interface BasePlugin {
   readonly id: string;
   readonly target: PluginTarget;
   readonly [PLUGIN_MARKER]: true;
+  readonly parent?: BasePlugin;
 }
 
 export interface PluginComposer<Plugin extends BasePlugin> {
@@ -41,6 +42,7 @@ export interface ProjectPluginContext<Type extends Project> {
 export interface ProjectPlugin<Type extends Project = Project>
   extends BasePlugin {
   readonly target: PluginTarget.Project;
+  readonly parent?: ProjectPlugin<Project>;
   run?(context: ProjectPluginContext<Type>): any;
   compose?(composer: PluginComposer<ProjectPlugin<Type>>): any;
 }
@@ -53,6 +55,7 @@ export interface WorkspacePluginContext {
 
 export interface WorkspacePlugin extends BasePlugin {
   readonly target: PluginTarget.Workspace;
+  readonly parent?: WorkspacePlugin;
   run?(context: WorkspacePluginContext): any;
   compose?(composer: PluginComposer<WorkspacePlugin>): any;
 }

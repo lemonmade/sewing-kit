@@ -142,7 +142,10 @@ export function jest() {
       hooks.pre.hook((steps, {configuration}) => [
         ...steps,
         api.createStep(
-          {label: 'Writing Jest configuration files'},
+          {
+            id: 'Jest.WriteConfigurationFiles',
+            label: 'write jest configuration files',
+          },
           async () => {
             const [rootSetupEnvFiles, rootSetupTestsFiles] = await Promise.all([
               configuration.jestSetupEnv!.run([]),
@@ -225,7 +228,7 @@ export function jest() {
 
       hooks.steps.hook((steps, {configuration}) => [
         ...steps,
-        api.createStep({label: 'Running Jest', indefinite: true}, async () => {
+        api.createStep({id: 'Jest.Test', label: 'run jest'}, async (step) => {
           process.env.BABEL_ENV = 'test';
           process.env.NODE_ENV = 'test';
 
@@ -240,26 +243,34 @@ export function jest() {
             watch = !isCi,
             testPattern,
             testNamePattern,
-            updateSnapshot,
+            updateSnapshots,
           } = options;
 
-          const flags = await configuration.jestFlags!.run({
-            ci: isCi ? isCi : undefined,
-            config: rootConfigPath,
-            coverage,
-            watch: watch && testPattern == null,
-            watchAll: watch && testPattern != null,
-            onlyChanged: !isCi && testPattern == null,
-            testNamePattern,
-            testPathPattern: testPattern,
-            updateSnapshot,
-            runInBand: debug,
-            forceExit: debug,
-            cacheDirectory: api.cachePath('jest'),
-          });
+          async function run() {
+            const flags = await configuration.jestFlags!.run({
+              ci: isCi ? isCi : undefined,
+              config: rootConfigPath,
+              coverage,
+              watch: watch && testPattern == null,
+              watchAll: watch && testPattern != null,
+              onlyChanged: !isCi && testPattern == null,
+              testNamePattern,
+              testPathPattern: testPattern,
+              updateSnapshot: updateSnapshots,
+              runInBand: debug,
+              forceExit: debug,
+              cacheDirectory: api.cachePath('jest'),
+            });
 
-          const jest = await import('jest');
-          jest.default.run(toArgs(flags));
+            const jest = await import('jest');
+            jest.default.run(toArgs(flags));
+          }
+
+          if (watch) {
+            step.indefinite(run);
+          } else {
+            await run();
+          }
         }),
       ]);
     },
