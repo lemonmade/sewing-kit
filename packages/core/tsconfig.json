@@ -3,7 +3,13 @@
   "compilerOptions": {
     "outDir": "build/ts",
     "baseUrl": "src",
-    "rootDir": "src"
+    "rootDir": "src",
+    "typeRoots": [
+      "./node_modules/@types",
+      "../../node_modules/@types",
+      "./config/typescript/typings"
+    ],
+    "types": ["execa"]
   },
   "include": ["src/**/*.ts"],
   "references": []
