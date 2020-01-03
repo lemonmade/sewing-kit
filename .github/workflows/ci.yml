@@ -41,7 +41,7 @@ jobs:
             ${{ runner.os }}-typescript-
 
       - name: Type check
-        run: yarn type-check --log-level debug --skip-pre TypeScript.RestoreCache
+        run: yarn type-check --log-level debug --skip-pre-step TypeScript.RestoreCache
 
   test:
     runs-on: ubuntu-latest
