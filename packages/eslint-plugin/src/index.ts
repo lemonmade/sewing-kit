@@ -6,7 +6,7 @@ import jest from './config/jest';
 import node from './config/node';
 import prettier from './config/prettier';
 
-export const rules = {};
+export {rules} from './rules';
 
 export const configs = {
   // Core configs - When extending, one of these should go first
