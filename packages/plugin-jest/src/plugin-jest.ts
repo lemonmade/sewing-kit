@@ -263,7 +263,7 @@ export function jest() {
             });
 
             const jest = await import('jest');
-            jest.default.run(toArgs(flags));
+            await jest.default.run(toArgs(flags));
           }
 
           if (watch) {

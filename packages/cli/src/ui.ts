@@ -1,4 +1,3 @@
-import {clearScreenDown, clearLine, moveCursor, cursorTo} from 'readline';
 import {link} from 'ansi-escapes';
 import chalk from 'chalk';
 import {supportsHyperlink} from 'supports-hyperlinks';
@@ -65,7 +64,7 @@ function createFormatter(stream: NodeJS.WriteStream) {
 class FormattedStream {
   private readonly formatter: LogFormatter;
 
-  constructor(private readonly stream: NodeJS.WriteStream) {
+  constructor(public readonly stream: NodeJS.WriteStream) {
     this.formatter = createFormatter(stream);
   }
 
@@ -77,16 +76,6 @@ class FormattedStream {
     const stringified = this.stringify(value);
     this.stream.write(stringified);
     return stringified;
-  }
-
-  moveCursor(x = 0, y = 0) {
-    moveCursor(this.stream, x, y);
-    cursorTo(this.stream, x);
-  }
-
-  clearDown() {
-    clearScreenDown(this.stream);
-    clearLine(this.stream, 0);
   }
 }
 

@@ -1,5 +1,10 @@
+/* eslint require-atomic-updates: off */
+
 import {cpus, freemem} from 'os';
+import {cursorTo, clearScreenDown, emitKeypressEvents} from 'readline';
+
 import exec from 'execa';
+import signalExit from 'signal-exit';
 import {Workspace} from '@sewing-kit/model';
 
 import {
@@ -13,6 +18,7 @@ import {
 
 import {TaskContext, logError, StepInclusionFlag} from './common';
 import {Ui} from './ui';
+import {StreamController} from './streams';
 
 type Arguments<T> = T extends (...args: infer U) => any ? U : never;
 
@@ -39,11 +45,27 @@ interface FocusedSubStep {
   content?: Loggable;
 }
 
+enum FocusedStepState {
+  Running,
+  Succeeded,
+  Failed,
+  Skipped,
+}
+
 interface FocusedStep {
   readonly step: Step;
+  state: FocusedStepState;
   counts: StepCounts;
   content?: Loggable;
   subSteps?: Set<FocusedSubStep>;
+}
+
+enum ControlCharacter {
+  ShowCursor = '\u001B[?25h',
+  HideCursor = '\u001B[?25l',
+  Clear = '\x1b[2J',
+  Escape = '\u001b',
+  ControlC = '\u0003',
 }
 
 class PersistentSection {
@@ -84,33 +106,63 @@ interface StepGroupDetails {
   readonly separator: boolean;
 }
 
+interface IndefiniteStep {
+  readonly run: Parameters<NestedStepRunner['indefinite']>[0];
+  readonly step: Step;
+  readonly group: string;
+}
+
 export async function run(
   context: TaskContext,
   {title, pre, post, steps, epilogue}: RunOptions,
 ) {
   const {ui, workspace, steps: stepTracker} = context;
 
-  let tick = 0;
-  let lastPersistentContentSize = 0;
-
-  const isInteractive = process.stdout.isTTY;
+  const isInteractive = ui.stdout.stream.isTTY;
   const logQueue: Arguments<Ui['log']>[] = [];
   const pastAlerts = new PersistentSection();
   const activeStepGroup = new PersistentSection();
+  const indefiniteTaskSwitcher = new PersistentSection();
   const persistentSections = new Set<PersistentSection>([
     new PersistentSection(
       (fmt) => fmt`{subdued ${repeatWithTerminalWidth('=')}}`,
     ),
     pastAlerts,
     activeStepGroup,
+    indefiniteTaskSwitcher,
   ]);
 
-  const update = () => {
+  const indefiniteSteps = new Set<IndefiniteStep>();
+
+  let interval: any;
+  let spinnerInterval: any;
+  let tick = 0;
+  let lastPersistentContentSize = 0;
+
+  const start = () => {
+    if (isInteractive) {
+      hideCursor(ui.stdout.stream);
+      interval = setInterval(update, 30);
+      spinnerInterval = setInterval(() => {
+        tick = (tick + 1) % symbols.length;
+      }, 60);
+    }
+  };
+
+  const clear = () => {
     if (!isInteractive) return;
 
-    if (lastPersistentContentSize > 0) {
-      ui.stdout.moveCursor(0, -1 * Math.max(0, lastPersistentContentSize - 1));
-      ui.stdout.clearDown();
+    let line = 0;
+
+    while (line < lastPersistentContentSize) {
+      if (line > 0) {
+        ui.stdout.stream.moveCursor(0, -1);
+      }
+
+      ui.stdout.stream.clearLine(0);
+      ui.stdout.stream.cursorTo(0);
+
+      line += 1;
     }
 
     for (const queued of logQueue) {
@@ -118,6 +170,13 @@ export async function run(
     }
 
     logQueue.length = 0;
+    lastPersistentContentSize = 0;
+  };
+
+  const update = () => {
+    if (!isInteractive) return;
+
+    clear();
 
     const persistentContent = [...persistentSections]
       .map(({content}) => ui.stdout.stringify(content).trim())
@@ -143,12 +202,14 @@ export async function run(
     }
   };
 
-  const logSeparator = () => {
-    log((fmt) => fmt`{subdued ${repeatWithTerminalWidth('~')}}`);
+  start();
+
+  const logSeparator = (symbol = '~') => {
+    log((fmt) => fmt`{subdued ${repeatWithTerminalWidth(symbol)}}`);
   };
 
   const repeatWithTerminalWidth = (content: string) =>
-    content.repeat(process.stdout.columns ?? 30);
+    content.repeat(process.stdout.columns ?? 80);
 
   const runSteps = async ({
     label,
@@ -163,8 +224,8 @@ export async function run(
     }
 
     const stepQueue = new StepQueue();
-
     const focusedSteps = new Set<FocusedStep>();
+    const uiTimeouts = new Set<ReturnType<typeof setTimeout>>();
 
     let skippedSteps = 0;
     let finishedSteps = 0;
@@ -204,24 +265,46 @@ export async function run(
           : false;
 
       const runningPart =
-        remainingSteps > 0
+        // eslint-disable-next-line no-nested-ternary
+        failedSteps > 0
+          ? `failed while running ${steps.length.toLocaleString()}`
+          : remainingSteps > 0
           ? `running ${steps.length.toLocaleString()}`
           : 'finished running';
 
-      return fmt`{info ${
-        symbols[tick % symbols.length]
-      }} {emphasis [${label}]} ${runningPart} ${
+      const title: Loggable =
+        failedSteps > 0
+          ? (fmt) => fmt`{error ✕ {emphasis [${label}]}}`
+          : (fmt) => fmt`{info ${symbols[tick]}} {emphasis [${label}]}`;
+
+      const stepCounts: Loggable =
+        steps.length > 1
+          ? (fmt) =>
+              fmt` {subdued (}${[
+                errorPart,
+                finishedPart,
+                skippedPart,
+                remainingPart,
+              ]
+                .filter(Boolean)
+                .join(fmt`{subdued , }`)}{subdued )}`
+          : '';
+
+      return fmt`${title} ${runningPart} ${
         steps.length === 1 ? 'step' : 'steps'
-      } {subdued (}${[errorPart, finishedPart, skippedPart, remainingPart]
-        .filter(Boolean)
-        .join(fmt`{subdued , }`)}{subdued )}${
-        focusedSteps.size > 0 ? '\n' : ''
-      }${[...focusedSteps]
+      }${stepCounts}${focusedSteps.size > 0 ? '\n' : ''}${[...focusedSteps]
         .map(
-          ({step, content}) =>
-            fmt`  {subdued └} runnning step {emphasis ${step.label!}}${
-              content ? fmt`\n  ${content}` : ''
-            }`,
+          ({step, content, state}) =>
+            fmt`  {subdued └} ${(fmt) => {
+              switch (state) {
+                case FocusedStepState.Failed:
+                  return fmt`{error ✕}`;
+                case FocusedStepState.Succeeded:
+                  return fmt`{success ✓}`;
+                default:
+                  return fmt`{info ${symbols[tick]}}`;
+              }
+            }} ${step.label}${content ? fmt`\n  ${content}` : ''}`,
         )
         .join('\n')}`;
     });
@@ -245,8 +328,10 @@ export async function run(
 
         for (const step of steps) {
           stepTracker.setStepParent(step, parent);
-          subStepLog((fmt) => fmt`starting sub-step {info ${step.label!}}`);
-          groupLog(createStepDebugLog(step, target, context, {flagNames}));
+          subStepLog((fmt) => fmt`starting sub-step {info ${step.label}}`);
+          groupLog(createStepDebugLog(step, target, context, {flagNames}), {
+            level: LogLevel.Debug,
+          });
 
           const permission = checkStep(step);
 
@@ -256,7 +341,7 @@ export async function run(
           ) {
             focused.counts.skip += 1;
 
-            subStepLog((fmt) => fmt`skipped sub-step {info ${step.label!}}`);
+            subStepLog((fmt) => fmt`skipped sub-step {info ${step.label}}`);
 
             groupLog(
               (fmt) =>
@@ -275,13 +360,7 @@ export async function run(
             await step.run({
               exec,
               indefinite(run) {
-                // need to indicate there is an indefinite task
-                run();
-              },
-              stdio: {
-                stdout: {} as any,
-                stderr: {} as any,
-                stdin: {} as any,
+                indefiniteSteps.add({step, run, group: label});
               },
               status(_status: Loggable) {},
               log(loggable: Loggable, options?: LogOptions) {
@@ -294,18 +373,16 @@ export async function run(
               runNested: (steps) => runNested(steps, target),
             });
 
-            // eslint-disable-next-line require-atomic-updates
             focused.counts.finished += 1;
 
             if (step.label) {
-              subStepLog((fmt) => fmt`finished sub-step {info ${step.label!}}`);
+              subStepLog((fmt) => fmt`finished sub-step {info ${step.label}}`);
             }
           } catch (error) {
-            // eslint-disable-next-line require-atomic-updates
             focused.counts.fail += 1;
 
             subStepLog(
-              (fmt) => fmt`failed during sub-step {error ${step.label!}}`,
+              (fmt) => fmt`failed during sub-step {error ${step.label}}`,
             );
 
             throw error;
@@ -316,10 +393,8 @@ export async function run(
       return {
         exec,
         indefinite(run) {
-          // need to indicate there is an indefinite task
-          run();
+          indefiniteSteps.add({step: parent, run, group: label});
         },
-        stdio: {stdout: {} as any, stderr: {} as any, stdin: {} as any},
         status(_status: Loggable) {},
         log(loggable: Loggable, options?: LogOptions) {
           groupLog((fmt) => fmt`log from ${parent.label}`, options);
@@ -337,6 +412,7 @@ export async function run(
       stepQueue.enqueue(step, async () => {
         const focusedStep: FocusedStep = {
           step,
+          state: FocusedStepState.Running,
           counts: {fail: 0, skip: 0, finished: 0, total: 0},
         };
 
@@ -352,6 +428,7 @@ export async function run(
           permission === StepRunPermission.Skipped
         ) {
           skippedSteps += 1;
+          focusedStep.state = FocusedStepState.Succeeded;
 
           groupLog((fmt) => fmt`skipped step: {info ${step.label}}`);
           groupLog(
@@ -390,33 +467,31 @@ export async function run(
           await step.run(createStepRunner(step, target, focusedStep));
 
           finishedSteps += 1;
+          focusedStep.state = FocusedStepState.Succeeded;
           focusedSteps.delete(focusedStep);
 
           if (step.label) {
-            groupLog((fmt) => fmt`finished step {info ${step.label!}}`);
+            groupLog((fmt) => fmt`finished step {info ${step.label}}`);
           }
         } catch (error) {
           failedSteps += 1;
+          focusedStep.state = FocusedStepState.Failed;
 
-          groupLog((fmt) => fmt`failed during step {info ${step.label!}}`);
+          groupLog((fmt) => fmt`failed during step {info ${step.label}}`);
 
           throw error;
         }
       }),
     );
 
-    await Promise.all(stepPromises);
+    try {
+      await Promise.all(stepPromises);
+    } finally {
+      for (const timeout of uiTimeouts) {
+        clearTimeout(timeout);
+      }
+    }
   };
-
-  let interval: any;
-  let spinnerInterval: any;
-
-  if (isInteractive) {
-    interval = setInterval(update, 16);
-    spinnerInterval = setInterval(() => {
-      tick += 1;
-    }, 60);
-  }
 
   try {
     log((fmt) => fmt`🧵 {title ${title}}\n`);
@@ -435,7 +510,7 @@ export async function run(
 
     await runSteps({
       label: title,
-      separator: true,
+      separator: pre.length > 0,
       steps,
       skip: stepTracker.inclusion.skipSteps,
       isolate: stepTracker.inclusion.isolateSteps,
@@ -447,7 +522,7 @@ export async function run(
 
     await runSteps({
       label: 'post',
-      separator: true,
+      separator: steps.length + pre.length > 0,
       steps: post.map((step) => ({target: workspace, step})),
       skip: stepTracker.inclusion.skipPostSteps,
       isolate: stepTracker.inclusion.isolatePostSteps,
@@ -458,20 +533,102 @@ export async function run(
     });
 
     if (epilogue) {
-      logSeparator();
+      logSeparator('=');
       await epilogue(log);
     }
 
-    update();
+    clear();
+    ui.stdout.write('\n');
   } catch (error) {
     update();
+    ui.stdout.write('\n\n');
     logError(error, ui.error.bind(ui));
-    // eslint-disable-next-line require-atomic-updates
     process.exitCode = 1;
   } finally {
     if (interval) clearInterval(interval);
     if (spinnerInterval) clearInterval(spinnerInterval);
   }
+
+  if (indefiniteSteps.size === 0) {
+    return;
+  }
+
+  let activeController: StreamController | null = null;
+  const indefiniteTasks: {
+    controller: StreamController;
+    step: Step;
+    group: string;
+  }[] = [];
+
+  const print = () => {
+    showCursor(ui.stdout.stream);
+    cursorTo(ui.stdout.stream, 0, 0);
+    clearScreenDown(ui.stdout.stream);
+    hideCursor(ui.stdout.stream);
+
+    ui.stdout.write(
+      (fmt) =>
+        fmt`🧵 {title sewing-kit interactive mode}\n{subdued (press a number to see that step’s output)}\n\n`,
+    );
+
+    for (const [index, {step}] of indefiniteTasks.entries()) {
+      ui.stdout.write(
+        (fmt) =>
+          fmt`{emphasis ${String(index + 1)}.} ${step.label} {subdued [${
+            step.id
+          }]}\n`,
+      );
+    }
+  };
+
+  process.stdin.setRawMode(true);
+  emitKeypressEvents(process.stdin);
+  process.stdin.on(
+    'keypress',
+    (_: Buffer, {name: key, ctrl}: {name: string; ctrl: boolean}) => {
+      if (key === 'c' && ctrl) {
+        process.emit('SIGINT', 'SIGINT');
+      } else if (key === 'escape') {
+        activeController?.background();
+        activeController = null;
+        print();
+      } else {
+        const parsed = Number.parseInt(key, 10);
+        if (Number.isNaN(parsed)) {
+          return;
+        }
+
+        const task = indefiniteTasks[parsed - 1];
+
+        if (task == null) {
+          return;
+        }
+
+        activeController = task.controller;
+
+        showCursor(ui.stdout.stream);
+        cursorTo(ui.stdout.stream, 0, 0);
+        clearScreenDown(ui.stdout.stream);
+        hideCursor(ui.stdout.stream);
+
+        activeController.foreground();
+        ui.stdout.write(
+          (fmt) =>
+            fmt`\n\n🧵 {emphasis note:} sewing-kit has restored the output for {info ${task.step.label}}.\n{subdued press <escape> to return to the list of all active steps}\n\n`,
+        );
+      }
+    },
+  );
+
+  for (const {step, run, group} of indefiniteSteps) {
+    const controller = new StreamController(ui.stdout.stream, ui.stderr.stream);
+
+    indefiniteTasks.push({controller, step, group});
+
+    run({stdio: controller});
+  }
+
+  print();
 }
 
 function timestamp(date = new Date()) {
@@ -700,4 +857,26 @@ function createStepDebugSourceLog(
     fmt`${
       rest.length > 0 ? 'plugin chain' : 'plugin'
     } {emphasis ${userAdded}}${restPart}`;
+}
+
+let listeningToReshowCursor = false;
+
+// @see https://github.com/sindresorhus/cli-cursor/blob/master/index.js
+// @see https://github.com/sindresorhus/restore-cursor/blob/master/index.js
+function hideCursor(stream: NodeJS.WriteStream) {
+  if (!listeningToReshowCursor) {
+    listeningToReshowCursor = true;
+    signalExit(
+      () => {
+        stream.write(ControlCharacter.ShowCursor);
+      },
+      {alwaysLast: true},
+    );
+  }
+
+  stream.write(ControlCharacter.HideCursor);
+}
+
+function showCursor(stream: NodeJS.WriteStream) {
+  stream.write(ControlCharacter.ShowCursor);
 }

@@ -24,17 +24,20 @@ export interface StepResources {
 }
 
 export interface StepStdio {
-  readonly stdout: NodeJS.WriteStream;
-  readonly stderr: NodeJS.WriteStream;
-  readonly stdin: NodeJS.ReadStream;
+  readonly stdout: import('stream').Writable;
+  readonly stderr: import('stream').Writable;
+  readonly stdin: import('stream').Readable;
+}
+
+interface IndefiniteStepRunner {
+  readonly stdio: StepStdio;
 }
 
 // We probably need to add some sort of listener system so the step can
 // listen for types of events (close, switch to another stdio stream?),
 // primarily for cleaning up spawned processes and the like
 export interface StepRunner {
-  readonly stdio: StepStdio;
-  indefinite(run: () => void): void;
+  indefinite(run: (runner: IndefiniteStepRunner) => void): void;
   log(arg: Loggable, options?: LogOptions): void;
   status(status: Loggable): void;
   exec(
