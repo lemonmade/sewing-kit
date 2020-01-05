@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/core",
   "license": "MIT",
-  "version": "0.0.35",
+  "version": "0.0.36",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",

@@ -1,14 +1,14 @@
 {
   "name": "@sewing-kit/plugin-jest",
   "license": "MIT",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/plugins": "^0.0.16",
+    "@sewing-kit/plugins": "^0.0.17",
     "@types/jest": "^24.0.23",
     "babel-jest": "^24.9.0",
     "jest": "^24.9.0",
