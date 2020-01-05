@@ -8,6 +8,6 @@
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@types/execa": "^2.0.0"
+    "execa": "^4.0.0"
   }
 }
