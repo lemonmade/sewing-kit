@@ -90,7 +90,7 @@ export function buildServiceWithWebpack({
                 id: 'ServiceBase.WebpackWatch',
                 label: 'start webpack in watch mode',
               },
-              indefinite(async (step) => {
+              async (step) => {
                 const {default: Koa} = await import('koa');
                 const {default: webpack} = await import('webpack');
 
@@ -114,74 +114,70 @@ export function buildServiceWithWebpack({
                   webpackConfig.output!.filename as string,
                 );
 
-                const store = createSimpleStore(false);
+                step.indefinite(async ({stdio}) => {
+                  const store = createSimpleStore(false);
 
-                const warmup = new Koa();
-                warmup.use((ctx) => {
-                  ctx.body = `<html>We’re still compiling your app, reload in a moment!</html>`;
-                });
+                  const warmup = new Koa();
+                  warmup.use((ctx) => {
+                    ctx.body = `<html>We’re still compiling your app, reload in a moment!</html>`;
+                  });
 
-                let server:
-                  | import('execa').ExecaChildProcess<string>
-                  | undefined;
-                let warmupServer: ReturnType<typeof warmup.listen> | undefined;
+                  let server:
+                    | import('execa').ExecaChildProcess<string>
+                    | undefined;
+                  let warmupServer:
+                    | ReturnType<typeof warmup.listen>
+                    | undefined;
 
-                // Super hacky, need better state management
-                const updateServers = async (ready = false) => {
-                  if (warmupServer != null && ready) {
-                    await new Promise((resolve, reject) =>
-                      warmupServer!.close((error) => {
-                        if (error) {
-                          reject(error);
-                          return;
-                        }
+                  // Super hacky, need better state management
+                  const updateServers = async (ready = false) => {
+                    if (warmupServer != null && ready) {
+                      await new Promise((resolve, reject) =>
+                        warmupServer!.close((error) => {
+                          if (error) {
+                            reject(error);
+                            return;
+                          }
 
-                        warmupServer = undefined;
-                        resolve();
-                      }),
-                    );
-                  }
-
-                  if (server != null && !ready) {
-                    server.kill();
-                    server = undefined;
-                  }
-
-                  if (ready) {
-                    if (server != null) {
-                      return;
+                          warmupServer = undefined;
+                          resolve();
+                        }),
+                      );
                     }
 
-                    server = step.exec('node', [file], {
-                      env: {
-                        PORT: String(port),
-                        IP: ip,
-                      },
-                    });
-
-                    server!.stdout!.on('data', (chunk) => {
-                      // eslint-disable-next-line no-console
-                      console.log(chunk.toString().trim());
-                    });
-
-                    server!.stderr!.on('data', (chunk) => {
-                      // eslint-disable-next-line no-console
-                      console.log(chunk.toString().trim());
-                    });
-                  } else {
-                    if (warmupServer != null || port == null) {
-                      return;
+                    if (server != null && !ready) {
+                      server.kill();
+                      server = undefined;
                     }
 
-                    // eslint-disable-next-line require-atomic-updates
-                    warmupServer = warmup.listen(port, ip, () => {
-                      // eslint-disable-next-line no-console
-                      console.log(`Warmup server listening on ${ip}:${port}`);
-                    });
-                  }
-                };
+                    if (ready) {
+                      if (server != null) {
+                        return;
+                      }
 
-                setTimeout(async () => {
+                      server = step.exec('node', [file], {
+                        env: {
+                          PORT: String(port),
+                          IP: ip,
+                        },
+                      });
+
+                      server!.stdout!.pipe(stdio.stdout);
+                      server!.stderr!.pipe(stdio.stderr);
+                    } else {
+                      if (warmupServer != null || port == null) {
+                        return;
+                      }
+
+                      // eslint-disable-next-line require-atomic-updates
+                      warmupServer = warmup.listen(port, ip, () => {
+                        stdio.stdout.write(
+                          `warmup server listening on ${ip}:${port}\n`,
+                        );
+                      });
+                    }
+                  };
+
                   store.subscribe(updateServers);
                   await updateServers();
 
@@ -196,17 +192,15 @@ export function buildServiceWithWebpack({
 
                   compiler.watch({ignored: 'node_modules/**'}, (err, stats) => {
                     if (err) {
-                      // eslint-disable-next-line no-console
-                      console.log(err);
+                      stdio.stdout.write(err.toString());
                     }
 
                     if (stats.hasErrors()) {
-                      // eslint-disable-next-line no-console
-                      console.log(stats.toString('errors-only'));
+                      stdio.stdout.write(stats.toString('errors-only'));
                     }
                   });
                 });
-              }),
+              },
             ),
           ];
         });
@@ -318,8 +312,4 @@ function createSimpleStore<T>(initialState: T) {
       return () => subscribers.delete(subscriber);
     },
   };
-}
-
-function indefinite(run: import('@sewing-kit/core').Step['run']): typeof run {
-  return (step) => step.indefinite(() => run(step));
 }
