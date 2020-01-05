@@ -3,8 +3,8 @@ import {Writable, Readable} from 'stream';
 const BUFFER_LINES = 100;
 
 export class StreamController {
-  readonly stdout = this.createWritable(this.realStdout);
-  readonly stderr = this.createWritable(this.realStderr);
+  readonly stdout: Writable;
+  readonly stderr: Writable;
   readonly stdin: Readable = {} as any;
 
   private foregrounded = false;
@@ -13,8 +13,11 @@ export class StreamController {
 
   constructor(
     private readonly realStdout: NodeJS.WritableStream,
-    private readonly realStderr: NodeJS.WritableStream,
-  ) {}
+    realStderr: NodeJS.WritableStream,
+  ) {
+    this.stdout = this.createWritable(realStdout);
+    this.stderr = this.createWritable(realStderr);
+  }
 
   foreground() {
     this.foregrounded = true;
