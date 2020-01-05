@@ -1,18 +1,18 @@
 {
   "name": "@sewing-kit/plugin-package-commonjs",
   "license": "MIT",
-  "version": "0.0.39",
+  "version": "0.0.40",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/hooks": "^0.0.17",
-    "@sewing-kit/plugin-babel": "^0.0.32",
-    "@sewing-kit/plugin-javascript": "^0.0.36",
-    "@sewing-kit/plugin-package-utilities": "^0.0.24",
-    "@sewing-kit/plugins": "^0.0.15",
+    "@sewing-kit/hooks": "^0.0.18",
+    "@sewing-kit/plugin-babel": "^0.0.33",
+    "@sewing-kit/plugin-javascript": "^0.0.37",
+    "@sewing-kit/plugin-package-utilities": "^0.0.25",
+    "@sewing-kit/plugins": "^0.0.16",
     "immer": "^5.0.0"
   }
 }
