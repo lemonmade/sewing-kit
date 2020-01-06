@@ -112,6 +112,7 @@ interface IndefiniteStep {
   readonly group: string;
 }
 
+// @see https://github.com/sindresorhus/ora/blob/master/index.js (useful for implementing stdout/stdin things)
 export async function run(
   context: TaskContext,
   {title, pre, post, steps, epilogue}: RunOptions,
