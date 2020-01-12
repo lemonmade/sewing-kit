@@ -44,7 +44,7 @@ export function stylelint({
   flags: baseFlags = {},
   extensions: baseExtensions = ['.css'],
   ignorePatterns: baseIgnorePatterns = [],
-}: Options) {
+}: Options = {}) {
   return createWorkspaceLintPlugin(PLUGIN, ({hooks, options, api}) => {
     hooks.configureHooks.hook((hooks) => ({
       ...hooks,
