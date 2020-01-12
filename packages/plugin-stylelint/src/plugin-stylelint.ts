@@ -93,8 +93,7 @@ export function stylelint({
               color: true,
               cacheLocation: api.cachePath('stylelint/'),
               reportNeedlessDisables: true,
-              // re-enable once https://github.com/stylelint/stylelint/pull/4498 is released
-              // reportInvalidScopeDisables: true,
+              reportInvalidScopeDisables: true,
               ignorePattern: ignorePatterns,
               allowEmptyInput: allowEmpty,
               ...baseFlags,
