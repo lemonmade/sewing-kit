@@ -1,21 +1,21 @@
 {
   "name": "@sewing-kit/plugin-package-node",
   "license": "MIT",
-  "version": "0.0.41",
+  "version": "0.0.42",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/hooks": "^0.0.20",
-    "@sewing-kit/plugin-babel": "^0.0.35",
-    "@sewing-kit/plugin-javascript": "^0.0.39",
-    "@sewing-kit/plugin-package-utilities": "^0.0.27",
-    "@sewing-kit/plugins": "^0.0.18",
+    "@sewing-kit/hooks": "^0.0.21",
+    "@sewing-kit/plugin-babel": "^0.0.36",
+    "@sewing-kit/plugin-javascript": "^0.0.40",
+    "@sewing-kit/plugin-package-utilities": "^0.0.28",
+    "@sewing-kit/plugins": "^0.0.19",
     "immer": "^5.2.1"
   },
   "optionalDependencies": {
-    "@sewing-kit/plugin-jest": "^0.0.33"
+    "@sewing-kit/plugin-jest": "^0.0.34"
   }
 }

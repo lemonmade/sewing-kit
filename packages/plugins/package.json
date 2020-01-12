@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/plugins",
   "license": "MIT",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -9,9 +9,9 @@
   },
   "dependencies": {
     "@sewing-kit/core": "^0.0.37",
-    "@sewing-kit/hooks": "^0.0.20",
+    "@sewing-kit/hooks": "^0.0.21",
     "@sewing-kit/model": "^0.0.10",
-    "@sewing-kit/tasks": "^0.0.16",
+    "@sewing-kit/tasks": "^0.0.17",
     "change-case": "^4.1.0"
   }
 }
