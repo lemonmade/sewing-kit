@@ -12,9 +12,17 @@ export const lint = createCommand(
   {
     '--fix': Boolean,
     '--cache': Boolean,
+    '--allow-empty': Boolean,
   },
-  async ({'--fix': fix, '--cache': cache = true}, context) => {
-    await runLint(context, {fix, cache});
+  async (
+    {
+      '--fix': fix,
+      '--cache': cache = true,
+      '--allow-empty': allowEmpty = false,
+    },
+    context,
+  ) => {
+    await runLint(context, {fix, cache, allowEmpty});
   },
 );
 

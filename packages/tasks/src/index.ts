@@ -87,6 +87,7 @@ export interface TypeCheckWorkspaceTask {
 export interface LintTaskOptions {
   readonly fix?: boolean;
   readonly cache?: boolean;
+  readonly allowEmpty?: boolean;
 }
 
 interface LintWorkspaceStepDetails {

@@ -14,6 +14,7 @@
 
     {"path": "./packages/plugin-babel"},
     {"path": "./packages/plugin-eslint"},
+    {"path": "./packages/plugin-stylelint"},
     {"path": "./packages/plugin-jest"},
     {"path": "./packages/plugin-webpack"},
 
@@ -21,6 +22,7 @@
     {"path": "./packages/plugin-javascript"},
     {"path": "./packages/plugin-typescript"},
     {"path": "./packages/plugin-graphql"},
+    {"path": "./packages/plugin-css"},
     {"path": "./packages/plugin-sass"},
 
     {"path": "./packages/plugin-react"},

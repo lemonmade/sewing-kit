@@ -6,10 +6,5 @@
     "rootDir": "src"
   },
   "include": ["src/**/*.ts"],
-  "references": [
-    {"path": "../hooks"},
-    {"path": "../plugins"},
-    {"path": "../plugin-css"},
-    {"path": "../plugin-webpack"}
-  ]
+  "references": [{"path": "../hooks"}, {"path": "../plugins"}]
 }

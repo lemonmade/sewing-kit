@@ -29,16 +29,16 @@ function createFormatter(stream: NodeJS.WriteStream) {
 
   const formatString = (str: string) => {
     const formattingRegex = /\{(success|error|info|subdued|emphasis|code|command|title)/g;
-    const linkRegex = /\{link\s+(.*?)(?=http)([^}])*\}/;
+    const linkRegex = /\{link\s+(.*?)(?= http) ([^}]*)\}/g;
 
     return str
-      .replace(formattingRegex, (_, format) => {
-        return `{${CHALK_MAPPINGS.get(format)}`;
-      })
       .replace(linkRegex, (_, text: string, url: string) => {
         return supportsLinks
           ? link(text.trim(), url)
           : `${text.trim()} (${url})`;
+      })
+      .replace(formattingRegex, (_, format) => {
+        return `{${CHALK_MAPPINGS.get(format)}`;
       });
   };
 

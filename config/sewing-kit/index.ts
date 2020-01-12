@@ -7,6 +7,7 @@ import {babelConfigurationHooks} from '@sewing-kit/plugin-babel';
 import {jestConfigurationHooks} from '@sewing-kit/plugin-jest';
 import {javascript} from '@sewing-kit/plugin-javascript';
 import {typescript} from '@sewing-kit/plugin-typescript';
+
 import {buildFlexibleOutputs} from '@sewing-kit/plugin-package-flexible-outputs';
 
 const jestRemoveBabelPresetModuleMapperPlugin = createRemoveSourceMappingPlugin();

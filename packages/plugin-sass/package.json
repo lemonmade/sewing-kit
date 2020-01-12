@@ -10,19 +10,12 @@
   "dependencies": {
     "@sewing-kit/hooks": "^0.0.20",
     "@sewing-kit/plugins": "^0.0.18",
-    "@types/happypack": "^5.0.0",
-    "cache-loader": "^4.1.0",
-    "css-loader": "^3.2.1",
-    "happypack": "^5.0.1",
-    "identity-obj-proxy": "^3.0.0",
-    "node-sass": "^4.13.0",
-    "postcss-loader": "^3.0.0",
-    "sass-loader": "^8.0.0",
-    "style-loader": "^1.0.1",
-    "tapable": "^1.1.3"
+    "sass-loader": "^8.0.0"
+  },
+  "peerDependencies": {
+    "@sewing-kit/plugin-css": "*"
   },
   "optionalDependencies": {
-    "@sewing-kit/plugin-jest": "^0.0.33",
-    "@sewing-kit/plugin-webpack": "^0.0.33"
+    "@sewing-kit/plugin-webpack": "*"
   }
 }

@@ -1,7 +1,7 @@
 {
-  "name": "@sewing-kit/tasks",
+  "name": "@sewing-kit/plugin-stylelint",
   "license": "MIT",
-  "version": "0.0.16",
+  "version": "0.0.0",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@sewing-kit/hooks": "^0.0.20",
-    "@sewing-kit/model": "^0.0.10"
+    "@sewing-kit/plugins": "^0.0.18",
+    "stylelint": "^12.0.1"
   }
 }

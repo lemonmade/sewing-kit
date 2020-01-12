@@ -10,7 +10,6 @@
   "dependencies": {
     "@sewing-kit/plugins": "^0.0.18",
     "@types/webpack": "^4.41.0",
-    "tapable": "^1.1.3",
     "webpack": "^4.41.2"
   }
 }

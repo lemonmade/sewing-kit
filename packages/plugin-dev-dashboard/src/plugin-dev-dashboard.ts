@@ -1,4 +1,3 @@
-// import {WaterfallHook} from 'tapable';
 // import {
 //   createPlugin,
 //   PluginTarget,

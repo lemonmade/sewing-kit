@@ -1,22 +1,20 @@
-import {cpus} from 'os';
-
 import {
   WebApp,
   Service,
   WaterfallHook,
   createProjectPlugin,
 } from '@sewing-kit/plugins';
+import {createCSSWebpackRuleSet} from '@sewing-kit/plugin-css';
 
-import {} from '@sewing-kit/plugin-jest';
 import {} from '@sewing-kit/plugin-webpack';
 
 declare module '@sewing-kit/hooks' {
-  interface BuildWebAppConfigurationCustomHooks {
-    readonly sassIncludePaths: WaterfallHook<string[]>;
+  interface BuildProjectConfigurationCustomHooks {
+    readonly sassIncludePaths: WaterfallHook<readonly string[]>;
   }
 
-  interface DevWebAppConfigurationCustomHooks {
-    readonly sassIncludePaths: WaterfallHook<string[]>;
+  interface DevProjectConfigurationCustomHooks {
+    readonly sassIncludePaths: WaterfallHook<readonly string[]>;
   }
 }
 
@@ -25,13 +23,12 @@ interface Options {
 }
 
 const PLUGIN = 'SewingKit.Sass';
-const HAPPYPACK_ID = 'sass';
 
-export function sass({sassIncludes = []}: Options = {}) {
+export function sass({sassIncludes: baseSassIncludes = []}: Options = {}) {
   return createProjectPlugin<WebApp | Service>(
     PLUGIN,
-    ({tasks: {build, test}}) => {
-      build.hook(({hooks, options: {sourceMaps}}) => {
+    ({project, tasks: {build, dev, test}}) => {
+      build.hook(({hooks, options: {sourceMaps, simulateEnv}}) => {
         hooks.configureHooks.hook((hooks: any) => ({
           ...hooks,
           sassIncludePaths: new WaterfallHook(),
@@ -44,54 +41,22 @@ export function sass({sassIncludes = []}: Options = {}) {
                 import('@sewing-kit/hooks').BuildServiceConfigurationHooks
             >,
           ) => {
-            configure.webpackRules?.hook((rules) => [
-              ...rules,
-              {
-                test: /\.scss$/,
-                exclude: /node_modules/,
-                use: [`happypack/loader?id=${HAPPYPACK_ID}`],
-              },
-            ]);
-
-            configure.webpackPlugins?.hook(async (plugins) => {
-              const {default: Happypack} = await import('happypack');
-              const sassIncludePaths = configure.sassIncludePaths!.run([
-                ...sassIncludes,
-              ]);
+            configure.webpackRules?.hook(async (rules) => {
+              const sassIncludePaths = await configure.sassIncludePaths!.run(
+                baseSassIncludes,
+              );
 
               return [
-                ...plugins,
-                new Happypack({
-                  id: HAPPYPACK_ID,
-                  verbose: false,
-                  threads: cpus().length - 1,
-                  loaders: [
-                    {path: 'style-loader'},
-                    // {
-                    //   path: 'cache-loader',
-                    //   query: {
-                    //     cacheDirectory: finalCacheDirectory,
-                    //     cacheIdentifier,
-                    //   },
-                    // },
-                    {
-                      path: 'css-loader',
-                      options: {
-                        sourceMap: sourceMaps,
-                        modules: true,
-                        importLoaders: 1,
-                        localIdentName: '[name]-[local]_[hash:base64:5]',
-                      },
-                    },
-                    {
-                      path: 'postcss-loader',
-                      options: {
-                        // config: ifElse(!project.hasPostCSSConfig, {
-                        //   path: workspace.paths.defaultPostCSSConfig,
-                        // }),
-                        sourceMap: sourceMaps,
-                      },
-                    },
+                ...rules,
+                {
+                  test: /\.scss$/,
+                  use: [
+                    ...(await createCSSWebpackRuleSet({
+                      configure,
+                      project,
+                      sourceMaps,
+                      env: simulateEnv,
+                    })),
                     {
                       path: 'sass-loader',
                       options: {
@@ -99,9 +64,51 @@ export function sass({sassIncludes = []}: Options = {}) {
                         includePaths: sassIncludePaths,
                       },
                     },
-                    // sassGlobalsLoader(workspace),
                   ],
-                } as any),
+                },
+              ];
+            });
+          },
+        );
+      });
+
+      dev.hook(({hooks, options: {sourceMaps}}) => {
+        hooks.configureHooks.hook((hooks: any) => ({
+          ...hooks,
+          sassIncludePaths: new WaterfallHook(),
+        }));
+
+        hooks.configure.hook(
+          (
+            configure: Partial<
+              import('@sewing-kit/hooks').DevWebAppConfigurationHooks &
+                import('@sewing-kit/hooks').DevServiceConfigurationHooks
+            >,
+          ) => {
+            configure.webpackRules?.hook(async (rules) => {
+              const sassIncludePaths = await configure.sassIncludePaths!.run(
+                baseSassIncludes,
+              );
+
+              return [
+                ...rules,
+                {
+                  test: /\.scss$/,
+                  use: [
+                    ...(await createCSSWebpackRuleSet({
+                      configure,
+                      project,
+                      sourceMaps,
+                    })),
+                    {
+                      path: 'sass-loader',
+                      options: {
+                        sourceMap: sourceMaps,
+                        includePaths: sassIncludePaths,
+                      },
+                    },
+                  ],
+                },
               ];
             });
           },
@@ -110,10 +117,10 @@ export function sass({sassIncludes = []}: Options = {}) {
 
       test.hook(({hooks}) => {
         hooks.configure.hook((hooks) => {
-          hooks.jestModuleMapper?.hook((moduleMapper) => ({
-            ...moduleMapper,
-            '\\.scss$': require.resolve('./jest-module-mapper'),
-          }));
+          hooks.cssModuleIdentityProxyExtensions?.hook((extensions) => [
+            ...extensions,
+            '.scss',
+          ]);
         });
       });
     },

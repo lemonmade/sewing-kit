@@ -357,20 +357,30 @@ export async function run(
             );
           }
 
+          const stepLog = (loggable: Loggable, options?: LogOptions) => {
+            groupLog((fmt) => fmt`log from {info ${parent.label}}`, options);
+            log(loggable, options);
+          };
+
           try {
             await step.run({
-              exec,
+              exec: (...args) => {
+                stepLog(
+                  (fmt) =>
+                    fmt`executing command: {subdued ${args[0]}${
+                      Array.isArray(args[1])
+                        ? ` ${(args[1] as any[]).join(' ')}`
+                        : ''
+                    }}`,
+                );
+
+                return exec(...(args as [any]));
+              },
               indefinite(run) {
                 indefiniteSteps.add({step, run, group: label});
               },
               status(_status: Loggable) {},
-              log(loggable: Loggable, options?: LogOptions) {
-                groupLog(
-                  (fmt) => fmt`log from {info ${parent.label}}`,
-                  options,
-                );
-                log(loggable, options);
-              },
+              log: stepLog,
               runNested: (steps) => runNested(steps, target),
             });
 
@@ -391,16 +401,27 @@ export async function run(
         }
       }
 
+      const stepLog = (loggable: Loggable, options?: LogOptions) => {
+        groupLog((fmt) => fmt`log from {info ${parent.label}}`, options);
+        log(loggable, options);
+      };
+
       return {
-        exec,
+        exec: (...args) => {
+          stepLog(
+            (fmt) =>
+              fmt`executing command: {subdued ${args[0]}${
+                Array.isArray(args[1]) ? ` ${(args[1] as any[]).join(' ')}` : ''
+              }}`,
+          );
+
+          return exec(...(args as [any]));
+        },
         indefinite(run) {
           indefiniteSteps.add({step: parent, run, group: label});
         },
         status(_status: Loggable) {},
-        log(loggable: Loggable, options?: LogOptions) {
-          groupLog((fmt) => fmt`log from ${parent.label}`, options);
-          log(loggable, options);
-        },
+        log: stepLog,
         runNested: (steps) => runNested(steps, target),
       };
     };
@@ -588,7 +609,7 @@ export async function run(
     'keypress',
     (_: Buffer, {name: key, ctrl}: {name: string; ctrl: boolean}) => {
       if (key === 'c' && ctrl) {
-        process.emit('SIGINT', 'SIGINT');
+        process.emit('SIGINT' as any);
       } else if (key === 'escape') {
         activeController?.background();
         activeController = null;

@@ -264,25 +264,17 @@ function mapLogLevel(level?: string) {
 
 export function logError(error: any, log: Log) {
   if (isDiagnosticError(error)) {
-    log(
-      (fmt) =>
-        fmt`{error Error} ${error.title || 'An unexpected error occurred'}`,
-    );
+    log((fmt) => fmt`{error ${error.title || 'An unexpected error occurred'}}`);
 
     if (error.content) {
-      log('\n');
+      log('');
       log(error.content);
     }
 
     if (error.suggestion) {
-      log('\n');
+      log('');
       log((fmt) => fmt`{emphasis What do I do next?}`);
       log(error.suggestion);
-    }
-
-    if (error.stack) {
-      log('\n');
-      log((fmt) => fmt`{subdued ${error.stack!}}`);
     }
   } else {
     log(
