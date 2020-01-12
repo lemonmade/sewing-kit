@@ -38,12 +38,14 @@ export async function createCSSWebpackRuleSet({
   }
 
   use.push({
-    loader: project instanceof Service ? 'css-loader/locals' : 'css-loader',
+    loader: 'css-loader',
     options: await configure.cssWebpackLoaderOptions!.run({
-      localIdentName: classNamePattern,
+      modules: await configure.cssWebpackLoaderModule!.run({
+        localIdentName: classNamePattern,
+      }),
       importLoaders: 1,
       sourceMap: sourceMaps,
-      minimize: isWebApp && isUsingProductionAssets,
+      onlyLocals: project instanceof Service,
     }),
   });
 

@@ -1,15 +1,24 @@
-export interface CSSWebpackLoaderOptions {
-  readonly sourceMap?: boolean;
-  readonly minimize?: boolean;
-  readonly modules?: boolean;
-  readonly importLoaders?: number;
+export interface CSSWebpackLoaderModule {
+  readonly mode?: 'local' | 'global';
+  readonly context?: string;
+  readonly hashPrefix?: string;
   readonly localIdentName?: string;
   getLocalIdent?(
-    context: any,
-    localIdentName: any,
-    localName: any,
+    context: string,
+    localIdentName: string,
+    localName: string,
     options: any,
   ): string | null;
+}
+
+export interface CSSWebpackLoaderOptions {
+  readonly import?: boolean;
+  readonly modules?: CSSWebpackLoaderModule;
+  readonly sourceMap?: boolean;
+  readonly importLoaders?: number;
+  readonly localsConvention?: string;
+  readonly onlyLocals?: boolean;
+  readonly esModule?: boolean;
 }
 
 export interface CSSWebpackHooks {
@@ -24,5 +33,8 @@ export interface CSSWebpackHooks {
   >;
   readonly cssWebpackLoaderOptions: import('@sewing-kit/hooks').WaterfallHook<
     CSSWebpackLoaderOptions
+  >;
+  readonly cssWebpackLoaderModule: import('@sewing-kit/hooks').WaterfallHook<
+    CSSWebpackLoaderModule
   >;
 }

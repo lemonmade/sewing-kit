@@ -10,7 +10,11 @@ import {} from '@sewing-kit/plugin-jest';
 import {} from '@sewing-kit/plugin-stylelint';
 import {} from '@sewing-kit/plugin-webpack';
 
-import {CSSWebpackHooks, CSSWebpackLoaderOptions} from './types';
+import {
+  CSSWebpackHooks,
+  CSSWebpackLoaderOptions,
+  CSSWebpackLoaderModule,
+} from './types';
 import {createCSSWebpackRuleSet, shouldUseProductionAssets} from './utilities';
 
 const PLUGIN = 'SewingKit.CSS';
@@ -59,6 +63,7 @@ export function css() {
           cssModuleClassNamePattern: new WaterfallHook(),
           cssWebpackLoaderOptions: new WaterfallHook(),
           cssWebpackMiniExtractOptions: new WaterfallHook(),
+          cssWebpackLoaderModule: new WaterfallHook(),
         }));
 
         hooks.configure.hook(
@@ -122,6 +127,7 @@ export function css() {
           (hooks) => ({
             ...hooks,
             cssModuleClassNamePattern: new WaterfallHook(),
+            cssWebpackLoaderModule: new WaterfallHook(),
             cssWebpackLoaderOptions: new WaterfallHook(),
           }),
         );
@@ -173,7 +179,7 @@ export function cssModuleExtensions(extensions: string | string[]) {
 }
 
 export function cssModuleClassNamePattern(
-  pattern: string | NonNullable<CSSWebpackLoaderOptions['getLocalIdent']>,
+  pattern: string | NonNullable<CSSWebpackLoaderModule['getLocalIdent']>,
 ) {
   return createProjectPlugin(
     `${PLUGIN}.SetCSSModuleClassNamePattern`,
