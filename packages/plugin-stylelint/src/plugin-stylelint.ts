@@ -211,7 +211,7 @@ type ConfigurationGetter<T> =
     ) => T | Promise<T>);
 
 export function stylelintFlags(getFlags: ConfigurationGetter<StylelintFlags>) {
-  return createWorkspaceLintPlugin(`${PLUGIN}.SetStylelintFlags`, ({hooks}) => {
+  return createWorkspaceLintPlugin(`${PLUGIN}.SetFlags`, ({hooks}) => {
     hooks.configure.hook((configure) => {
       configure.stylelintFlags!.hook(async (flags) => ({
         ...flags,
@@ -224,33 +224,27 @@ export function stylelintFlags(getFlags: ConfigurationGetter<StylelintFlags>) {
 export function stylelintExtensions(
   getExtensions: ConfigurationGetter<string[]>,
 ) {
-  return createWorkspaceLintPlugin(
-    `${PLUGIN}.SetStylelintExtensions`,
-    ({hooks}) => {
-      hooks.configure.hook((configure) => {
-        configure.stylelintExtensions!.hook(async (extensions) => [
-          ...extensions,
-          ...(await unwrapConfigurationGetter(getExtensions, configure)),
-        ]);
-      });
-    },
-  );
+  return createWorkspaceLintPlugin(`${PLUGIN}.SetExtensions`, ({hooks}) => {
+    hooks.configure.hook((configure) => {
+      configure.stylelintExtensions!.hook(async (extensions) => [
+        ...extensions,
+        ...(await unwrapConfigurationGetter(getExtensions, configure)),
+      ]);
+    });
+  });
 }
 
 export function stylelintIgnorePatterns(
   getIgnorePatterns: ConfigurationGetter<string[]>,
 ) {
-  return createWorkspaceLintPlugin(
-    `${PLUGIN}.SetStylelintIgnorePatterns`,
-    ({hooks}) => {
-      hooks.configure.hook((configure) => {
-        configure.stylelintIgnorePatterns!.hook(async (ignorePatterns) => [
-          ...ignorePatterns,
-          ...(await unwrapConfigurationGetter(getIgnorePatterns, configure)),
-        ]);
-      });
-    },
-  );
+  return createWorkspaceLintPlugin(`${PLUGIN}.SetIgnorePatterns`, ({hooks}) => {
+    hooks.configure.hook((configure) => {
+      configure.stylelintIgnorePatterns!.hook(async (ignorePatterns) => [
+        ...ignorePatterns,
+        ...(await unwrapConfigurationGetter(getIgnorePatterns, configure)),
+      ]);
+    });
+  });
 }
 
 function unwrapConfigurationGetter<T>(

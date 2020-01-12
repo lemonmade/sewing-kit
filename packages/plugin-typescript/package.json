@@ -8,12 +8,12 @@
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@babel/plugin-proposal-decorators": "^7.7.4",
-    "@babel/preset-typescript": "^7.7.4",
+    "@babel/plugin-proposal-decorators": "^7.8.0",
+    "@babel/preset-typescript": "^7.8.0",
     "@sewing-kit/plugin-babel": "^0.0.35",
     "@sewing-kit/plugins": "^0.0.18",
     "fs-extra": "^8.1.0",
-    "immer": "^5.0.0",
+    "immer": "^5.2.1",
     "typescript": "^3.7.3"
   },
   "optionalDependencies": {

@@ -3,7 +3,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "bootstrap:to-source": "babel-node --extensions .ts,.tsx,.mjs,.js ./scripts/bootstrap",
+    "bootstrap:to-source": "babel-node --extensions .ts,.tsx,.mjs,.js,.json ./scripts/bootstrap",
     "bootstrap": "lerna bootstrap && yarn bootstrap:to-source && tsc --build",
     "sk:from-source": "babel-node --extensions .ts,.tsx,.mjs,.js -- ./packages/cli/src/cli",
     "sk": "yarn bootstrap:to-source && yarn sk:from-source",
@@ -21,16 +21,19 @@
     "packages/*"
   ],
   "devDependencies": {
-    "@babel/core": "^7.7.7",
-    "@babel/node": "^7.7.7",
+    "@babel/core": "^7.8.0",
+    "@babel/node": "^7.8.0",
     "@types/execa": "^2.0.0",
     "@types/fs-extra": "^8.0.1",
-    "core-js": "^3.6.0",
+    "core-js": "^3.6.3",
     "execa": "^4.0.0",
     "fs-extra": "^8.1.0",
     "glob": "^7.1.6",
-    "lerna": "^3.19.0",
+    "lerna": "^3.20.2",
     "tree-node-cli": "^1.2.5"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "resolutions": {
+    "@types/vfile-message": "1.0.1"
+  }
 }

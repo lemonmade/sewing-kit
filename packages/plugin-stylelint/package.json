@@ -10,6 +10,6 @@
   "dependencies": {
     "@sewing-kit/hooks": "^0.0.20",
     "@sewing-kit/plugins": "^0.0.18",
-    "stylelint": "^12.0.1"
+    "stylelint": "^13.0.0"
   }
 }

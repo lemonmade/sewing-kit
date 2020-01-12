@@ -12,7 +12,7 @@
     "@sewing-kit/plugin-babel": "^0.0.35",
     "@sewing-kit/plugin-javascript": "^0.0.39",
     "@sewing-kit/plugins": "^0.0.18",
-    "immer": "^5.0.0"
+    "immer": "^5.2.1"
   },
   "peerDependencies": {
     "@sewing-kit/plugin-webpack": "^0.0.17"

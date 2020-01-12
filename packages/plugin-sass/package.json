@@ -10,7 +10,7 @@
   "dependencies": {
     "@sewing-kit/hooks": "^0.0.20",
     "@sewing-kit/plugins": "^0.0.18",
-    "sass-loader": "^8.0.0"
+    "sass-loader": "^8.0.1"
   },
   "peerDependencies": {
     "@sewing-kit/plugin-css": "*"

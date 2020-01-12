@@ -14,8 +14,8 @@
     "@types/execa": "^2.0.0",
     "@types/koa": "^2.11.0",
     "@types/koa-webpack": "^5.0.1",
-    "execa": "^3.4.0",
-    "immer": "^5.0.0",
+    "execa": "^4.0.0",
+    "immer": "^5.2.1",
     "koa": "^2.11.0",
     "koa-webpack": "^5.2.4"
   },

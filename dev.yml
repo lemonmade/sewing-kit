@@ -2,7 +2,7 @@ name: sewing-kit
 type: node
 up:
   - node:
-      version: v10.16.0
+      version: v12.14.0
       yarn: 1.17.3
 
 commands:
