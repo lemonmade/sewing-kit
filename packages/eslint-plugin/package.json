@@ -3,9 +3,17 @@
   "license": "MIT",
   "version": "0.0.10",
   "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lemonmade/sewing-kit.git",
+    "directory": "packages/eslint-plugin"
+  },
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
+  },
+  "devDependencies": {
+    "@types/pluralize": "0.0.29"
   },
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^2.15.0",
@@ -24,6 +32,9 @@
     "eslint-plugin-react": "^7.17.0",
     "eslint-plugin-react-hooks": "^2.3.0",
     "eslint-plugin-sort-class-members": "^1.6.0",
+    "@typescript-eslint/experimental-utils": "2.14.0",
+    "pluralize": "8.0.0",
+    "change-case": "4.1.1",
     "prettier": "^1.19.1"
   },
   "optionalDependencies": {
