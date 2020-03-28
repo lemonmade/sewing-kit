@@ -20,7 +20,7 @@
   },
   "optionalDependencies": {
     "@sewing-kit/plugin-babel": "^0.0.38",
-    "@sewing-kit/plugin-webpack": "^0.0.35",
+    "@sewing-kit/plugin-webpack": "^0.0.36",
     "webpack": ">=4 <5"
   }
 }

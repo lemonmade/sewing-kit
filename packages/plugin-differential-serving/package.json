@@ -14,7 +14,7 @@
     "@sewing-kit/plugins": "^0.0.21",
     "immer": "^6.0.2"
   },
-  "peerDependencies": {
-    "@sewing-kit/plugin-webpack": "^0.0.35"
+  "optionalDependencies": {
+    "@sewing-kit/plugin-webpack": "^0.0.36"
   }
 }
