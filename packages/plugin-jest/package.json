@@ -16,5 +16,8 @@
   },
   "peerDependencies": {
     "@sewing-kit/plugin-babel": "*"
+  },
+  "optionalDependencies": {
+    "@babel/core": "^7.0.0"
   }
 }
