@@ -12,5 +12,8 @@
     "@sewing-kit/plugin-babel": "^0.0.38",
     "@sewing-kit/plugins": "^0.0.21",
     "immer": "^6.0.2"
+  },
+  "optionalDependencies": {
+    "@babel/core": "^7.0.0"
   }
 }
