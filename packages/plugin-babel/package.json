@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/plugin-babel",
   "license": "MIT",
-  "version": "0.0.37",
+  "version": "0.0.38",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -10,8 +10,8 @@
   "dependencies": {
     "@babel/cli": "^7.8.4",
     "@babel/core": "^7.8.0",
-    "@sewing-kit/hooks": "^0.0.21",
-    "@sewing-kit/plugins": "^0.0.20",
+    "@sewing-kit/hooks": "^0.0.22",
+    "@sewing-kit/plugins": "^0.0.21",
     "@types/babel__core": "^7.1.6",
     "fs-extra": "^9.0.0",
     "glob": "^7.1.6"

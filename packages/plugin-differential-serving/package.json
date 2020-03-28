@@ -1,17 +1,17 @@
 {
   "name": "@sewing-kit/plugin-differential-serving",
   "license": "MIT",
-  "version": "0.0.41",
+  "version": "0.0.42",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/hooks": "^0.0.21",
-    "@sewing-kit/plugin-babel": "^0.0.37",
-    "@sewing-kit/plugin-javascript": "^0.0.41",
-    "@sewing-kit/plugins": "^0.0.20",
+    "@sewing-kit/hooks": "^0.0.22",
+    "@sewing-kit/plugin-babel": "^0.0.38",
+    "@sewing-kit/plugin-javascript": "^0.0.42",
+    "@sewing-kit/plugins": "^0.0.21",
     "immer": "^6.0.2"
   },
   "peerDependencies": {
