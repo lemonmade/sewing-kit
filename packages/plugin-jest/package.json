@@ -14,10 +14,8 @@
     "jest": "^25.2.3",
     "jest-watch-typeahead": "^0.4.2"
   },
-  "peerDependencies": {
-    "@sewing-kit/plugin-babel": "*"
-  },
   "optionalDependencies": {
-    "@babel/core": "^7.0.0"
+    "@babel/core": "^7.0.0",
+    "@sewing-kit/plugin-babel": "*"
   }
 }
