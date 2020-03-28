@@ -13,7 +13,7 @@
     "@sewing-kit/plugin-javascript": "^0.0.41",
     "@sewing-kit/plugin-package-utilities": "^0.0.29",
     "@sewing-kit/plugins": "^0.0.20",
-    "immer": "^5.2.1"
+    "immer": "^6.0.2"
   },
   "optionalDependencies": {
     "@sewing-kit/plugin-jest": "^0.0.35"

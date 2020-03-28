@@ -1,1 +1,1 @@
-export {buildTypeScriptDefinitions, Options} from './plugin-package-typescript';
+export {buildTypeScriptDefinitions} from './plugin-package-typescript';

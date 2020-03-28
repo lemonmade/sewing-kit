@@ -1,4 +1,4 @@
-export * from './types';
+export type {BabelConfig} from './types';
 export {
   babelConfigurationHooks,
   addBabelPlugin,

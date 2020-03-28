@@ -1,20 +1,16 @@
 export {Runtime, ProjectKind} from './types';
-export {
-  Package,
-  PackageOptions,
-  PackageBinary,
+export {Package, PackageBinary, PackageEntry} from './package';
+export type {
   PackageBinaryOptions,
-  PackageEntry,
   PackageEntryOptions,
+  PackageOptions,
 } from './package';
-export {
-  WebApp,
-  WebAppOptions,
-  ServiceWorker,
-  ServiceWorkerOptions,
-} from './web-app';
-export {Service, ServiceOptions} from './service';
-export {Workspace, WorkspaceOptions} from './workspace';
+export {WebApp, ServiceWorker} from './web-app';
+export type {WebAppOptions, ServiceWorkerOptions} from './web-app';
+export {Service} from './service';
+export type {ServiceOptions} from './service';
+export {Workspace} from './workspace';
+export type {WorkspaceOptions} from './workspace';
 
 export type Project =
   | import('./package').Package

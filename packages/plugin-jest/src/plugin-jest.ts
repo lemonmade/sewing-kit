@@ -24,7 +24,7 @@ type DeepReadonly<T> = Readonly<
   }
 >;
 
-type JestConfig = DeepReadonly<jest.InitialOptions>;
+type JestConfig = DeepReadonly<import('@jest/types').Config.InitialOptions>;
 
 declare module '@sewing-kit/hooks' {
   interface TestProjectConfigurationCustomHooks {
@@ -192,7 +192,7 @@ export function jest() {
                   const config = await hooks.jestConfig!.run({
                     displayName: project.name,
                     rootDir: project.root,
-                    testRegex: `.+\\.test\\.(${extensions.join('|')})$`,
+                    testRegex: [`.+\\.test\\.(${extensions.join('|')})$`],
                     moduleFileExtensions: extensions,
                     testEnvironment: environment,
                     moduleNameMapper: moduleMapper,
@@ -262,8 +262,8 @@ export function jest() {
               cacheDirectory: api.cachePath('jest'),
             });
 
-            const jest = await import('jest');
-            await jest.default.run(toArgs(flags));
+            const {run} = await import('jest');
+            await run(toArgs(flags));
           }
 
           if (watch) {

@@ -1,1 +1,2 @@
-export {default, Module, Polyfill, Target, Options} from './babel-preset';
+export {default, Module, Polyfill, Target} from './babel-preset';
+export type {Options} from './babel-preset';

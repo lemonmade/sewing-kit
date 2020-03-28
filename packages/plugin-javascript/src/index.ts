@@ -1,2 +1,8 @@
 export {javascript, workspaceJavaScript} from './plugin-javascript';
-export * from './utilities';
+export {
+  changeBaseJavaScriptBabelPreset,
+  BaseBabelPresetModule,
+  BaseBabelPresetTarget,
+  BaseBabelPresetPolyfill,
+} from './utilities';
+export type {BaseBabelPresetOptions} from './utilities';

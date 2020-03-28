@@ -1,17 +1,14 @@
 import {BabelConfig} from '@sewing-kit/plugin-babel';
 import {
-  Options as BaseBabelPresetOptions,
   Module as BaseBabelPresetModule,
   Polyfill as BaseBabelPresetPolyfill,
   Target as BaseBabelPresetTarget,
 } from '@sewing-kit/babel-preset';
 
-export {
-  BaseBabelPresetOptions,
-  BaseBabelPresetModule,
-  BaseBabelPresetPolyfill,
-  BaseBabelPresetTarget,
-};
+import type {Options as BaseBabelPresetOptions} from '@sewing-kit/babel-preset';
+
+export type {BaseBabelPresetOptions};
+export {BaseBabelPresetModule, BaseBabelPresetPolyfill, BaseBabelPresetTarget};
 
 const resolvedPreset = require.resolve('@sewing-kit/babel-preset');
 

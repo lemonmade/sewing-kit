@@ -8,9 +8,9 @@
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@babel/preset-react": "^7.8.0",
+    "@babel/preset-react": "^7.9.4",
     "@sewing-kit/plugin-babel": "^0.0.37",
     "@sewing-kit/plugins": "^0.0.20",
-    "immer": "^5.2.1"
+    "immer": "^6.0.2"
   }
 }

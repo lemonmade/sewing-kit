@@ -9,9 +9,9 @@
   },
   "dependencies": {
     "@sewing-kit/plugins": "^0.0.20",
-    "@types/jest": "^24.0.25",
-    "babel-jest": "^24.9.0",
-    "jest": "^24.9.0",
+    "@types/jest": "^25.1.4",
+    "babel-jest": "^25.2.3",
+    "jest": "^25.2.3",
     "jest-watch-typeahead": "^0.4.2"
   },
   "peerDependencies": {

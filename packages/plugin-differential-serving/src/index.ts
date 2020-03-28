@@ -1,1 +1,2 @@
-export {differentialServing, Options} from './plugin-differential-serving';
+export {differentialServing} from './plugin-differential-serving';
+export type {Options} from './plugin-differential-serving';

@@ -9,14 +9,14 @@
   },
   "dependencies": {
     "@babel/core": "^7.8.0",
-    "@babel/preset-typescript": "^7.8.0",
-    "@babel/register": "^7.8.0",
+    "@babel/preset-typescript": "^7.9.0",
+    "@babel/register": "^7.9.0",
     "@sewing-kit/babel-preset": "^0.0.10",
     "@sewing-kit/core": "^0.0.37",
     "@sewing-kit/model": "^0.0.11",
     "@sewing-kit/plugins": "^0.0.20",
     "@types/glob": "^7.1.1",
-    "fs-extra": "^8.1.0",
+    "fs-extra": "^9.0.0",
     "glob": "^7.1.6"
   }
 }

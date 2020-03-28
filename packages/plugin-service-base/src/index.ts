@@ -1,5 +1,1 @@
-export {
-  buildServiceWithWebpack,
-  devNodeService,
-  DevServerOptions,
-} from './plugin-service-base';
+export {buildServiceWithWebpack, devNodeService} from './plugin-service-base';

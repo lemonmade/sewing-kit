@@ -10,12 +10,13 @@
   "dependencies": {
     "@sewing-kit/hooks": "^0.0.21",
     "@sewing-kit/plugins": "^0.0.20",
-    "sass-loader": "^8.0.1"
+    "sass-loader": "^8.0.2"
   },
   "peerDependencies": {
     "@sewing-kit/plugin-css": "*"
   },
   "optionalDependencies": {
+    "webpack": ">=4 <5",
     "@sewing-kit/plugin-webpack": "^0.0.35"
   }
 }

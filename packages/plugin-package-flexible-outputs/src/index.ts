@@ -15,7 +15,9 @@ export interface Options {
   readonly node?: boolean;
   readonly typescript?:
     | boolean
-    | import('@sewing-kit/plugin-package-typescript').Options;
+    | Parameters<
+        typeof import('@sewing-kit/plugin-package-typescript').buildTypeScriptDefinitions
+      >[0];
 }
 
 const emptyPromise = Promise.resolve(undefined);
