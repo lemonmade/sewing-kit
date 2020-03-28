@@ -22,7 +22,7 @@ export class PackageEntry {
 export interface PackageBinaryOptions {
   readonly name: string;
   readonly root: string;
-  readonly aliases: readonly string[];
+  readonly aliases?: readonly string[];
 }
 
 export class PackageBinary {
