@@ -43,6 +43,18 @@ export class Base {
     return dependencies;
   }
 
+  dependency(name: string) {
+    if (!this.hasDependency(name)) return undefined;
+
+    try {
+      return {
+        version: require(`${name}/package.json`).version,
+      };
+    } catch {
+      return undefined;
+    }
+  }
+
   async hasDependency(
     name: string,
     _options?: DependencyOptions & {version?: string},

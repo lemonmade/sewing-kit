@@ -1,4 +1,5 @@
 import {
+  Env,
   WebApp,
   Service,
   WaterfallHook,
@@ -27,7 +28,7 @@ const PLUGIN = 'SewingKit.Sass';
 export function sass({sassIncludes: baseSassIncludes = []}: Options = {}) {
   return createProjectPlugin<WebApp | Service>(
     PLUGIN,
-    ({project, tasks: {build, dev, test}}) => {
+    ({api, project, tasks: {build, dev, test}}) => {
       build.hook(({hooks, options: {sourceMaps, simulateEnv}}) => {
         hooks.configureHooks.hook((hooks: any) => ({
           ...hooks,
@@ -36,13 +37,13 @@ export function sass({sassIncludes: baseSassIncludes = []}: Options = {}) {
 
         hooks.configure.hook(
           (
-            configure: Partial<
+            configuration: Partial<
               import('@sewing-kit/hooks').BuildWebAppConfigurationHooks &
                 import('@sewing-kit/hooks').BuildServiceConfigurationHooks
             >,
           ) => {
-            configure.webpackRules?.hook(async (rules) => {
-              const sassIncludePaths = await configure.sassIncludePaths!.run(
+            configuration.webpackRules?.hook(async (rules) => {
+              const sassIncludePaths = await configuration.sassIncludePaths!.run(
                 baseSassIncludes,
               );
 
@@ -52,10 +53,13 @@ export function sass({sassIncludes: baseSassIncludes = []}: Options = {}) {
                   test: /\.scss$/,
                   use: [
                     ...(await createCSSWebpackRuleSet({
-                      configure,
+                      api,
+                      env: simulateEnv,
+                      configuration,
                       project,
                       sourceMaps,
-                      env: simulateEnv,
+                      cacheDirectory: 'sass',
+                      cacheDependencies: ['node-sass'],
                     })),
                     {
                       path: 'sass-loader',
@@ -65,7 +69,7 @@ export function sass({sassIncludes: baseSassIncludes = []}: Options = {}) {
                       },
                     },
                   ],
-                },
+                } as import('webpack').RuleSetRule,
               ];
             });
           },
@@ -80,13 +84,13 @@ export function sass({sassIncludes: baseSassIncludes = []}: Options = {}) {
 
         hooks.configure.hook(
           (
-            configure: Partial<
+            configuration: Partial<
               import('@sewing-kit/hooks').DevWebAppConfigurationHooks &
                 import('@sewing-kit/hooks').DevServiceConfigurationHooks
             >,
           ) => {
-            configure.webpackRules?.hook(async (rules) => {
-              const sassIncludePaths = await configure.sassIncludePaths!.run(
+            configuration.webpackRules?.hook(async (rules) => {
+              const sassIncludePaths = await configuration.sassIncludePaths!.run(
                 baseSassIncludes,
               );
 
@@ -96,9 +100,13 @@ export function sass({sassIncludes: baseSassIncludes = []}: Options = {}) {
                   test: /\.scss$/,
                   use: [
                     ...(await createCSSWebpackRuleSet({
-                      configure,
+                      api,
+                      env: Env.Development,
+                      configuration,
                       project,
                       sourceMaps,
+                      cacheDirectory: 'sass',
+                      cacheDependencies: ['node-sass'],
                     })),
                     {
                       path: 'sass-loader',
@@ -108,7 +116,7 @@ export function sass({sassIncludes: baseSassIncludes = []}: Options = {}) {
                       },
                     },
                   ],
-                },
+                } as import('webpack').RuleSetRule,
               ];
             });
           },

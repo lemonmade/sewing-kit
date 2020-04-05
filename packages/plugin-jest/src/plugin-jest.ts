@@ -277,70 +277,72 @@ export function jest() {
   );
 }
 
-export const jestConfigurationHooks = createProjectPlugin(
-  PLUGIN,
-  ({project, workspace, tasks: {test, build}}) => {
-    build.hook(({hooks}) => {
-      hooks.configure.hook((configurationHooks) => {
-        configurationHooks.babelIgnorePatterns?.hook((patterns) => [
-          ...patterns,
-          '**/test/',
-          '**/tests/',
-        ]);
-      });
-    });
-
-    test.hook(({hooks, context}) => {
-      hooks.configureHooks.hook((hooks) => ({
-        ...hooks,
-        jestExtensions: new WaterfallHook(),
-        jestEnvironment: new WaterfallHook(),
-        jestModuleMapper: new WaterfallHook(),
-        jestSetupEnv: new WaterfallHook(),
-        jestSetupTests: new WaterfallHook(),
-        jestTransforms: new WaterfallHook(),
-        jestTestMatch: new WaterfallHook(),
-        jestConfig: new WaterfallHook(),
-      }));
-
-      hooks.configure.hook((configure) => {
-        context.jestProjectConfigurations!.set(project, configure);
-
-        configure.jestSetupEnv!.hook(async (setupEnvFiles) => {
-          const packageSetupEnvFiles = ([] as string[]).concat(
-            ...(await Promise.all([
-              project.fs.glob('tests/setup/environment.*'),
-              project.fs.glob('tests/setup/environment/index.*'),
-            ])),
-          );
-
-          return [...setupEnvFiles, ...packageSetupEnvFiles];
-        });
-
-        configure.jestSetupTests!.hook(async (setupTestsFiles) => {
-          const packageSetupTestsFiles = ([] as string[]).concat(
-            ...(await Promise.all([
-              project.fs.glob('tests/setup/tests.*'),
-              project.fs.glob('tests/setup/tests/index.*'),
-            ])),
-          );
-
-          return [...setupTestsFiles, ...packageSetupTestsFiles];
-        });
-
-        configure.jestModuleMapper!.hook((moduleMap) => {
-          return workspace.packages.reduce(
-            (all, pkg) => ({
-              ...all,
-              ...packageEntryMatcherMap(pkg),
-            }),
-            moduleMap,
-          );
+export function jestProjectHooks() {
+  return createProjectPlugin(
+    PLUGIN,
+    ({project, workspace, tasks: {test, build}}) => {
+      build.hook(({hooks}) => {
+        hooks.configure.hook((configurationHooks) => {
+          configurationHooks.babelIgnorePatterns?.hook((patterns) => [
+            ...patterns,
+            '**/test/',
+            '**/tests/',
+          ]);
         });
       });
-    });
-  },
-);
+
+      test.hook(({hooks, context}) => {
+        hooks.configureHooks.hook((hooks) => ({
+          ...hooks,
+          jestExtensions: new WaterfallHook(),
+          jestEnvironment: new WaterfallHook(),
+          jestModuleMapper: new WaterfallHook(),
+          jestSetupEnv: new WaterfallHook(),
+          jestSetupTests: new WaterfallHook(),
+          jestTransforms: new WaterfallHook(),
+          jestTestMatch: new WaterfallHook(),
+          jestConfig: new WaterfallHook(),
+        }));
+
+        hooks.configure.hook((configure) => {
+          context.jestProjectConfigurations!.set(project, configure);
+
+          configure.jestSetupEnv!.hook(async (setupEnvFiles) => {
+            const packageSetupEnvFiles = ([] as string[]).concat(
+              ...(await Promise.all([
+                project.fs.glob('tests/setup/environment.*'),
+                project.fs.glob('tests/setup/environment/index.*'),
+              ])),
+            );
+
+            return [...setupEnvFiles, ...packageSetupEnvFiles];
+          });
+
+          configure.jestSetupTests!.hook(async (setupTestsFiles) => {
+            const packageSetupTestsFiles = ([] as string[]).concat(
+              ...(await Promise.all([
+                project.fs.glob('tests/setup/tests.*'),
+                project.fs.glob('tests/setup/tests/index.*'),
+              ])),
+            );
+
+            return [...setupTestsFiles, ...packageSetupTestsFiles];
+          });
+
+          configure.jestModuleMapper!.hook((moduleMap) => {
+            return workspace.packages.reduce(
+              (all, pkg) => ({
+                ...all,
+                ...packageEntryMatcherMap(pkg),
+              }),
+              moduleMap,
+            );
+          });
+        });
+      });
+    },
+  );
+}
 
 function packageEntryMatcherMap({runtimeName, entries, fs}: Package) {
   const map: Record<string, string> = Object.create(null);

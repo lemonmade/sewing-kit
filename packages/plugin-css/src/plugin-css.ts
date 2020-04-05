@@ -4,6 +4,7 @@ import {
   WaterfallHook,
   createProjectPlugin,
   createWorkspaceLintPlugin,
+  Env,
 } from '@sewing-kit/plugins';
 
 import {} from '@sewing-kit/plugin-jest';
@@ -31,7 +32,7 @@ declare module '@sewing-kit/hooks' {
 export function css() {
   return createProjectPlugin<Service | WebApp>(
     PLUGIN,
-    ({project, tasks: {dev, build, test}}) => {
+    ({api, project, tasks: {dev, build, test}}) => {
       test.hook(({hooks}) => {
         hooks.configureHooks.hook((hooks) => ({
           ...hooks,
@@ -64,6 +65,10 @@ export function css() {
           cssWebpackLoaderOptions: new WaterfallHook(),
           cssWebpackMiniExtractOptions: new WaterfallHook(),
           cssWebpackLoaderModule: new WaterfallHook(),
+          cssWebpackOptimizeOptions: new WaterfallHook(),
+          cssWebpackPostcssLoaderOptions: new WaterfallHook(),
+          cssWebpackPostcssLoaderContext: new WaterfallHook(),
+          cssWebpackCacheDependencies: new WaterfallHook(),
         }));
 
         hooks.configure.hook(
@@ -75,6 +80,42 @@ export function css() {
             >,
           ) => {
             if (shouldUseProductionAssets(simulateEnv)) {
+              configure.webpackOptimizeMinizers?.hook(async (minimizers) => {
+                const [
+                  {default: OptimizeCssAssetsPlugin},
+                  optimizeOptions,
+                ] = await Promise.all([
+                  import('optimize-css-assets-webpack-plugin'),
+                  configure.cssWebpackOptimizeOptions!.run({
+                    cssProcessorOptions: {
+                      map: {inline: false, annotations: true},
+                    },
+                    cssProcessorPluginOptions: {
+                      preset: [
+                        'default',
+                        {
+                          // This rule has an issue where multiple declarations
+                          // for the same property are merged into one, which can
+                          // change the semantics of code like:
+                          //
+                          // .klass {
+                          //   padding-left: 4rem;
+                          //   padding-left: calc(4rem + event(safe-area-inset-left));
+                          // }
+                          mergeLonghand: false,
+                        },
+                      ],
+                    },
+                    canPrint: false,
+                  }),
+                ] as const);
+
+                return [
+                  ...minimizers,
+                  new OptimizeCssAssetsPlugin(optimizeOptions),
+                ];
+              });
+
               configure.webpackPlugins?.hook(async (plugins) => {
                 const [
                   {default: MiniCssExtractPlugin},
@@ -88,6 +129,7 @@ export function css() {
 
                 return [
                   ...plugins,
+                  // TODO determine if this is still needed
                   new FilterWarningsPlugin({
                     exclude: /Conflicting order between:.*\* css/s,
                   }),
@@ -110,12 +152,15 @@ export function css() {
                 {
                   test: /\.css$/,
                   use: await createCSSWebpackRuleSet({
-                    configure,
+                    api,
+                    configuration: configure,
                     project,
                     sourceMaps,
                     env: simulateEnv,
+                    cacheDependencies: [],
+                    cacheDirectory: 'css',
                   }),
-                },
+                } as import('webpack').RuleSetRule,
               ];
             });
           },
@@ -126,9 +171,15 @@ export function css() {
         (hooks as import('@sewing-kit/hooks').DevWebAppHooks).configureHooks.hook(
           (hooks) => ({
             ...hooks,
+            cssWebpackFileName: new WaterfallHook(),
             cssModuleClassNamePattern: new WaterfallHook(),
-            cssWebpackLoaderModule: new WaterfallHook(),
             cssWebpackLoaderOptions: new WaterfallHook(),
+            cssWebpackMiniExtractOptions: new WaterfallHook(),
+            cssWebpackLoaderModule: new WaterfallHook(),
+            cssWebpackOptimizeOptions: new WaterfallHook(),
+            cssWebpackPostcssLoaderOptions: new WaterfallHook(),
+            cssWebpackPostcssLoaderContext: new WaterfallHook(),
+            cssWebpackCacheDependencies: new WaterfallHook(),
           }),
         );
 
@@ -146,11 +197,15 @@ export function css() {
                 {
                   test: /\.css$/,
                   use: await createCSSWebpackRuleSet({
-                    configure,
+                    api,
+                    configuration: configure,
                     project,
                     sourceMaps,
+                    env: Env.Development,
+                    cacheDependencies: [],
+                    cacheDirectory: 'css',
                   }),
-                },
+                } as import('webpack').RuleSetRule,
               ];
             });
           },
@@ -231,6 +286,31 @@ export function cssWebpackLoaderOptions(options: CSSWebpackLoaderOptions) {
       dev.hook(({hooks}) => {
         hooks.configure.hook(({cssWebpackLoaderOptions}) => {
           cssWebpackLoaderOptions?.hook(setLoaderOptions);
+        });
+      });
+    },
+  );
+}
+
+export function postcssPlugins(plugins: string[]) {
+  return createProjectPlugin(
+    `${PLUGIN}.SetPostcssPlugins`,
+    ({tasks: {dev, build}}) => {
+      build.hook(({hooks}) => {
+        hooks.configure.hook(({cssWebpackCacheDependencies}) => {
+          cssWebpackCacheDependencies?.hook((dependencies) => [
+            ...dependencies,
+            ...plugins,
+          ]);
+        });
+      });
+
+      dev.hook(({hooks}) => {
+        hooks.configure.hook(({cssWebpackCacheDependencies}) => {
+          cssWebpackCacheDependencies?.hook((dependencies) => [
+            ...dependencies,
+            ...plugins,
+          ]);
         });
       });
     },

@@ -51,6 +51,7 @@ export function createCompileBabelStep(
       const extensions = await config.babelExtensions.run([]);
       const sourceRoot = resolve(pkg.root, 'src');
 
+      // TODO: use `cacheDependencies` and cache directories to get good caching going here
       await step.exec('node_modules/.bin/babel', [
         sourceRoot,
         ...toArgs(

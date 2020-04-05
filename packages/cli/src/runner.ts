@@ -315,9 +315,10 @@ export async function run(
       target: StepTarget,
       focused: FocusedStep,
     ): NestedStepRunner => {
-      const subStepLog: typeof groupLog = (loggable) =>
+      const subStepLog: typeof groupLog = (loggable, options = {}) =>
         groupLog(
           (fmt) => fmt`${loggable} {subdued (started by "${parent.label}")}`,
+          {level: LogLevel.Debug, ...options},
         );
 
       async function runNested(steps: readonly Step[], target: StepTarget) {

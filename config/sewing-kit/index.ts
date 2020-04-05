@@ -3,20 +3,16 @@ import {
   createComposedProjectPlugin,
   createProjectTestPlugin,
 } from '@sewing-kit/plugins';
-import {babelConfigurationHooks} from '@sewing-kit/plugin-babel';
-import {jestConfigurationHooks} from '@sewing-kit/plugin-jest';
+import {babelProjectHooks} from '@sewing-kit/plugin-babel';
+import {jestProjectHooks} from '@sewing-kit/plugin-jest';
 import {javascript} from '@sewing-kit/plugin-javascript';
 import {typescript} from '@sewing-kit/plugin-typescript';
-
 import {buildFlexibleOutputs} from '@sewing-kit/plugin-package-flexible-outputs';
-
-const jestRemoveBabelPresetModuleMapperPlugin = createRemoveSourceMappingPlugin();
 
 export const createSewingKitPackagePlugin = ({typesAtRoot = false} = {}) =>
   createComposedProjectPlugin<Package>('SewingKit.InternalPackage', [
-    babelConfigurationHooks,
-    jestConfigurationHooks,
-    jestRemoveBabelPresetModuleMapperPlugin,
+    babelProjectHooks(),
+    jestProjectHooks(),
     javascript(),
     typescript(),
     buildFlexibleOutputs({
@@ -27,7 +23,8 @@ export const createSewingKitPackagePlugin = ({typesAtRoot = false} = {}) =>
       binaries: true,
       typescript: {typesAtRoot},
     }),
-  ] as const);
+    removeBabelPresetJestModuleMapper(),
+  ]);
 
 // We use the internal babel preset to compile tests. As part of bootstrap,
 // we already handle this package a bit differently; we build its source
@@ -39,7 +36,7 @@ export const createSewingKitPackagePlugin = ({typesAtRoot = false} = {}) =>
 // just removes the name mapping so any references to this package
 // point at the compiled output, which is a sloppy but workable solution.
 
-function createRemoveSourceMappingPlugin() {
+function removeBabelPresetJestModuleMapper() {
   return createProjectTestPlugin<Package>(
     'SewingKit.InternalRemoveBabelPresetJestModuleMapper',
     ({hooks}) => {

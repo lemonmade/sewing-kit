@@ -6,5 +6,10 @@
     "rootDir": "src"
   },
   "include": ["src/**/*.ts"],
-  "references": [{"path": "../plugins"}, {"path": "../plugin-babel"}]
+  "references": [
+    {"path": "../plugins"},
+    {"path": "../plugin-babel"},
+    {"path": "../plugin-jest"},
+    {"path": "../plugin-webpack"}
+  ]
 }

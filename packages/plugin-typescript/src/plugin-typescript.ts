@@ -2,6 +2,7 @@ import {join, resolve, relative} from 'path';
 import {copy, utimes, symlink} from 'fs-extra';
 
 import {
+  Env,
   Package,
   Workspace,
   WaterfallHook,
@@ -10,6 +11,7 @@ import {
   createWorkspacePlugin,
   WorkspacePluginContext,
 } from '@sewing-kit/plugins';
+import {createJavaScriptWebpackRuleSet} from '@sewing-kit/plugin-javascript';
 
 import {addTypeScriptBabelConfig} from './utilities';
 
@@ -32,7 +34,7 @@ declare module '@sewing-kit/hooks' {
 const PLUGIN = 'SewingKit.TypeScript';
 
 export function typescript() {
-  return createProjectPlugin(PLUGIN, ({tasks: {dev, build, test}}) => {
+  return createProjectPlugin(PLUGIN, ({project, tasks: {dev, build, test}}) => {
     test.hook(({hooks}) => {
       hooks.configure.hook((hooks) => {
         hooks.jestExtensions?.hook(addTypeScriptExtensions);
@@ -45,61 +47,49 @@ export function typescript() {
       });
     });
 
-    build.hook(({hooks}) => {
-      hooks.configure.hook(
-        (
-          configure: Partial<
-            import('@sewing-kit/hooks').BuildPackageConfigurationHooks &
-              import('@sewing-kit/hooks').BuildWebAppConfigurationHooks &
-              import('@sewing-kit/hooks').BuildServiceConfigurationHooks
-          >,
-        ) => {
-          configure.babelConfig?.hook(addTypeScriptBabelConfig);
-          configure.babelExtensions?.hook(addTypeScriptExtensions);
-          configure.webpackExtensions?.hook(addTypeScriptExtensions);
-          configure.webpackRules?.hook(async (rules) => {
-            const options = await configure.babelConfig?.run({});
-
-            return [
-              ...rules,
-              {
-                test: /\.tsx?/,
-                exclude: /node_modules/,
-                loader: 'babel-loader',
-                options,
-              },
-            ];
-          });
-        },
-      );
+    build.hook(({hooks, options}) => {
+      hooks.configure.hook((configure) => {
+        configure.babelConfig?.hook(addTypeScriptBabelConfig);
+        configure.babelExtensions?.hook(addTypeScriptExtensions);
+        configure.webpackExtensions?.hook(addTypeScriptExtensions);
+        configure.webpackPlugins?.hook(addWebpackPlugins);
+        configure.webpackRules?.hook(async (rules) => [
+          ...rules,
+          {
+            test: /\.tsx?/,
+            exclude: /node_modules/,
+            use: await createJavaScriptWebpackRuleSet({
+              project,
+              env: options.simulateEnv,
+              configuration: configure,
+              cacheDirectory: 'ts',
+              cacheDependencies: [],
+            }),
+          },
+        ]);
+      });
     });
 
     dev.hook(({hooks}) => {
-      hooks.configure.hook(
-        (
-          configure: Partial<
-            import('@sewing-kit/hooks').DevPackageConfigurationHooks &
-              import('@sewing-kit/hooks').DevWebAppConfigurationHooks &
-              import('@sewing-kit/hooks').DevServiceConfigurationHooks
-          >,
-        ) => {
-          configure.babelConfig?.hook(addTypeScriptBabelConfig);
-          configure.webpackExtensions?.hook(addTypeScriptExtensions);
-          configure.webpackRules?.hook(async (rules) => {
-            const options = await configure.babelConfig?.run({});
-
-            return [
-              ...rules,
-              {
-                test: /\.tsx?/,
-                exclude: /node_modules/,
-                loader: 'babel-loader',
-                options,
-              },
-            ];
-          });
-        },
-      );
+      hooks.configure.hook((configure) => {
+        configure.babelConfig?.hook(addTypeScriptBabelConfig);
+        configure.webpackExtensions?.hook(addTypeScriptExtensions);
+        configure.webpackPlugins?.hook(addWebpackPlugins);
+        configure.webpackRules?.hook(async (rules) => [
+          ...rules,
+          {
+            test: /\.tsx?/,
+            exclude: /node_modules/,
+            use: await createJavaScriptWebpackRuleSet({
+              project,
+              env: Env.Development,
+              configuration: configure,
+              cacheDirectory: 'ts',
+              cacheDependencies: [],
+            }),
+          },
+        ]);
+      });
     });
   });
 }
@@ -434,4 +424,20 @@ function normalizedRelative(from: string, to: string) {
 
 function addTypeScriptExtensions(extensions: readonly string[]) {
   return ['.ts', '.tsx', ...extensions];
+}
+
+async function addWebpackPlugins(plugins: readonly import('webpack').Plugin[]) {
+  const [
+    {IgnoreMissingTypeExportWarningsPlugin},
+    {WatchIgnorePlugin},
+  ] = await Promise.all([
+    import('./webpack-parts'),
+    import('webpack'),
+  ] as const);
+
+  return [
+    ...plugins,
+    new IgnoreMissingTypeExportWarningsPlugin(),
+    new WatchIgnorePlugin([/\.d\.ts$/]),
+  ];
 }

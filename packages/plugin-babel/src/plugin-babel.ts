@@ -1,10 +1,11 @@
-import {Package, WaterfallHook, createProjectPlugin} from '@sewing-kit/plugins';
+import {WaterfallHook, createProjectPlugin} from '@sewing-kit/plugins';
 import {BabelConfig} from './types';
 
 interface BabelHooks {
   readonly babelConfig: WaterfallHook<BabelConfig>;
   readonly babelExtensions: WaterfallHook<readonly string[]>;
   readonly babelIgnorePatterns: WaterfallHook<readonly string[]>;
+  readonly babelCacheDependencies: WaterfallHook<readonly string[]>;
 }
 
 declare module '@sewing-kit/hooks' {
@@ -15,17 +16,14 @@ declare module '@sewing-kit/hooks' {
 
 const PLUGIN = 'SewingKit.Babel';
 
-export const babelConfigurationHooks = createProjectPlugin(
-  PLUGIN,
-  ({project, tasks: {build, test, dev}}) => {
+export function babelProjectHooks() {
+  return createProjectPlugin(PLUGIN, ({tasks: {build, test, dev}}) => {
     const addHooks = (hooks: any) => ({
       ...hooks,
       babelConfig: new WaterfallHook(),
       babelIgnorePatterns: new WaterfallHook(),
-      babelExtensions:
-        project instanceof Package
-          ? new WaterfallHook<readonly string[]>()
-          : undefined,
+      babelExtensions: new WaterfallHook(),
+      babelCacheDependencies: new WaterfallHook(),
     });
 
     build.hook(({hooks}) => {
@@ -39,10 +37,10 @@ export const babelConfigurationHooks = createProjectPlugin(
     test.hook(({hooks}) => {
       hooks.configureHooks.hook(addHooks);
     });
-  },
-);
+  });
+}
 
-export function addBabelPlugin(plugin: string | [string, object]) {
+export function babelPlugin(plugin: string | [string, object]) {
   const id = `${PLUGIN}.AddBabelPlugin`;
 
   return createProjectPluginTargettingAllConfigurationHooks(id, (hooks) => {
@@ -50,10 +48,15 @@ export function addBabelPlugin(plugin: string | [string, object]) {
       ...config,
       plugins: [...(config.plugins ?? []), plugin],
     }));
+
+    hooks.babelCacheDependencies?.hook((dependencies) => [
+      ...dependencies,
+      typeof plugin === 'string' ? plugin : plugin[0],
+    ]);
   });
 }
 
-export function addBabelPreset(preset: string | [string, object]) {
+export function babelPreset(preset: string | [string, object]) {
   const id = `${PLUGIN}.AddBabelPreset`;
 
   return createProjectPluginTargettingAllConfigurationHooks(id, (hooks) => {
@@ -61,6 +64,11 @@ export function addBabelPreset(preset: string | [string, object]) {
       ...config,
       presets: [...(config.presets ?? []), preset],
     }));
+
+    hooks.babelCacheDependencies?.hook((dependencies) => [
+      ...dependencies,
+      typeof preset === 'string' ? preset : preset[0],
+    ]);
   });
 }
 

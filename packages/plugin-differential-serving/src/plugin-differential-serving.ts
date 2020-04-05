@@ -50,7 +50,15 @@ export function differentialServing({
         return;
       }
 
+      configuration.webpackCachePath?.hook((cache) =>
+        join(cache, browserTarget),
+      );
+
       configuration.webpackOutputFilename?.hook((filename) => {
+        return join(dirname(filename), browserTarget, basename(filename));
+      });
+
+      configuration.webpackOutputChunkFilename?.hook((filename) => {
         return join(dirname(filename), browserTarget, basename(filename));
       });
 

@@ -4,5 +4,6 @@ export {
   BaseBabelPresetModule,
   BaseBabelPresetTarget,
   BaseBabelPresetPolyfill,
+  createJavaScriptWebpackRuleSet,
 } from './utilities';
 export type {BaseBabelPresetOptions} from './utilities';

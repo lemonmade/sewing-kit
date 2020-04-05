@@ -1,8 +1,12 @@
 export {
   BuildManager,
-  webpack,
+  webpackBuild,
+  createWebpackBuildStep,
+  createCacheLoaderRule,
+  webpackHooks,
   webpackRules,
   webpackPlugins,
+  webpackExternals,
   webpackAliases,
   noopModuleWithWebpack,
 } from './plugin-webpack';

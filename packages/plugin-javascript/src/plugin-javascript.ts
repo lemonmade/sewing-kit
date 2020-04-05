@@ -1,6 +1,7 @@
 import {
   createProjectPlugin,
   createWorkspaceLintPlugin,
+  Env,
 } from '@sewing-kit/plugins';
 
 import {
@@ -12,10 +13,12 @@ import {} from '@sewing-kit/plugin-jest';
 import {} from '@sewing-kit/plugin-eslint';
 import {} from '@sewing-kit/plugin-webpack';
 
+import {createJavaScriptWebpackRuleSet} from './utilities';
+
 const PLUGIN = 'SewingKit.JavaScript';
 
 export function javascript() {
-  return createProjectPlugin(PLUGIN, ({tasks: {dev, build, test}}) => {
+  return createProjectPlugin(PLUGIN, ({project, tasks: {dev, build, test}}) => {
     test.hook(({hooks}) => {
       hooks.configure.hook((configure) => {
         // Unfortunately, some packages (like `graphql`) use `.mjs` for esmodule
@@ -48,7 +51,7 @@ export function javascript() {
       });
     });
 
-    build.hook(({hooks}) => {
+    build.hook(({hooks, options}) => {
       hooks.configure.hook(
         (
           configure: Partial<
@@ -60,19 +63,20 @@ export function javascript() {
           configure.babelConfig?.hook(addBaseBabelPreset);
           configure.babelExtensions?.hook(addJavaScriptExtensions);
           configure.webpackExtensions?.hook(addJavaScriptExtensions);
-          configure.webpackRules?.hook(async (rules) => {
-            const options = await configure.babelConfig?.run({});
-
-            return [
-              ...rules,
-              {
-                test: /\.m?js/,
-                exclude: /node_modules/,
-                loader: 'babel-loader',
-                options,
-              },
-            ];
-          });
+          configure.webpackRules?.hook(async (rules) => [
+            ...rules,
+            {
+              test: /\.m?js/,
+              exclude: /node_modules/,
+              use: await createJavaScriptWebpackRuleSet({
+                project,
+                env: options.simulateEnv,
+                configuration: configure,
+                cacheDirectory: 'js',
+                cacheDependencies: [],
+              }),
+            },
+          ]);
         },
       );
     });
@@ -88,19 +92,20 @@ export function javascript() {
         ) => {
           configure.babelConfig?.hook(addBaseBabelPreset);
           configure.webpackExtensions?.hook(addJavaScriptExtensions);
-          configure.webpackRules?.hook(async (rules) => {
-            const options = await configure.babelConfig?.run({});
-
-            return [
-              ...rules,
-              {
-                test: /\.m?js/,
-                exclude: /node_modules/,
-                loader: 'babel-loader',
-                options,
-              },
-            ];
-          });
+          configure.webpackRules?.hook(async (rules) => [
+            ...rules,
+            {
+              test: /\.m?js/,
+              exclude: /node_modules/,
+              use: await createJavaScriptWebpackRuleSet({
+                project,
+                env: Env.Development,
+                configuration: configure,
+                cacheDirectory: 'js',
+                cacheDependencies: [],
+              }),
+            },
+          ]);
         },
       );
     });

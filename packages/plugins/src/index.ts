@@ -1,5 +1,5 @@
 export {DiagnosticError, LogLevel} from '@sewing-kit/core';
-export type {Loggable} from '@sewing-kit/core';
+export type {Loggable, Step, StepResources, StepStdio} from '@sewing-kit/core';
 export {Task, Env} from '@sewing-kit/tasks';
 export type {WorkspaceTasks, ProjectTasks} from '@sewing-kit/tasks';
 export {SeriesHook, WaterfallHook} from '@sewing-kit/hooks';

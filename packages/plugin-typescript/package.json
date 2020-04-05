@@ -19,6 +19,7 @@
   "optionalDependencies": {
     "@babel/core": "^7.0.0",
     "@sewing-kit/plugin-eslint": "^0.0.33",
+    "@sewing-kit/plugin-javascript": "^0.0.44",
     "@sewing-kit/plugin-jest": "^0.0.38",
     "@sewing-kit/plugin-webpack": "^0.0.36"
   }

@@ -1,9 +1,9 @@
 import {
-  WebApp,
-  Service,
+  Project,
   Package,
   createProjectPlugin,
   createProjectBuildPlugin,
+  Env,
 } from '@sewing-kit/plugins';
 import {
   createWriteEntriesStep,
@@ -11,8 +11,9 @@ import {
 } from '@sewing-kit/plugin-package-utilities';
 import {createCompileBabelStep} from '@sewing-kit/plugin-babel';
 import {
-  changeBaseJavaScriptBabelPreset,
   BaseBabelPresetModule,
+  changeBaseJavaScriptBabelPreset,
+  createJavaScriptWebpackRuleSet,
 } from '@sewing-kit/plugin-javascript';
 import {} from '@sewing-kit/plugin-webpack';
 
@@ -27,41 +28,45 @@ declare module '@sewing-kit/hooks' {
 }
 
 export function esnextOutput() {
-  return createProjectPlugin<WebApp | Service>(
+  return createProjectPlugin<Project>(
     `${PLUGIN}.Consumer`,
-    ({tasks: {build, dev}}) => {
-      build.hook(({hooks}) => {
-        hooks.configure.hook(
-          (
-            configure: Partial<
-              import('@sewing-kit/hooks').BuildWebAppConfigurationHooks &
-                import('@sewing-kit/hooks').BuildServiceConfigurationHooks
-            >,
-          ) => {
-            configure.webpackExtensions?.hook(addExtension);
-            configure.webpackRules?.hook(async (rules) => [
-              ...rules,
-              await createWebpackRule(configure),
-            ]);
-          },
-        );
+    ({project, tasks: {build, dev}}) => {
+      build.hook(({hooks, options}) => {
+        hooks.configure.hook((configure) => {
+          configure.webpackExtensions?.hook(addExtension);
+          configure.webpackRules?.hook(async (rules) => [
+            ...rules,
+            {
+              test: /\.esnext/,
+              include: /node_modules/,
+              use: await createJavaScriptWebpackRuleSet({
+                project,
+                env: options.simulateEnv,
+                configuration: configure,
+                cacheDirectory: 'esnext',
+              }),
+            },
+          ]);
+        });
       });
 
       dev.hook(({hooks}) => {
-        hooks.configure.hook(
-          (
-            configure: Partial<
-              import('@sewing-kit/hooks').BuildWebAppConfigurationHooks &
-                import('@sewing-kit/hooks').BuildServiceConfigurationHooks
-            >,
-          ) => {
-            configure.webpackExtensions?.hook(addExtension);
-            configure.webpackRules?.hook(async (rules) => [
-              ...rules,
-              await createWebpackRule(configure),
-            ]);
-          },
-        );
+        hooks.configure.hook((configure) => {
+          configure.webpackExtensions?.hook(addExtension);
+          configure.webpackRules?.hook(async (rules) => [
+            ...rules,
+            {
+              test: /\.esnext/,
+              include: /node_modules/,
+              use: await createJavaScriptWebpackRuleSet({
+                project,
+                env: Env.Development,
+                configuration: configure,
+                cacheDirectory: 'esnext',
+              }),
+            },
+          ]);
+        });
       });
     },
   );
@@ -112,19 +117,4 @@ export function buildEsNextOutput() {
 
 function addExtension(extensions: readonly string[]): readonly string[] {
   return [EXTENSION, ...extensions];
-}
-
-async function createWebpackRule(
-  configure:
-    | import('@sewing-kit/hooks').BuildWebAppConfigurationHooks
-    | import('@sewing-kit/hooks').BuildServiceConfigurationHooks,
-) {
-  const options = await configure.babelConfig?.run({});
-
-  return {
-    test: /\.esnext/,
-    include: /node_modules/,
-    loader: 'babel-loader',
-    options,
-  };
 }

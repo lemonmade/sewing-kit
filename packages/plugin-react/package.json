@@ -14,6 +14,8 @@
     "immer": "^6.0.2"
   },
   "optionalDependencies": {
-    "@babel/core": "^7.0.0"
+    "@babel/core": "^7.0.0",
+    "@sewing-kit/plugin-jest": "^0.0.38",
+    "@sewing-kit/plugin-webpack": "^0.0.36"
   }
 }
