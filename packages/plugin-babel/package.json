@@ -12,12 +12,6 @@
     "@babel/core": "^7.8.0",
     "@sewing-kit/hooks": "^0.0.22",
     "@sewing-kit/plugins": "^0.0.21",
-    "@types/babel__core": "^7.1.6",
-    "fs-extra": "^9.0.0",
-    "glob": "^7.1.6"
-  },
-  "devDependencies": {
-    "@types/fs-extra": "^8.1.0",
-    "@types/glob": "^7.1.1"
+    "@types/babel__core": "^7.1.6"
   }
 }

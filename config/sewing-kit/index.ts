@@ -3,7 +3,7 @@ import {
   createComposedProjectPlugin,
   createProjectTestPlugin,
 } from '@sewing-kit/plugins';
-import {babelProjectHooks} from '@sewing-kit/plugin-babel';
+import {babelHooks} from '@sewing-kit/plugin-babel';
 import {jestProjectHooks} from '@sewing-kit/plugin-jest';
 import {javascript} from '@sewing-kit/plugin-javascript';
 import {typescript} from '@sewing-kit/plugin-typescript';
@@ -11,7 +11,7 @@ import {buildFlexibleOutputs} from '@sewing-kit/plugin-package-flexible-outputs'
 
 export const createSewingKitPackagePlugin = ({typesAtRoot = false} = {}) =>
   createComposedProjectPlugin<Package>('SewingKit.InternalPackage', [
-    babelProjectHooks(),
+    babelHooks(),
     jestProjectHooks(),
     javascript(),
     typescript(),

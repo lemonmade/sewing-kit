@@ -1,3 +1,3 @@
 export type {BabelConfig} from './types';
-export {babelPlugin, babelPreset, babelProjectHooks} from './plugin-babel';
+export {babelHooks, babelPlugins, babelPresets} from './plugin-babel';
 export {createCompileBabelStep} from './utilities';

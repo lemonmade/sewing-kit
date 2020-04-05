@@ -1,4 +1,9 @@
 import {WaterfallHook, createProjectPlugin} from '@sewing-kit/plugins';
+import type {
+  TestProjectConfigurationHooks,
+  BuildProjectConfigurationHooks,
+  DevProjectConfigurationHooks,
+} from '@sewing-kit/hooks';
 import {BabelConfig} from './types';
 
 interface BabelHooks {
@@ -16,15 +21,21 @@ declare module '@sewing-kit/hooks' {
 
 const PLUGIN = 'SewingKit.Babel';
 
-export function babelProjectHooks() {
+export function babelHooks() {
   return createProjectPlugin(PLUGIN, ({tasks: {build, test, dev}}) => {
-    const addHooks = (hooks: any) => ({
-      ...hooks,
-      babelConfig: new WaterfallHook(),
-      babelIgnorePatterns: new WaterfallHook(),
-      babelExtensions: new WaterfallHook(),
-      babelCacheDependencies: new WaterfallHook(),
-    });
+    const addHooks = (
+      hooks:
+        | TestProjectConfigurationHooks
+        | BuildProjectConfigurationHooks
+        | DevProjectConfigurationHooks,
+    ): any =>
+      ({
+        ...hooks,
+        babelConfig: new WaterfallHook(),
+        babelIgnorePatterns: new WaterfallHook(),
+        babelExtensions: new WaterfallHook(),
+        babelCacheDependencies: new WaterfallHook(),
+      } as BabelHooks);
 
     build.hook(({hooks}) => {
       hooks.configureHooks.hook(addHooks);
@@ -40,36 +51,82 @@ export function babelProjectHooks() {
   });
 }
 
-export function babelPlugin(plugin: string | [string, object]) {
-  const id = `${PLUGIN}.AddBabelPlugin`;
+export function babelPlugins(
+  getPlugins: ValueOrGetter<ValueOrArray<string | [string, object]>>,
+) {
+  const id = `${PLUGIN}.AddBabelPlugins`;
 
-  return createProjectPluginTargettingAllConfigurationHooks(id, (hooks) => {
-    hooks.babelConfig?.hook((config) => ({
-      ...config,
-      plugins: [...(config.plugins ?? []), plugin],
-    }));
+  return createProjectPluginTargettingAllConfigurationHooks(
+    id,
+    async (hooks) => {
+      const plugins = await unwrapPossibleArrayGetter(getPlugins);
 
-    hooks.babelCacheDependencies?.hook((dependencies) => [
-      ...dependencies,
-      typeof plugin === 'string' ? plugin : plugin[0],
-    ]);
-  });
+      hooks.babelConfig?.hook((config) => ({
+        ...config,
+        plugins: [...(config.plugins ?? []), ...plugins],
+      }));
+
+      hooks.babelCacheDependencies?.hook((dependencies) => [
+        ...dependencies,
+        ...plugins.map((plugin) =>
+          typeof plugin === 'string' ? plugin : plugin[0],
+        ),
+      ]);
+    },
+  );
 }
 
-export function babelPreset(preset: string | [string, object]) {
-  const id = `${PLUGIN}.AddBabelPreset`;
+export function babelPresets(
+  getPresets: ValueOrGetter<ValueOrArray<string | [string, object]>>,
+) {
+  const id = `${PLUGIN}.AddBabelPresets`;
 
-  return createProjectPluginTargettingAllConfigurationHooks(id, (hooks) => {
-    hooks.babelConfig?.hook((config) => ({
-      ...config,
-      presets: [...(config.presets ?? []), preset],
-    }));
+  return createProjectPluginTargettingAllConfigurationHooks(
+    id,
+    async (hooks) => {
+      const presets = await unwrapPossibleArrayGetter(getPresets);
 
-    hooks.babelCacheDependencies?.hook((dependencies) => [
-      ...dependencies,
-      typeof preset === 'string' ? preset : preset[0],
-    ]);
-  });
+      hooks.babelConfig?.hook((config) => ({
+        ...config,
+        presets: [...(config.presets ?? []), ...presets],
+      }));
+
+      hooks.babelCacheDependencies?.hook((dependencies) => [
+        ...dependencies,
+        ...presets.map((preset) =>
+          typeof preset === 'string' ? preset : preset[0],
+        ),
+      ]);
+    },
+  );
+}
+
+type ValueOrArray<Value> = Value | Value[];
+type ValueOrGetter<Value> = Value | (() => Value | Promise<Value>);
+
+function unwrapPossibleGetter<T>(
+  maybeGetter: ValueOrGetter<T>,
+): T | Promise<T> {
+  return typeof maybeGetter === 'function'
+    ? (maybeGetter as any)()
+    : maybeGetter;
+}
+
+async function unwrapPossibleArrayGetter<T>(
+  maybeGetter: ValueOrGetter<ValueOrArray<T>>,
+) {
+  const result = await unwrapPossibleGetter(maybeGetter);
+  return Array.isArray(result) && !looksLikeTuple(result) ? result : [result];
+}
+
+function looksLikeTuple(value: any[]): value is [string, object] {
+  return (
+    value.length === 2 &&
+    value[0] != null &&
+    value[1] != null &&
+    typeof value[0] === 'string' &&
+    typeof value[1] === 'object'
+  );
 }
 
 function createProjectPluginTargettingAllConfigurationHooks(

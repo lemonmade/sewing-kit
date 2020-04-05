@@ -74,7 +74,7 @@ export function esnextOutput() {
 
 export function buildEsNextOutput() {
   return createProjectBuildPlugin<Package>(PLUGIN, (context) => {
-    const {hooks, project} = context;
+    const {api, hooks, project} = context;
 
     hooks.variants.hook((variants) => [...variants, {[VARIANT]: true}]);
 
@@ -100,8 +100,11 @@ export function buildEsNextOutput() {
 
       return [
         ...steps,
-        createCompileBabelStep(context, configuration, {
+        createCompileBabelStep({
+          api,
+          project,
           outputPath,
+          configuration,
           extension: EXTENSION,
           configFile: 'babel.esnext.js',
         }),

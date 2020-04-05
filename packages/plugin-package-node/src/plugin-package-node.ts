@@ -36,7 +36,7 @@ export function nodeOutput() {
 
 export function buildNodeOutput() {
   return createProjectBuildPlugin<Package>(PLUGIN, (context) => {
-    const {hooks, project} = context;
+    const {api, hooks, project} = context;
 
     hooks.variants.hook((variants) => {
       // If all the entries already target node, there is no need to do a
@@ -70,8 +70,11 @@ export function buildNodeOutput() {
 
       return [
         ...steps,
-        createCompileBabelStep(context, configuration, {
+        createCompileBabelStep({
+          api,
+          project,
           outputPath,
+          configuration,
           configFile: 'babel.node.js',
         }),
         createWriteEntriesStep(context, {

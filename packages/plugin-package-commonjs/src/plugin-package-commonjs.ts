@@ -32,7 +32,7 @@ const setNodeTarget = changeBaseJavaScriptBabelPreset({
 
 export function buildCommonJsOutput() {
   return createProjectBuildPlugin<Package>(PLUGIN, (context) => {
-    const {hooks, project} = context;
+    const {api, hooks, project} = context;
 
     hooks.variants.hook((variants) => [...variants, {[VARIANT]: true}]);
 
@@ -61,7 +61,10 @@ export function buildCommonJsOutput() {
 
       return [
         ...steps,
-        createCompileBabelStep(context, configuration, {
+        createCompileBabelStep({
+          api,
+          project,
+          configuration,
           outputPath,
           configFile: 'babel.cjs.js',
         }),

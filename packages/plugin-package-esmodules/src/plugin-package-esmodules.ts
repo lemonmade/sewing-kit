@@ -69,7 +69,8 @@ export function esmodulesOutput() {
 
 export function buildEsModulesOutput() {
   return createProjectBuildPlugin<Package>(PLUGIN, (context) => {
-    const {hooks, project} = context;
+    const {api, hooks, project} = context;
+
     hooks.variants.hook((variants) => [...variants, {[VARIANT]: true}]);
 
     hooks.configure.hook((configure, {esmodules}) => {
@@ -89,7 +90,10 @@ export function buildEsModulesOutput() {
 
       return [
         ...steps,
-        createCompileBabelStep(context, configuration, {
+        createCompileBabelStep({
+          api,
+          project,
+          configuration,
           outputPath,
           extension: '.mjs',
           configFile: 'babel.esm.js',
