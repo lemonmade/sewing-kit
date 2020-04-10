@@ -15,7 +15,7 @@ export interface CSSWebpackLoaderModule {
 
 export interface CSSWebpackLoaderOptions {
   readonly import?: boolean;
-  readonly modules?: CSSWebpackLoaderModule;
+  readonly modules?: CSSWebpackLoaderModule | boolean;
   readonly sourceMap?: boolean;
   readonly importLoaders?: number;
   readonly localsConvention?: string;
@@ -39,14 +39,22 @@ export interface CSSWebpackPostcssLoaderOptions {
   ) => import('postcss').Plugin<any>[];
 }
 
+export interface CSSWebpackPostcssPlugins {
+  [key: string]: object | true;
+}
+
 export interface CSSWebpackHooks {
+  readonly cssWebpackIgnoreOrder: WaterfallHook<boolean>;
   readonly cssWebpackFileName: WaterfallHook<string>;
   readonly cssWebpackMiniExtractOptions: WaterfallHook<
     import('mini-css-extract-plugin').PluginOptions
   >;
   readonly cssModuleClassNamePattern: WaterfallHook<string>;
   readonly cssWebpackLoaderOptions: WaterfallHook<CSSWebpackLoaderOptions>;
-  readonly cssWebpackLoaderModule: WaterfallHook<CSSWebpackLoaderModule>;
+  readonly cssWebpackLoaderModule: WaterfallHook<
+    CSSWebpackLoaderModule | false
+  >;
+  readonly cssWebpackPostcssPlugins: WaterfallHook<CSSWebpackPostcssPlugins>;
   readonly cssWebpackPostcssLoaderOptions: WaterfallHook<
     CSSWebpackPostcssLoaderOptions
   >;
@@ -55,4 +63,8 @@ export interface CSSWebpackHooks {
     import('optimize-css-assets-webpack-plugin').Options
   >;
   readonly cssWebpackCacheDependencies: WaterfallHook<readonly string[]>;
+}
+
+export interface CSSTestingHooks {
+  readonly cssModuleIdentityProxyExtensions: WaterfallHook<readonly string[]>;
 }

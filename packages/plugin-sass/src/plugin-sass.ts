@@ -20,12 +20,18 @@ declare module '@sewing-kit/hooks' {
 }
 
 interface Options {
+  readonly id?: string;
+  readonly postcss?: Parameters<typeof createCSSWebpackRuleSet>[0]['postcss'];
   readonly sassIncludes?: readonly string[];
 }
 
 const PLUGIN = 'SewingKit.Sass';
 
-export function sass({sassIncludes: baseSassIncludes = []}: Options = {}) {
+export function sass({
+  id = 'sass',
+  postcss = true,
+  sassIncludes: baseSassIncludes = [],
+}: Options = {}) {
   return createProjectPlugin<WebApp | Service>(
     PLUGIN,
     ({api, project, tasks: {build, dev, test}}) => {
@@ -42,6 +48,11 @@ export function sass({sassIncludes: baseSassIncludes = []}: Options = {}) {
                 import('@sewing-kit/hooks').BuildServiceConfigurationHooks
             >,
           ) => {
+            configuration.cssWebpackCacheDependencies?.hook((dependencies) => [
+              ...dependencies,
+              'node-sass',
+            ]);
+
             configuration.webpackRules?.hook(async (rules) => {
               const sassIncludePaths = await configuration.sassIncludePaths!.run(
                 baseSassIncludes,
@@ -53,10 +64,12 @@ export function sass({sassIncludes: baseSassIncludes = []}: Options = {}) {
                   test: /\.scss$/,
                   use: [
                     ...(await createCSSWebpackRuleSet({
+                      id,
                       api,
                       env: simulateEnv,
                       configuration,
                       project,
+                      postcss,
                       sourceMaps,
                       cacheDirectory: 'sass',
                       cacheDependencies: ['node-sass'],
@@ -89,6 +102,11 @@ export function sass({sassIncludes: baseSassIncludes = []}: Options = {}) {
                 import('@sewing-kit/hooks').DevServiceConfigurationHooks
             >,
           ) => {
+            configuration.cssWebpackCacheDependencies?.hook((dependencies) => [
+              ...dependencies,
+              'node-sass',
+            ]);
+
             configuration.webpackRules?.hook(async (rules) => {
               const sassIncludePaths = await configuration.sassIncludePaths!.run(
                 baseSassIncludes,

@@ -39,5 +39,5 @@ export type {
   WorkspacePlugin,
   WorkspacePluginContext,
 } from './plugins';
-export {toArgs} from './utilities';
+export {toArgs, addHooks} from './utilities';
 export {MissingPluginError} from './errors';

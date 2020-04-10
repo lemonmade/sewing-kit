@@ -9,7 +9,6 @@
   "references": [
     {"path": "../plugins"},
     {"path": "../plugin-webpack"},
-    {"path": "../plugin-stylelint"},
     {"path": "../plugin-jest"}
   ]
 }

@@ -1,9 +1,8 @@
-import {WaterfallHook, createProjectPlugin} from '@sewing-kit/plugins';
-import type {
-  TestProjectConfigurationHooks,
-  BuildProjectConfigurationHooks,
-  DevProjectConfigurationHooks,
-} from '@sewing-kit/hooks';
+import {
+  addHooks,
+  WaterfallHook,
+  createProjectPlugin,
+} from '@sewing-kit/plugins';
 import {BabelConfig} from './types';
 
 interface BabelHooks {
@@ -23,30 +22,23 @@ const PLUGIN = 'SewingKit.Babel';
 
 export function babelHooks() {
   return createProjectPlugin(PLUGIN, ({tasks: {build, test, dev}}) => {
-    const addHooks = (
-      hooks:
-        | TestProjectConfigurationHooks
-        | BuildProjectConfigurationHooks
-        | DevProjectConfigurationHooks,
-    ): any =>
-      ({
-        ...hooks,
-        babelConfig: new WaterfallHook(),
-        babelIgnorePatterns: new WaterfallHook(),
-        babelExtensions: new WaterfallHook(),
-        babelCacheDependencies: new WaterfallHook(),
-      } as BabelHooks);
+    const addBabelHooks = addHooks<BabelHooks>(() => ({
+      babelConfig: new WaterfallHook(),
+      babelIgnorePatterns: new WaterfallHook(),
+      babelExtensions: new WaterfallHook(),
+      babelCacheDependencies: new WaterfallHook(),
+    }));
 
     build.hook(({hooks}) => {
-      hooks.configureHooks.hook(addHooks);
+      hooks.configureHooks.hook(addBabelHooks);
     });
 
     dev.hook(({hooks}) => {
-      hooks.configureHooks.hook(addHooks);
+      hooks.configureHooks.hook(addBabelHooks);
     });
 
     test.hook(({hooks}) => {
-      hooks.configureHooks.hook(addHooks);
+      hooks.configureHooks.hook(addBabelHooks);
     });
   });
 }

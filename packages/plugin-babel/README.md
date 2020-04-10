@@ -114,13 +114,15 @@ export default createWebApp((app) => {
 });
 ```
 
-### `babelPreset()`
+More complex customizations of the Babel config can be done with the [`babelConfig` hook provided by the `babelHooks()` plugin](#hooks).
 
-The `babelPreset` function returns a `sewing-kit` plugin that applies to a project. To include this plugin, you **must** include the `babelHooks()` plugin as well. It has an identical set of accepted arguments as `babelPlugins()`, except that any values passed to this plugin will become Babel _presets_ in your final Babel config.
+### `babelPresets()`
+
+The `babelPresets` function returns a `sewing-kit` plugin that applies to a project. To include this plugin, you **must** include the `babelHooks()` plugin as well. It has an identical set of accepted arguments as `babelPlugins()`, except that any values passed to this plugin will become Babel _presets_ in your final Babel config.
 
 ```ts
 import {createWebApp} from '@sewing-kit/config';
-import {babelHooks, babelPreset} from '@sewing-kit/plugin-babel';
+import {babelHooks, babelPresets} from '@sewing-kit/plugin-babel';
 
 export default createWebApp((app) => {
   app.use(
@@ -137,6 +139,8 @@ export default createWebApp((app) => {
 });
 ```
 
+More complex customizations of the Babel config can be done with the [`babelConfig` hook provided by the `babelHooks()` plugin](#hooks).
+
 ## Utilities
 
 ### `createCompileBabelStep()`
@@ -147,7 +151,7 @@ The `createCompileBabelStep` function returns a `Step` that will run the Babel C
 import {createPackageBuildPlugin} from '@sewing-kit/config';
 import {createCompileBabelStep} from '@sewing-kit/plugin-babel';
 
-const plugin = createPackageBuildPlugin(({pkg, api, hooks}) => {
+const plugin = createPackageBuildPlugin('MyPlugin', ({pkg, api, hooks}) => {
   hooks.steps.hook((steps, {configuration}) => [
     ...steps,
     await createCompileBabelStep({

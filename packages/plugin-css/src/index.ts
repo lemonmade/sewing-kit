@@ -1,8 +1,8 @@
 export {
   css,
-  cssModuleClassNamePattern,
+  postcssPlugins,
   cssModuleExtensions,
+  cssModuleClassNamePattern,
   cssWebpackLoaderOptions,
-  workspaceCSS,
 } from './plugin-css';
 export {createCSSWebpackRuleSet} from './utilities';

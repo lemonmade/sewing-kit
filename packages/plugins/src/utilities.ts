@@ -23,3 +23,9 @@ export function toArgs(flags: object, {dasherize = false} = {}) {
     return [...all, ...newArgs];
   }, []);
 }
+
+export function addHooks<T>(
+  adder: () => T,
+): <Hooks extends Partial<T>>(hooks: Hooks) => Hooks & T {
+  return (hooks) => ({...hooks, ...adder()});
+}
