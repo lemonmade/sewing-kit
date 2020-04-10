@@ -6,8 +6,5 @@
     "rootDir": "src"
   },
   "include": ["src/**/*.ts", "../../config/typescript/typings"],
-  "references": [
-    {"path": "../plugins"},
-    {"path": "../webpack-plugin-hash-output"}
-  ]
+  "references": []
 }

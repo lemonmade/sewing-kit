@@ -2462,10 +2462,10 @@
     "@types/source-list-map" "*"
     source-map "^0.6.1"
 
-"@types/webpack@*", "@types/webpack@^4.4.27", "@types/webpack@^4.41.8":
-  version "4.41.8"
-  resolved "https://registry.yarnpkg.com/@types/webpack/-/webpack-4.41.8.tgz#d2244f5f612ee30230a5c8c4ae678bce90d27277"
-  integrity sha512-mh4litLHTlDG84TGCFv1pZldndI34vkrW9Mks++Zx4KET7DRMoCXUvLbTISiuF4++fMgNnhV9cc1nCXJQyBYbQ==
+"@types/webpack@*", "@types/webpack@>=4.0.0 <5.0.0", "@types/webpack@^4.4.27", "@types/webpack@^4.41.8":
+  version "4.41.10"
+  resolved "https://registry.yarnpkg.com/@types/webpack/-/webpack-4.41.10.tgz#2e1f6b3508a249854efe3dcc7690905ac5ee10be"
+  integrity sha512-vIy0qaq8AjOjZLuFPqpo7nAJzcoVXMdw3mvpNN07Uvdy0p1IpJeLNBe3obdRP7FX2jIusDE7z1pZa0A6qYUgnA==
   dependencies:
     "@types/anymatch" "*"
     "@types/node" "*"
@@ -9086,11 +9086,6 @@ osenv@0, osenv@^0.1.4, osenv@^0.1.5:
     os-homedir "^1.0.0"
     os-tmpdir "^1.0.0"
 
-outdent@^0.7.0:
-  version "0.7.1"
-  resolved "https://registry.yarnpkg.com/outdent/-/outdent-0.7.1.tgz#e9b400443622a97760b0bc74fa3223252ccd02a2"
-  integrity sha512-VjIzdUHunL74DdhcwMDt5FhNDQ8NYmTkuW0B+usIV2afS9aWT/1c9z1TsnFW349TP3nxmYeUl7Z++XpJRByvgg==
-
 p-each-series@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/p-each-series/-/p-each-series-2.1.0.tgz#961c8dd3f195ea96c747e636b262b800a6b1af48"
@@ -12382,11 +12377,6 @@ webpack-dev-middleware@^3.0.0:
     range-parser "^1.2.1"
     webpack-log "^2.0.0"
 
-webpack-filter-warnings-plugin@^2.0.0-beta.0:
-  version "2.0.0-beta.0"
-  resolved "https://registry.yarnpkg.com/webpack-filter-warnings-plugin/-/webpack-filter-warnings-plugin-2.0.0-beta.0.tgz#aa7f4ce0b93e09a0f4c31b5d0f33a1bd96c7d7e4"
-  integrity sha512-3of8EDVhg6EeNxeuxqGtU3oHez49tP3FXgY7TXf8KWXSF/hpZuQC/WgQFjAy9eArHRa67rdpb3fBoc3DmWiPCQ==
-
 webpack-hot-client@^4.1.0:
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/webpack-hot-client/-/webpack-hot-client-4.1.2.tgz#3088c5533e021dd579fce8428235955248ed6a6c"
@@ -12418,13 +12408,6 @@ webpack-log@^2.0.0:
   dependencies:
     ansi-colors "^3.0.0"
     uuid "^3.3.2"
-
-webpack-plugin-hash-output@^3.2.1:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/webpack-plugin-hash-output/-/webpack-plugin-hash-output-3.2.1.tgz#771e844ee3e94d53e116a607c20f06409113ead3"
-  integrity sha512-Iu4Sox3/bdiqd6TdYwZAExuH+XNbnJStPrwh6yhzOflwc/hZUP9MdiZDbFwTXrmm9ZwoXNUmvn7C0Qj4qRez2A==
-  dependencies:
-    outdent "^0.7.0"
 
 webpack-sources@^1.1.0, webpack-sources@^1.4.0, webpack-sources@^1.4.1, webpack-sources@^1.4.3:
   version "1.4.3"

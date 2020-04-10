@@ -240,12 +240,12 @@ async function createWebpackConfig({
     {
       optimize: {LimitChunkCountPlugin},
     },
-    {default: HashOutputPlugin},
+    {HashOutputPlugin},
     {default: TerserWebpackPlugin},
     {default: CaseSensitivePathsPlugin},
   ] = await Promise.all([
     import('webpack'),
-    import('webpack-plugin-hash-output'),
+    import('@sewing-kit/webpack-plugin-hash-output'),
     import('terser-webpack-plugin'),
     import('case-sensitive-paths-webpack-plugin'),
   ] as const);
