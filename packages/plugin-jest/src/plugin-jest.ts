@@ -11,7 +11,6 @@ import {
 } from '@sewing-kit/plugins';
 
 // Brings in the Babel hook augmentations
-import {} from '@sewing-kit/plugin-babel';
 import {} from 'jest';
 
 const PLUGIN = 'SewingKit.Jest';
@@ -171,9 +170,12 @@ export function jest() {
                     {babelTransform},
                   );
                   const environment = await hooks.jestEnvironment!.run('node');
+                  // Unfortunately, some packages (like `graphql`) use `.mjs` for esmodule
+                  // versions of the file, which Jest can't parse. To avoid transforming
+                  // those otherwise-fine files, we prefer .js for tests only.
                   const extensions = (
-                    await hooks.jestExtensions!.run([])
-                  ).map((extension) => extension.replace('.', ''));
+                    await hooks.jestExtensions!.run(['.js', '.mjs'])
+                  ).map((extension) => extension.replace(/^\./, ''));
                   const moduleMapper = await hooks.jestModuleMapper!.run({});
                   const setupEnvFiles = await hooks.jestSetupEnv!.run(
                     rootSetupEnvFiles,

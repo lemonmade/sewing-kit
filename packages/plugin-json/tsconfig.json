@@ -9,7 +9,6 @@
   "references": [
     {"path": "../plugins"},
     {"path": "../plugin-jest"},
-    {"path": "../plugin-webpack"},
-    {"path": "../plugin-babel"}
+    {"path": "../plugin-webpack"}
   ]
 }

@@ -15,7 +15,6 @@
     "jest-watch-typeahead": "^0.4.2"
   },
   "optionalDependencies": {
-    "@babel/core": "^7.0.0",
-    "@sewing-kit/plugin-babel": "*"
+    "@babel/core": "^7.0.0"
   }
 }

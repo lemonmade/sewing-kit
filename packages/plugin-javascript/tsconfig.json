@@ -10,8 +10,6 @@
     {"path": "../plugins"},
     {"path": "../plugin-webpack"},
     {"path": "../plugin-eslint"},
-    {"path": "../plugin-babel"},
-    {"path": "../plugin-jest"},
-    {"path": "../babel-preset"}
+    {"path": "../plugin-jest"}
   ]
 }

@@ -39,5 +39,11 @@ export type {
   WorkspacePlugin,
   WorkspacePluginContext,
 } from './plugins';
-export {toArgs, addHooks} from './utilities';
+export {
+  toArgs,
+  addHooks,
+  unwrapPossibleGetter,
+  unwrapPossibleArrayGetter,
+} from './utilities';
+export type {ValueOrArray, ValueOrGetter} from './utilities';
 export {MissingPluginError} from './errors';

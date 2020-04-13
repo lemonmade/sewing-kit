@@ -6,5 +6,8 @@
   "eslint.enable": true,
   "[typescript]": {
     "editor.defaultFormatter": "dbaeumer.vscode-eslint"
-  }
+  },
+  "cSpell.ignoreWords": [
+    "browserslist"
+  ]
 }

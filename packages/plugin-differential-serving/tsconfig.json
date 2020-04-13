@@ -9,8 +9,8 @@
   "references": [
     {"path": "../hooks"},
     {"path": "../plugins"},
+    {"path": "../plugin-css"},
     {"path": "../plugin-javascript"},
-    {"path": "../plugin-babel"},
     {"path": "../plugin-webpack"}
   ]
 }

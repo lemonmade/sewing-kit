@@ -39,7 +39,7 @@ For projects targeting the web, this plugin also adds a customized CSS minifier 
 
 You can fine-tune many parts of the above configuration using the [`cssWebpackFileName`, `cssWebpackMiniExtractOptions`, `cssModuleClassNamePattern`, `cssWebpackLoaderOptions`, `cssWebpackLoaderModule`, `cssWebpackOptimizeOptions`, and `cssWebpackCacheDependencies` hooks provided by this plugin](#hooks). If you need to generate a Webpack rule for other CSS-like languages that require preprocessing, like Sass, you can use the [`createCSSWebpackRuleSet` utility provided by this plugin](#createCSSWebpackRuleSet).
 
-Regardless of the environment or project, this plugin will also configure [`postcss-loader`](https://github.com/postcss/postcss-loader) to run on `.css` files. If you want to provide custom configuration, you can do so with PostCSS config files as you normally would. You can also customize the `postcss-loader` configuration directly with the [`cssWebpackPostcssLoaderOptions` and `cssWebpackPostcssLoaderContext`](#hooks) hooks added by this plugin.
+Regardless of the environment or project, this plugin will also configure [`postcss-loader`](https://github.com/postcss/postcss-loader) to run on `.css` files, and will include a default plugin based on [`postcss-preset-env`](https://preset-env.cssdb.org). If you want to provide custom configuration, you can do so with PostCSS config files as you normally would. You can also customize the `postcss-loader` configuration directly with the [`postcssPlugins`, `cssCustomValues`, `postcssEnvFeatures`, `postcssEnvPreserve`, `postcssEnvImportFrom`, `postcssEnvStage`, `cssWebpackPostcssLoaderOptions`, and `cssWebpackPostcssLoaderContext`](#hooks) hooks added by this plugin.
 
 #### Jest
 
@@ -62,7 +62,7 @@ The `css()` plugin accepts the following options:
   });
   ```
 
-- `postcss: boolean | {[key: string]: options}` (default: `true`). Determines whether this plugin will use PostCSS when building this project. Defaults to `true`. If an object is passed instead of a boolean, that object should be a mapping of PostCSS plugin name to options, and will be used as the default set of PostCSS transformations to use. Additional plugins can be added with the [`cssWebpackPostcssPlugins` hook](#hooks) or the [`postcssPlugins()` sewing-kit plugin](#postcssplugins).
+- `postcss: boolean | {[key: string]: object | boolean}` (default: `true`). Determines whether this plugin will use PostCSS when building this project. Defaults to `true`. If `true`, this plugin will include a default PostCSS plugin based on `postcss-preset-env` to compile your application’s CSS. If an object is passed instead of a boolean, that object should be a mapping of PostCSS plugin name to options, and will be used as the default set of PostCSS transformations to use. Additional plugins can be added with the [`postcssPlugins` hook](#hooks) or the [`postcssPlugins()` sewing-kit plugin](#postcssplugins).
 
   ```ts
   import {createWebApp} from '@sewing-kit/config';
@@ -110,6 +110,22 @@ This plugin adds the following hooks to `TestProjectConfigurationHooks`:
   ```
 
 This plugin adds the following hooks to `BuildProjectConfigurationHooks` and `DevProjectConfigurationHooks`:
+
+- `cssCustomValues`: an array of sources to import custom media from for the default PostCSS plugin. These values will be used by some CSS transformations to provide values in place of custom properties, which are not understood by older browsers. These sources are passed directly to PostCSS’s [`importFrom` option](https://github.com/csstools/postcss-preset-env#importfrom), and so can be a path to a CSS, JavaScript, or JSON file, or an object with `customMedia`, `customProperties`, `customSelectors`, or `environmentVariables` properties.
+
+  ```tsx
+  import * as path from 'path';
+  import {createProjectBuildPlugin} from '@sewing-kit/config';
+
+  const plugin = createProjectBuildPlugin(({hooks}) => {
+    hooks.configure.hook((configure) => {
+      configure.cssCustomValues!.hook((values) => [
+        ...values,
+        path.resolve('static/custom-properties.json'),
+      ]);
+    });
+  });
+  ```
 
 - `cssWebpackFileName`: the file name pattern to use when generating static CSS files. Defaults to a format that is optimized for immutably cached assets.
 
@@ -178,14 +194,14 @@ This plugin adds the following hooks to `BuildProjectConfigurationHooks` and `De
   });
   ```
 
-- `cssWebpackPostcssPlugins`: a mapping of PostCSS plugin package name to options, or to `true` if no custom options are required. If you do not specify any custom options, this plugin will tell PostCSS to follow its [default configuration lookup technique](https://github.com/postcss/postcss-loader#config-cascade) to determine the plugins to use on a given stylesheet. However, using this hook to declare your PostCSS configuration will automatically register the plugins you use as part of various cache keys, and will allow for easier custom configuration per build. The result of mapping the entries in this object to construct the plugin will be used for [`postcss-loader`’s `plugins` option](https://github.com/postcss/postcss-loader#plugins).
+- `postcssPlugins`: a mapping of PostCSS plugin package name to options, or to `true` if no custom options are required. If you do not specify any custom options, this plugin will tell PostCSS to follow its [default configuration lookup technique](https://github.com/postcss/postcss-loader#config-cascade) to determine the plugins to use on a given stylesheet. However, using this hook to declare your PostCSS configuration will automatically register the plugins you use as part of various cache keys, and will allow for easier custom configuration per build. The result of mapping the entries in this object to construct the plugin will be used for [`postcss-loader`’s `plugins` option](https://github.com/postcss/postcss-loader#plugins).
 
   ```tsx
   import {createProjectBuildPlugin} from '@sewing-kit/config';
 
   const plugin = createProjectBuildPlugin(({hooks}) => {
     hooks.configure.hook((configure) => {
-      configure.cssWebpackPostcssPlugins!.hook(() => ({
+      configure.postcssPlugins!.hook(() => ({
         // This object will be passed to the plugin:
         //   require('postcss-preset-env')({stage: 3, autoprefixer: {grid: true}})
         'postcss-preset-env': {stage: 3, autoprefixer: {grid: true}},
@@ -199,7 +215,60 @@ This plugin adds the following hooks to `BuildProjectConfigurationHooks` and `De
   });
   ```
 
-- `cssWebpackPostcssLoaderContext`: the context to use for [`postcss-loader`’s configuration](https://github.com/postcss/postcss-loader#context-ctx). This allows you to pass details from the build to your PostCSS configuration. This is generally used instead of `cssWebpackPostcssPlugins` if at all, as that hook allows you to directly set options for plugins without needing to rely on this additional context mechanism.
+- `postcssEnvFeatures`: an object mapping the [allowed PostCSS transforms](https://github.com/csstools/postcss-preset-env#features) to its associated options, or to a boolean indicating that the transform should be disabled. This mapping is used to create the `features` option for the default PostCSS plugin; it does not have an effect if you do not use this default (for instance, because you passed a custom set of plugins as the `preset` option to `css()`).
+
+  ```tsx
+  import {createProjectBuildPlugin} from '@sewing-kit/config';
+
+  const plugin = createProjectBuildPlugin(({hooks}) => {
+    hooks.configure.hook((configure) => {
+      configure.postcssEnvFeatures!.hook((features) => ({
+        ...features,
+        // Customize the handling of the focus pseudo class transpile behavior
+        'focus-visible-pseudo-class': false,
+        'focus-within-pseudo-class': {replaceWith: ['[focus-inside]']},
+      }));
+    });
+  });
+  ```
+
+- `postcssEnvPreserve`: a boolean indicating whether the default PostCSS preset should preserve the modern syntax in the compiled asset where possible. Defaults to `true`.
+
+  ```tsx
+  import {createProjectBuildPlugin} from '@sewing-kit/config';
+
+  const plugin = createProjectBuildPlugin(({hooks}) => {
+    hooks.configure.hook((configure) => {
+      configure.postcssEnvPreserve!.hook(() => false);
+    });
+  });
+  ```
+
+- `postcssEnvStage`: determines the standardization stage of CSS features that will be transpiled. This is passed directly as the [`stage` option in `postcss-preset-env`](https://github.com/csstools/postcss-preset-env#stage). Defaults to `2`.
+
+  ```tsx
+  import {createProjectBuildPlugin} from '@sewing-kit/config';
+
+  const plugin = createProjectBuildPlugin(({hooks}) => {
+    hooks.configure.hook((configure) => {
+      configure.postcssEnvStage!.hook(() => 0);
+    });
+  });
+  ```
+
+- `postcssEnvGrid`: controls how CSS grid will be handled in builds that target older browsers. This option is passed directly to [`autoprefixer`’s `grid` option](https://github.com/postcss/autoprefixer#options). Defaults to `'autoplace'`.
+
+  ```tsx
+  import {createProjectBuildPlugin} from '@sewing-kit/config';
+
+  const plugin = createProjectBuildPlugin(({hooks}) => {
+    hooks.configure.hook((configure) => {
+      configure.postcssEnvGrid!.hook(() => false);
+    });
+  });
+  ```
+
+- `cssWebpackPostcssLoaderContext`: the context to use for [`postcss-loader`’s configuration](https://github.com/postcss/postcss-loader#context-ctx). This allows you to pass details from the build to your PostCSS configuration. This is generally used instead of `postcssPlugins` if at all, as that hook allows you to directly set options for plugins without needing to rely on this additional context mechanism.
 
   ```tsx
   import {createProjectBuildPlugin} from '@sewing-kit/config';
@@ -263,6 +332,35 @@ This plugin adds the following hooks to `BuildProjectConfigurationHooks` and `De
   });
   ```
 
+### `cssCustomValues()`
+
+The `postcssPlugins` function returns a `sewing-kit` plugin that applies to a project. To include this plugin, you **must** include the [`css()` plugin](#css) as well. You pass this function a file or object providing custom values to use for older browsers, as documented for the `cssCustomValues` hook above. You can pass this plugin one such source, an array of sources, or a function that returns sources. This function can also be asynchronous, which can be useful if you need to read whether a particular source is on disk.
+
+```ts
+import * as path from 'path';
+import * as fs from 'fs-extra';
+import {createWebApp} from '@sewing-kit/config';
+import {css, cssCustomValues} from '@sewing-kit/plugin-css';
+
+export default createWebApp((app) => {
+  app.use(
+    css(),
+    cssCustomValues(path.resolve('styles/styles.css')),
+    cssCustomValues(async () => {
+      const sources = [path.resolve('build/custom-values.js')];
+
+      if (await fs.exists(path.resolve('overrides/custom-values.json'))) {
+        sources.push(path.resolve('overrides/custom-values.json'));
+      }
+
+      return sources;
+    }),
+  );
+});
+```
+
+More complex customizations of the PostCSS plugins can be done with the [`cssCustomValues` hook provided by the `css()` plugin](#hooks).
+
 ### `postcssPlugins()`
 
 The `postcssPlugins` function returns a `sewing-kit` plugin that applies to a project. To include this plugin, you **must** include the [`css()` plugin](#css) as well. You pass this function a mapping of PostCSS plugin name to its options. Alternatively, you can pass a function that returns this value, or a promise for such a value.
@@ -294,7 +392,27 @@ export default createWebApp((app) => {
 });
 ```
 
-More complex customizations of the PostCSS plugins can be done with the [`cssWebpackPostcssPlugins` hook provided by the `css()` plugin](#hooks).
+More complex customizations of the PostCSS plugins can be done with the [`postcssPlugins` hook provided by the `css()` plugin](#hooks).
+
+### `postcssEnvFeatures()`
+
+The `postcssEnvFeatures` function returns a `sewing-kit` plugin that applies to a project. To include this plugin, you **must** include the [`css()` plugin](#css) as well. You pass this function a mapping of `postcss-preset-env` transforms to a boolean (indicating whether it is enabled or not) or an object (if the plugin accepts additional options). You can also pass a function that returns this mapping, optionally as a promise.
+
+```ts
+import {createWebApp} from '@sewing-kit/config';
+import {css, postcssEnvFeatures} from '@sewing-kit/plugin-css';
+
+export default createWebApp((app) => {
+  app.use(
+    css(),
+    postcssEnvFeatures({
+      'nesting-rules': true,
+    }),
+  );
+});
+```
+
+More complex customizations of the PostCSS plugins can be done with the [`postcssEnvFeatures` hook provided by the `css()` plugin](#hooks).
 
 ### `cssModuleExtensions()`
 
@@ -371,8 +489,7 @@ const plugin = createProjectBuildPlugin(
           configuration,
           env: options.simulateEnv,
           sourceMaps: options.sourceMaps,
-          // Whether PostCSS should be enabled or not, or an options object used as
-          // the default plugins for the `cssWebpackPostcssPlugins` hook. Defaults to true.
+          // Whether PostCSS should be enabled or not. Defaults to true.
           postcss: true,
           // Whether to treat the resulting stylesheets as CSS modules. Defaults to true.
           cssModules: true,
@@ -393,4 +510,96 @@ const plugin = createProjectBuildPlugin(
     });
   },
 );
+```
+
+### `updatePostcssPlugin()`
+
+The `updatePostcssPlugin` utility returns a function that will update the options for a PostCSS plugin. The resulting function should be passed to the `postcssPlugins` hook.
+
+```ts
+import {createProjectBuildPlugin} from '@sewing-kit/config';
+import {updatePostcssPlugin} from '@sewing-kit/plugin-css';
+
+const plugin = createProjectBuildPlugin('MyPlugin', ({hooks}) => {
+  hooks.configure.hook((configuration) => {
+    // This will update the @my-company/postcss-plugin plugin with the option
+    // {webpack: true}. This will be merged with any existing options, if any.
+    configuration.postcssPlugins?.hook(
+      updatePostcssPlugin('@my-company/postcss-plugin', {webpack: true}),
+    );
+  });
+});
+```
+
+The second argument can also be a function that is called with the current configuration (or an empty object, if no configuration is present), and returns the new configuration to use.
+
+```ts
+import {createProjectBuildPlugin} from '@sewing-kit/config';
+import {updatePostcssPlugin} from '@sewing-kit/plugin-css';
+
+const plugin = createProjectBuildPlugin('MyPlugin', ({hooks}) => {
+  hooks.configure.hook((configuration) => {
+    // This will update the @my-company/postcss-plugin plugin to add a nested
+    // features['nesting-rules'] = true. If we just passed {features: {'nesting-rules': true}},
+    // we would overwrite the existing `features`, if any.
+    configuration.postcssPlugins?.hook(
+      updatePostcssPlugin('@my-company/postcss-plugin', (options) => ({
+        ...options,
+        features: {
+          ...(options.features ?? {}),
+          'nesting-rules': true,
+        },
+      })),
+    );
+  });
+});
+```
+
+Instead of a single plugin, the first argument can be an array of plugins instead. The same updating logic will be performed for each plugin, but only the first plugin will be added if none are already enabled. If you do not want any plugins to be added in the case where none are already enabled, you can pass `{addIfMissing: false}` as the third argument.
+
+```ts
+import {createProjectDevPlugin} from '@sewing-kit/config';
+import {updatePostcssPlugin} from '@sewing-kit/plugin-css';
+
+const plugin = createProjectDevPlugin('MyPlugin', ({hooks}) => {
+  hooks.configure.hook((configuration) => {
+    // This will update the postcss-preset-env plugin with the new browser
+    // option, but will not add it if it is missing.
+    configuration.postcssPlugins?.hook(
+      updatePostcssPlugin(
+        ['postcss-preset-env', require.resolve('postcss-preset-env')],
+        {browsers: ['>2%']},
+        {addIfMissing: false},
+      ),
+    );
+  });
+});
+```
+
+### `updatePostcssEnvPreset()`
+
+This function can be used to update the default PostCSS plugin included for processing CSS, `@sewing-kit/plugin-css/postcss-preset`. It will also update the options for `postcss-preset-env`, if it is used directly. These options are documented on the [`postcss-preset-env` README](https://github.com/csstools/postcss-preset-env#options).
+
+```ts
+import {createProjectDevPlugin} from '@sewing-kit/config';
+import {updatePostcssEnvPreset} from '@sewing-kit/plugin-css';
+
+const plugin = createProjectDevPlugin('MyPlugin', ({hooks}) => {
+  hooks.configure.hook((configuration) => {
+    // This will update the default environment preset with these options.
+    // Note that the `autoprefixer` and `features` options are deeply merged
+    // with any existing values for those objects.
+    configuration.postcssPlugins?.hook(
+      updatePostcssEnvPreset({
+        preserve: false,
+        autoprefixer: {
+          flexbox: 'no-2009',
+        },
+        features: {
+          'nesting-rules': true,
+        },
+      }),
+    );
+  });
+});
 ```

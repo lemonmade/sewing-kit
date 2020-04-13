@@ -12,7 +12,6 @@
 
     {"path": "./packages/plugin-package-utilities"},
 
-    {"path": "./packages/plugin-babel"},
     {"path": "./packages/plugin-eslint"},
     {"path": "./packages/plugin-stylelint"},
     {"path": "./packages/plugin-jest"},
@@ -42,6 +41,7 @@
 
     {"path": "./packages/babel-preset"},
     {"path": "./packages/eslint-plugin"},
+
     {"path": "./packages/webpack-plugin-hash-output"}
   ]
 }

@@ -1,22 +1,14 @@
-export enum Module {
-  Preserve = 'preserve',
-  CommonJs = 'commonjs',
-}
+export type Module = 'preserve' | 'commonjs';
 
-export enum Polyfill {
-  Usage = 'usage',
-  Entry = 'entry',
-}
+export type Polyfill = 'usage' | 'entry';
 
-export enum Target {
-  Node = 'node',
-}
+export type Target = 'node';
 
 export interface Options {
   debug?: boolean;
   modules?: Module;
   polyfill?: Polyfill;
-  target?: Target | readonly string[];
+  target?: Target | string | readonly string[];
 }
 
 export default function babelPresetSewingKit(
@@ -24,8 +16,8 @@ export default function babelPresetSewingKit(
   {
     target,
     debug = false,
-    modules = Module.CommonJs,
-    polyfill = Polyfill.Entry,
+    modules = 'commonjs',
+    polyfill = 'entry',
   }: Options = {},
 ) {
   return {
@@ -46,9 +38,9 @@ export default function babelPresetSewingKit(
           debug,
           useBuiltIns: polyfill,
           corejs: 3,
-          modules: modules === Module.Preserve ? false : modules,
-          targets: target === Target.Node ? {node: true} : target,
-          ignoreBrowserslistConfig: true,
+          modules: modules === 'preserve' ? false : modules,
+          targets: target === 'node' ? {node: true} : target,
+          ignoreBrowserslistConfig: target != null,
         },
       ],
     ],

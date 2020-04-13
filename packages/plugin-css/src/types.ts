@@ -1,4 +1,5 @@
 import type {WaterfallHook} from '@sewing-kit/plugins';
+import type {Features, Stage, ImportFrom, Autoprefixer} from './postcss-preset';
 
 export interface CSSWebpackLoaderModule {
   readonly mode?: 'local' | 'global';
@@ -39,11 +40,19 @@ export interface CSSWebpackPostcssLoaderOptions {
   ) => import('postcss').Plugin<any>[];
 }
 
-export interface CSSWebpackPostcssPlugins {
+export interface PostcssPlugins {
   [key: string]: object | true;
 }
 
 export interface CSSWebpackHooks {
+  readonly cssCustomValues: WaterfallHook<readonly ImportFrom[]>;
+
+  readonly postcssPlugins: WaterfallHook<PostcssPlugins>;
+  readonly postcssEnvFeatures: WaterfallHook<Features>;
+  readonly postcssEnvPreserve: WaterfallHook<boolean>;
+  readonly postcssEnvStage: WaterfallHook<Stage>;
+  readonly postcssEnvGrid: WaterfallHook<NonNullable<Autoprefixer['grid']>>;
+
   readonly cssWebpackIgnoreOrder: WaterfallHook<boolean>;
   readonly cssWebpackFileName: WaterfallHook<string>;
   readonly cssWebpackMiniExtractOptions: WaterfallHook<
@@ -54,7 +63,6 @@ export interface CSSWebpackHooks {
   readonly cssWebpackLoaderModule: WaterfallHook<
     CSSWebpackLoaderModule | false
   >;
-  readonly cssWebpackPostcssPlugins: WaterfallHook<CSSWebpackPostcssPlugins>;
   readonly cssWebpackPostcssLoaderOptions: WaterfallHook<
     CSSWebpackPostcssLoaderOptions
   >;
