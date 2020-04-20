@@ -142,22 +142,22 @@ export async function createCSSWebpackRuleSet({
   return use;
 }
 
-export function updatePostcssPlugin<T = object, Arg = any>(
-  preset: string | string[],
-  options: ValueOrGetter<T, [Arg]>,
+export function updatePostcssPlugin<Options = object>(
+  plugin: string | string[],
+  options: ValueOrGetter<Options, [Partial<Options>]>,
   {addIfMissing = true} = {},
 ) {
-  const normalizePresets = Array.isArray(preset) ? preset : [preset];
+  const normalizedPlugins = Array.isArray(plugin) ? plugin : [plugin];
 
   return async (plugins: PostcssPlugins) => {
     let hasMatch = false;
     const newPlugins = {...plugins};
 
-    for (const normalize of normalizePresets) {
+    for (const normalize of normalizedPlugins) {
       if (normalize in newPlugins && newPlugins[normalize] != null) {
         hasMatch = true;
 
-        const existingValue: Arg =
+        const existingValue: Partial<Options> =
           typeof newPlugins[normalize] === 'boolean'
             ? {}
             : (newPlugins[normalize] as any);
@@ -170,7 +170,7 @@ export function updatePostcssPlugin<T = object, Arg = any>(
     }
 
     if (!hasMatch && addIfMissing) {
-      newPlugins[normalizePresets[0]] = (await unwrapPossibleGetter(
+      newPlugins[normalizedPlugins[0]] = (await unwrapPossibleGetter(
         options,
         {} as any,
       )) as any;
@@ -181,16 +181,11 @@ export function updatePostcssPlugin<T = object, Arg = any>(
 }
 
 export function updatePostcssEnvPreset(
-  options: ValueOrGetter<Partial<PostcssPresetOptions>, [PostcssPresetOptions]>,
+  options: ValueOrGetter<PostcssPresetOptions, [Partial<PostcssPresetOptions>]>,
   {addIfMissing = true} = {},
 ) {
-  return updatePostcssPlugin(
-    [
-      ENV_PRESET,
-      require.resolve(ENV_PRESET),
-      'postcss-preset-env',
-      require.resolve('postcss-preset-env'),
-    ],
+  return updatePostcssPlugin<PostcssPresetOptions>(
+    [ENV_PRESET, require.resolve(ENV_PRESET)],
     async (existingOptions) => {
       const resolvedOptions = await unwrapPossibleGetter(
         options,

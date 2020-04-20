@@ -8,11 +8,7 @@ import {
   createProjectPlugin,
   createProjectDevPlugin,
 } from '@sewing-kit/plugins';
-import {
-  changeBaseJavaScriptBabelPreset,
-  BaseBabelPresetModule,
-  BaseBabelPresetTarget,
-} from '@sewing-kit/plugin-javascript';
+import {updateBabelEnvPreset} from '@sewing-kit/plugin-javascript';
 import {} from '@sewing-kit/plugin-webpack';
 
 const PLUGIN = 'SewingKit.ServiceBase';
@@ -29,15 +25,14 @@ export function buildServiceWithWebpack({
   return createProjectPlugin<Service>(
     PLUGIN,
     ({api, workspace, project, tasks: {build, dev}}) => {
-      build.hook(({hooks, options}) => {
-        const updatePreset = changeBaseJavaScriptBabelPreset({
-          target: BaseBabelPresetTarget.Node,
-          modules: BaseBabelPresetModule.Preserve,
-        });
+      const updatePreset = updateBabelEnvPreset({
+        target: 'node',
+        modules: 'preserve',
+      });
 
+      build.hook(({hooks, options}) => {
         hooks.configure.hook((configure) => {
           configure.babelConfig?.hook(updatePreset);
-
           configure.webpackOutputDirectory?.hook(() =>
             workspace.fs.buildPath('services'),
           );
@@ -69,13 +64,7 @@ export function buildServiceWithWebpack({
 
       dev.hook(({hooks}) => {
         hooks.configure.hook((hooks) => {
-          hooks.babelConfig?.hook(
-            changeBaseJavaScriptBabelPreset({
-              target: BaseBabelPresetTarget.Node,
-              modules: BaseBabelPresetModule.Preserve,
-            }),
-          );
-
+          hooks.babelConfig?.hook(updatePreset);
           hooks.webpackOutputFilename?.hook(() => 'main.js');
           hooks.webpackOutputDirectory?.hook(() =>
             workspace.fs.buildPath('services'),

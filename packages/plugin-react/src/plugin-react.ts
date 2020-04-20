@@ -1,5 +1,5 @@
 import {Env, createProjectPlugin} from '@sewing-kit/plugins';
-import {BabelConfig} from '@sewing-kit/plugin-babel';
+import type {BabelConfig} from '@sewing-kit/plugin-javascript';
 import {} from '@sewing-kit/plugin-webpack';
 import {} from '@sewing-kit/plugin-jest';
 

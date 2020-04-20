@@ -5,7 +5,6 @@ import {pathExists} from 'fs-extra';
 import {Package, WebApp, Service, Workspace, Project} from '@sewing-kit/model';
 import {ProjectPlugin, AnyPlugin} from '@sewing-kit/plugins';
 import {DiagnosticError} from '@sewing-kit/core';
-import {Target as BabelTarget} from '@sewing-kit/babel-preset';
 
 import {
   ConfigurationBuilderResult,
@@ -155,10 +154,7 @@ async function loadConfig<
       extensions: ['.mjs', '.js', '.ts', '.tsx'],
       presets: [
         require.resolve('@babel/preset-typescript'),
-        [
-          require.resolve('@sewing-kit/babel-preset'),
-          {target: BabelTarget.Node},
-        ],
+        [require.resolve('@babel/preset-env'), {targets: {node: true}}],
       ],
     });
 
@@ -170,10 +166,7 @@ async function loadConfig<
     require('@babel/register')({
       extensions: ['.mjs', '.js'],
       presets: [
-        [
-          require.resolve('@sewing-kit/babel-preset'),
-          {target: BabelTarget.Node},
-        ],
+        [require.resolve('@babel/preset-env'), {targets: {node: true}}],
       ],
     });
 

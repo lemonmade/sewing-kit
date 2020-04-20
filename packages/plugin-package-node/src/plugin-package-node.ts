@@ -8,12 +8,11 @@ import {
   createWriteEntriesStep,
   ExportStyle,
 } from '@sewing-kit/plugin-package-utilities';
-import {createCompileBabelStep} from '@sewing-kit/plugin-babel';
 import {
-  changeBaseJavaScriptBabelPreset,
-  BaseBabelPresetModule,
-  BaseBabelPresetTarget,
+  createCompileBabelStep,
+  updateBabelEnvPreset,
 } from '@sewing-kit/plugin-javascript';
+
 import {} from '@sewing-kit/plugin-jest';
 
 const PLUGIN = 'SewingKit.PackageNode';
@@ -54,9 +53,9 @@ export function buildNodeOutput() {
       }
 
       configurationHooks.babelConfig?.hook(
-        changeBaseJavaScriptBabelPreset({
-          modules: BaseBabelPresetModule.CommonJs,
-          target: BaseBabelPresetTarget.Node,
+        updateBabelEnvPreset({
+          modules: 'commonjs',
+          target: 'node',
         }),
       );
     });

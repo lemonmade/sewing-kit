@@ -1,9 +1,9 @@
-export {javascript, workspaceJavaScript} from './plugin-javascript';
+export {javascript, babelPlugins, babelPresets} from './plugin-javascript';
 export {
-  changeBaseJavaScriptBabelPreset,
-  BaseBabelPresetModule,
-  BaseBabelPresetTarget,
-  BaseBabelPresetPolyfill,
   createJavaScriptWebpackRuleSet,
+  createCompileBabelStep,
+  updateBabelEnvPreset,
+  updateBabelPlugin,
+  updateBabelPreset,
 } from './utilities';
-export type {BaseBabelPresetOptions} from './utilities';
+export type {BabelConfig, BabelHooks} from './types';

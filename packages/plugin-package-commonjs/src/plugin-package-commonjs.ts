@@ -3,12 +3,9 @@ import {
   createWriteEntriesStep,
   ExportStyle,
 } from '@sewing-kit/plugin-package-utilities';
-import {createCompileBabelStep} from '@sewing-kit/plugin-babel';
 import {
-  changeBaseJavaScriptBabelPreset,
-  BaseBabelPresetModule,
-  BaseBabelPresetTarget,
-  BaseBabelPresetPolyfill,
+  updateBabelEnvPreset,
+  createCompileBabelStep,
 } from '@sewing-kit/plugin-javascript';
 
 const PLUGIN = 'SewingKit.PackageCommonJs';
@@ -20,14 +17,14 @@ declare module '@sewing-kit/hooks' {
   }
 }
 
-const setCommonJsModules = changeBaseJavaScriptBabelPreset({
-  modules: BaseBabelPresetModule.CommonJs,
-  polyfill: BaseBabelPresetPolyfill.Usage,
+const setCommonJsModules = updateBabelEnvPreset({
+  modules: 'commonjs',
+  polyfill: 'usage',
 });
 
-const setNodeTarget = changeBaseJavaScriptBabelPreset({
-  target: BaseBabelPresetTarget.Node,
-  polyfill: BaseBabelPresetPolyfill.Usage,
+const setNodeTarget = updateBabelEnvPreset({
+  target: 'node',
+  polyfill: 'usage',
 });
 
 export function buildCommonJsOutput() {

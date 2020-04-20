@@ -7,7 +7,7 @@ This package provides a collection of `sewing-kit` plugins and other utilities f
 ## Installation
 
 ```
-yarn add @sewing-kit/plugin-babel --dev
+yarn add @sewing-kit/plugin-javascript --dev
 ```
 
 ## Plugins
@@ -18,7 +18,7 @@ The `babelHooks` function returns a `sewing-kit` plugin. To use it, include it i
 
 ```ts
 import {createWebApp} from '@sewing-kit/config';
-import {babelHooks} from '@sewing-kit/plugin-babel';
+import {babelHooks} from '@sewing-kit/plugin-javascript';
 
 export default createWebApp((app) => {
   app.use(babelHooks());
@@ -93,7 +93,7 @@ The `babelPlugins` function returns a `sewing-kit` plugin that applies to a proj
 
 ```ts
 import {createWebApp} from '@sewing-kit/config';
-import {babelHooks, babelPlugins} from '@sewing-kit/plugin-babel';
+import {babelHooks, babelPlugins} from '@sewing-kit/plugin-javascript';
 
 export default createWebApp((app) => {
   app.use(
@@ -122,7 +122,7 @@ The `babelPresets` function returns a `sewing-kit` plugin that applies to a proj
 
 ```ts
 import {createWebApp} from '@sewing-kit/config';
-import {babelHooks, babelPresets} from '@sewing-kit/plugin-babel';
+import {babelHooks, babelPresets} from '@sewing-kit/plugin-javascript';
 
 export default createWebApp((app) => {
   app.use(
@@ -149,7 +149,7 @@ The `createCompileBabelStep` function returns a `Step` that will run the Babel C
 
 ```ts
 import {createPackageBuildPlugin} from '@sewing-kit/config';
-import {createCompileBabelStep} from '@sewing-kit/plugin-babel';
+import {createCompileBabelStep} from '@sewing-kit/plugin-javascript';
 
 const plugin = createPackageBuildPlugin('MyPlugin', ({pkg, api, hooks}) => {
   hooks.steps.hook((steps, {configuration}) => [

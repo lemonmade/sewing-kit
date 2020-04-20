@@ -9,6 +9,7 @@ import {
   toArgs,
   MissingPluginError,
 } from '@sewing-kit/plugins';
+import {} from '@sewing-kit/plugin-javascript';
 
 // Brings in the Babel hook augmentations
 import {} from 'jest';
@@ -155,7 +156,9 @@ export function jest() {
               [...projectConfigurations.entries()].map(
                 async ([project, hooks]) => {
                   if (hooks.babelConfig == null) {
-                    throw new MissingPluginError('@sewing-kit/plugin-babel');
+                    throw new MissingPluginError(
+                      '@sewing-kit/plugin-javascript',
+                    );
                   }
 
                   const babelTransform = api.configPath(
@@ -176,7 +179,9 @@ export function jest() {
                   const extensions = (
                     await hooks.jestExtensions!.run(['.js', '.mjs'])
                   ).map((extension) => extension.replace(/^\./, ''));
-                  const moduleMapper = await hooks.jestModuleMapper!.run({});
+                  const moduleMapper = await hooks.jestModuleMapper!.run({
+                    ['^.+\\.[m|j]s$']: babelTransform,
+                  });
                   const setupEnvFiles = await hooks.jestSetupEnv!.run(
                     rootSetupEnvFiles,
                   );

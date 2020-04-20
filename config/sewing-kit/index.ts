@@ -40,7 +40,7 @@ function removeBabelPresetJestModuleMapper() {
     ({hooks}) => {
       hooks.configure.hook(({jestModuleMapper}) => {
         jestModuleMapper?.hook(
-          ({'@sewing-kit/babel-preset$': _, ...rest}) => rest,
+          ({'@sewing-kit/plugin-javascript/babel-preset$': _, ...rest}) => rest,
         );
       });
     },

@@ -6,10 +6,5 @@
     "rootDir": "src"
   },
   "include": ["src/**/*.ts"],
-  "references": [
-    {"path": "../plugins"},
-    {"path": "../plugin-webpack"},
-    {"path": "../plugin-eslint"},
-    {"path": "../plugin-jest"}
-  ]
+  "references": [{"path": "../plugins"}, {"path": "../plugin-webpack"}]
 }

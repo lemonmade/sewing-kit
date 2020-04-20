@@ -15,7 +15,6 @@ import {createJavaScriptWebpackRuleSet} from '@sewing-kit/plugin-javascript';
 
 import {addTypeScriptBabelConfig} from './utilities';
 
-import {} from '@sewing-kit/plugin-babel';
 import {} from '@sewing-kit/plugin-jest';
 import {} from '@sewing-kit/plugin-eslint';
 import {} from '@sewing-kit/plugin-webpack';

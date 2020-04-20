@@ -420,7 +420,7 @@ The `cssModuleExtensions` function returns a `sewing-kit` plugin that applies to
 
 ```ts
 import {createWebApp} from '@sewing-kit/config';
-import {css, cssModuleExtensions} from '@sewing-kit/plugin-babel';
+import {css, cssModuleExtensions} from '@sewing-kit/plugin-css';
 
 export default createWebApp((app) => {
   app.use(css(), cssModuleExtensions(['.scss']));
@@ -435,7 +435,7 @@ The `cssModuleClassNamePattern` function returns a `sewing-kit` plugin that appl
 
 ```ts
 import {createWebApp} from '@sewing-kit/config';
-import {css, cssModuleClassNamePattern} from '@sewing-kit/plugin-babel';
+import {css, cssModuleClassNamePattern} from '@sewing-kit/plugin-css';
 
 export default createWebApp((app) => {
   // Will prefix the base64-hashed class names with a consistent string to make
@@ -452,7 +452,7 @@ The `cssWebpackLoaderOptions` function returns a `sewing-kit` plugin that applie
 
 ```ts
 import {createWebApp} from '@sewing-kit/config';
-import {css, cssWebpackLoaderOptions} from '@sewing-kit/plugin-babel';
+import {css, cssWebpackLoaderOptions} from '@sewing-kit/plugin-css';
 
 export default createWebApp((app) => {
   app.use(
@@ -578,7 +578,7 @@ const plugin = createProjectDevPlugin('MyPlugin', ({hooks}) => {
 
 ### `updatePostcssEnvPreset()`
 
-This function can be used to update the default PostCSS plugin included for processing CSS, `@sewing-kit/plugin-css/postcss-preset`. It will also update the options for `postcss-preset-env`, if it is used directly. These options are documented on the [`postcss-preset-env` README](https://github.com/csstools/postcss-preset-env#options).
+This function can be used to update the default PostCSS plugin included for processing CSS, `@sewing-kit/plugin-css/postcss-preset`. The options for this PostCSS are currently the same as [`postcss-preset-env`](https://github.com/csstools/postcss-preset-env#options), and are documented on in that project’s README.
 
 ```ts
 import {createProjectDevPlugin} from '@sewing-kit/config';

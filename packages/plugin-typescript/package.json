@@ -10,16 +10,14 @@
   "dependencies": {
     "@babel/plugin-proposal-decorators": "^7.8.3",
     "@babel/preset-typescript": "^7.9.0",
-    "@sewing-kit/plugin-babel": "^0.0.38",
+    "@sewing-kit/plugin-javascript": "^0.0.44",
     "@sewing-kit/plugins": "^0.0.21",
     "fs-extra": "^9.0.0",
-    "immer": "^6.0.2",
     "typescript": "^3.8.3"
   },
   "optionalDependencies": {
     "@babel/core": "^7.0.0",
     "@sewing-kit/plugin-eslint": "^0.0.33",
-    "@sewing-kit/plugin-javascript": "^0.0.44",
     "@sewing-kit/plugin-jest": "^0.0.38",
     "@sewing-kit/plugin-webpack": "^0.0.36"
   }

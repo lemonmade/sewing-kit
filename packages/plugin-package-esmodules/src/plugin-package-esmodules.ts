@@ -9,11 +9,9 @@ import {
   createWriteEntriesStep,
   ExportStyle,
 } from '@sewing-kit/plugin-package-utilities';
-import {createCompileBabelStep} from '@sewing-kit/plugin-babel';
 import {
-  changeBaseJavaScriptBabelPreset,
-  BaseBabelPresetModule,
-  BaseBabelPresetPolyfill,
+  updateBabelEnvPreset,
+  createCompileBabelStep,
 } from '@sewing-kit/plugin-javascript';
 import {} from '@sewing-kit/plugin-webpack';
 import {} from '@sewing-kit/hooks';
@@ -27,9 +25,9 @@ declare module '@sewing-kit/hooks' {
   }
 }
 
-const updateBabelPreset = changeBaseJavaScriptBabelPreset({
-  modules: BaseBabelPresetModule.Preserve,
-  polyfill: BaseBabelPresetPolyfill.Usage,
+const updateBabelPreset = updateBabelEnvPreset({
+  modules: 'preserve',
+  polyfill: 'usage',
 });
 
 export function esmodulesOutput() {

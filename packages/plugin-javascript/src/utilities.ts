@@ -9,38 +9,15 @@ import {
   PluginApi,
   Package,
   toArgs,
+  unwrapPossibleGetter,
+  ValueOrGetter,
   MissingPluginError,
 } from '@sewing-kit/plugins';
 
 import type {BabelHooks, BabelConfig} from './types';
-import type {
-  Options as BaseBabelPresetOptions,
-  Module as BaseBabelPresetModule,
-  Polyfill as BaseBabelPresetPolyfill,
-  Target as BaseBabelPresetTarget,
-} from './babel-preset';
+import type {Options as BabelPresetOptions} from './babel-preset';
 
-export type {BaseBabelPresetOptions};
-export {BaseBabelPresetModule, BaseBabelPresetPolyfill, BaseBabelPresetTarget};
-
-const resolvedPreset = require.resolve('@sewing-kit/babel-preset');
-
-export function changeBaseJavaScriptBabelPreset(
-  options: BaseBabelPresetOptions,
-) {
-  return (config: BabelConfig): BabelConfig => ({
-    ...config,
-    presets: config.presets?.map((preset) => {
-      if (preset === resolvedPreset) {
-        return [preset as string, options];
-      } else if (Array.isArray(preset) && preset[0] === resolvedPreset) {
-        return [preset[0], {...preset[1], ...options}];
-      } else {
-        return preset;
-      }
-    }),
-  });
-}
+export const ENV_PRESET = '@sewing-kit/plugin-javascript/babel-preset';
 
 export async function createJavaScriptWebpackRuleSet({
   env,
@@ -75,6 +52,8 @@ export async function createJavaScriptWebpackRuleSet({
       loader: 'babel-loader',
       options: {
         cacheDirectory,
+        envName: env,
+        configFile: false,
         cacheIdentifier: babelCacheIdentifier(
           env,
           project,
@@ -189,5 +168,119 @@ export function createCompileBabelStep({
         ),
       ]);
     },
+  );
+}
+
+export function updateBabelPlugin<Options extends object = object>(
+  plugin: string | string[],
+  options: ValueOrGetter<Options, [Partial<Options>]>,
+  {addIfMissing = true} = {},
+) {
+  const normalizedPlugins = Array.isArray(plugin) ? plugin : [plugin];
+
+  return async (config: BabelConfig) => {
+    let hasMatch = false;
+
+    const newConfig = {
+      ...config,
+      plugins:
+        config.plugins &&
+        (await Promise.all(
+          config.plugins.map<Promise<string | [string, object?]>>(
+            async (plugin) => {
+              const [name, currentOptions] = Array.isArray(plugin)
+                ? plugin
+                : [plugin];
+
+              if (normalizedPlugins.includes(name)) {
+                hasMatch = true;
+
+                return [
+                  name,
+                  await unwrapPossibleGetter(options, currentOptions ?? {}),
+                ];
+              }
+
+              return plugin;
+            },
+          ),
+        )),
+    };
+
+    if (!hasMatch && addIfMissing) {
+      newConfig.plugins = newConfig.plugins ?? [];
+
+      newConfig.plugins.push([
+        normalizedPlugins[0],
+        await unwrapPossibleGetter(options, {}),
+      ]);
+    }
+
+    return newConfig;
+  };
+}
+
+export function updateBabelPreset<Options extends object = object>(
+  preset: string | string[],
+  options: ValueOrGetter<Options, [Partial<Options>]>,
+  {addIfMissing = true} = {},
+) {
+  const normalizedPresets = Array.isArray(preset) ? preset : [preset];
+
+  return async (config: BabelConfig) => {
+    let hasMatch = false;
+
+    const newConfig = {
+      ...config,
+      plugins:
+        config.plugins &&
+        (await Promise.all(
+          config.plugins.map<Promise<string | [string, object?]>>(
+            async (plugin) => {
+              const [name, currentOptions] = Array.isArray(plugin)
+                ? plugin
+                : [plugin];
+
+              if (normalizedPresets.includes(name)) {
+                hasMatch = true;
+
+                return [
+                  name,
+                  await unwrapPossibleGetter(options, currentOptions ?? {}),
+                ];
+              }
+
+              return plugin;
+            },
+          ),
+        )),
+    };
+
+    if (!hasMatch && addIfMissing) {
+      newConfig.plugins = newConfig.plugins ?? [];
+
+      newConfig.plugins.push([
+        normalizedPresets[0],
+        await unwrapPossibleGetter(options, {}),
+      ]);
+    }
+
+    return newConfig;
+  };
+}
+
+export function updateBabelEnvPreset(
+  options: ValueOrGetter<BabelPresetOptions, [Partial<BabelPresetOptions>]>,
+  {addIfMissing = false} = {},
+) {
+  return updateBabelPreset<BabelPresetOptions>(
+    [
+      ENV_PRESET,
+      require.resolve(ENV_PRESET),
+      '@babel/preset-env',
+      require.resolve('@babel/preset-env'),
+    ],
+    options,
+    {addIfMissing},
   );
 }
