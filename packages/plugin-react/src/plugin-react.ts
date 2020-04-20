@@ -14,7 +14,7 @@ export function react({preact = false}: Options = {}) {
   return createProjectPlugin(PLUGIN, ({tasks: {build, test, dev}}) => {
     build.hook(({hooks, options}) => {
       const addReactBabelConfig = createBabelConfigAdjuster({
-        development: options.simulateEnv !== Env.Development,
+        development: options.simulateEnv === Env.Development,
       });
 
       hooks.configure.hook((configure) => {
