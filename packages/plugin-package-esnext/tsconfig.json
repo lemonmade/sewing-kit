@@ -10,7 +10,6 @@
     {"path": "../hooks"},
     {"path": "../plugins"},
     {"path": "../plugin-package-utilities"},
-    {"path": "../plugin-javascript"},
-    {"path": "../plugin-babel"}
+    {"path": "../plugin-javascript"}
   ]
 }

@@ -10,11 +10,7 @@ import {
   createProjectPlugin,
   createProjectDevPlugin,
 } from '@sewing-kit/plugins';
-import {
-  BaseBabelPresetModule,
-  changeBaseJavaScriptBabelPreset,
-} from '@sewing-kit/plugin-javascript';
-import {} from '@sewing-kit/plugin-babel';
+import {updateBabelEnvPreset} from '@sewing-kit/plugin-javascript';
 import {} from '@sewing-kit/plugin-webpack';
 
 const PLUGIN = 'SewingKit.WebAppBase';
@@ -55,8 +51,8 @@ export function buildWebAppWithWebpack({
     PLUGIN,
     ({api, workspace, project, tasks: {build, dev}}) => {
       build.hook(({hooks, options}) => {
-        const updatePreset = changeBaseJavaScriptBabelPreset({
-          modules: BaseBabelPresetModule.Preserve,
+        const updatePreset = updateBabelEnvPreset({
+          modules: 'preserve',
           target: [
             'last 1 chrome versions',
             'last 1 chromeandroid versions',
@@ -112,7 +108,7 @@ export function buildWebAppWithWebpack({
           );
 
           hooks.babelConfig?.hook(
-            changeBaseJavaScriptBabelPreset({
+            updateBabelEnvPreset({
               target: [
                 'last 1 chrome versions',
                 'last 1 chromeandroid versions',

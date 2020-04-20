@@ -9,12 +9,12 @@ import {
   createWriteEntriesStep,
   ExportStyle,
 } from '@sewing-kit/plugin-package-utilities';
-import {createCompileBabelStep} from '@sewing-kit/plugin-babel';
 import {
-  BaseBabelPresetModule,
-  changeBaseJavaScriptBabelPreset,
+  updateBabelEnvPreset,
+  createCompileBabelStep,
   createJavaScriptWebpackRuleSet,
 } from '@sewing-kit/plugin-javascript';
+
 import {} from '@sewing-kit/plugin-webpack';
 
 const PLUGIN = 'SewingKit.PackageEsNext';
@@ -86,8 +86,8 @@ export function buildEsNextOutput() {
       }
 
       configure.babelConfig?.hook(
-        changeBaseJavaScriptBabelPreset({
-          modules: BaseBabelPresetModule.Preserve,
+        updateBabelEnvPreset({
+          modules: 'preserve',
           target: ['last 1 chrome version'],
         }),
       );

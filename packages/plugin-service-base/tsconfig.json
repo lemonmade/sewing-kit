@@ -9,7 +9,6 @@
   "references": [
     {"path": "../hooks"},
     {"path": "../plugins"},
-    {"path": "../plugin-babel"},
     {"path": "../plugin-javascript"},
     {"path": "../plugin-webpack"}
   ]

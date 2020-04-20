@@ -1,72 +1,66 @@
-import {join, dirname, basename} from 'path';
-
 import {BuildWebAppOptions} from '@sewing-kit/hooks';
 import {createProjectBuildPlugin, WebApp} from '@sewing-kit/plugins';
-import {changeBaseJavaScriptBabelPreset} from '@sewing-kit/plugin-javascript';
+import {updateBabelEnvPreset} from '@sewing-kit/plugin-javascript';
+import {updatePostcssEnvPreset} from '@sewing-kit/plugin-css';
 
-import {} from '@sewing-kit/plugin-babel';
 import {} from '@sewing-kit/plugin-webpack';
+
+import {LATEST_EVERGREEN} from './groups';
 
 declare module '@sewing-kit/hooks' {
   interface BuildWebAppOptions {
-    readonly browserTarget: string;
+    readonly browsers: string;
   }
 }
 
 const DEFAULT_BROWSER_GROUPS = {
-  latest: [
-    'last 1 chrome versions',
-    'last 1 chromeandroid versions',
-    'last 1 firefox versions',
-    'last 1 opera versions',
-    'last 1 edge versions',
-    'safari >= 11',
-    'ios >= 11',
-  ],
+  latest: LATEST_EVERGREEN,
 };
 
 const PLUGIN = 'SewingKit.DifferentialServing';
 
 export interface Options {
-  readonly groups?: {readonly [key: string]: readonly string[]};
+  readonly babel?: boolean;
+  readonly postcss?: boolean;
+  readonly browsers?: {readonly [key: string]: string | string[]};
 }
 
 export function differentialServing({
-  groups = DEFAULT_BROWSER_GROUPS,
+  babel = true,
+  postcss = true,
+  browsers: browserGroups = DEFAULT_BROWSER_GROUPS,
 }: Options = {}) {
   return createProjectBuildPlugin<WebApp>(PLUGIN, ({hooks}) => {
     hooks.variants.hook((variants) => [
       ...variants,
-      ...Object.keys(groups).flatMap((browserTarget) =>
+      ...Object.keys(browserGroups).flatMap((browsers) =>
         variants.map((build) => ({
           ...build,
-          browserTarget: browserTarget as BuildWebAppOptions['browserTarget'],
+          browsers: browsers as BuildWebAppOptions['browsers'],
         })),
       ),
     ]);
 
-    hooks.configure.hook((configuration, {browserTarget}) => {
-      if (browserTarget == null) {
-        return;
+    hooks.configure.hook((configuration, {browsers}) => {
+      const browserslistQuery = browsers && browserGroups[browsers];
+
+      if (babel) {
+        configuration.babelConfig?.hook(
+          updateBabelEnvPreset(
+            {target: browserslistQuery},
+            {addIfMissing: false},
+          ),
+        );
       }
 
-      configuration.webpackCachePath?.hook((cache) =>
-        join(cache, browserTarget),
-      );
-
-      configuration.webpackOutputFilename?.hook((filename) => {
-        return join(dirname(filename), browserTarget, basename(filename));
-      });
-
-      configuration.webpackOutputChunkFilename?.hook((filename) => {
-        return join(dirname(filename), browserTarget, basename(filename));
-      });
-
-      configuration.babelConfig?.hook(
-        changeBaseJavaScriptBabelPreset({
-          target: groups[browserTarget],
-        }),
-      );
+      if (postcss) {
+        configuration.postcssPlugins?.hook(
+          updatePostcssEnvPreset(
+            {browsers: browserslistQuery},
+            {addIfMissing: false},
+          ),
+        );
+      }
     });
   });
 }

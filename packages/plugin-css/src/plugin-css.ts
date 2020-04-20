@@ -5,19 +5,24 @@ import {
   addHooks,
   WaterfallHook,
   createProjectPlugin,
+  ValueOrGetter,
+  unwrapPossibleGetter,
+  ValueOrArray,
+  unwrapPossibleArrayGetter,
 } from '@sewing-kit/plugins';
 
 import {} from '@sewing-kit/plugin-jest';
 import {} from '@sewing-kit/plugin-webpack';
 
 import {
+  PostcssPlugins,
   CSSWebpackHooks,
   CSSTestingHooks,
   CSSWebpackLoaderOptions,
   CSSWebpackLoaderModule,
-  CSSWebpackPostcssPlugins,
 } from './types';
-import {createCSSWebpackRuleSet} from './utilities';
+import {createCSSWebpackRuleSet, ENV_PRESET} from './utilities';
+import type {Features as PostcssFeatures, ImportFrom} from './postcss-preset';
 
 declare module '@sewing-kit/hooks' {
   interface TestProjectConfigurationCustomHooks extends CSSTestingHooks {}
@@ -26,6 +31,12 @@ declare module '@sewing-kit/hooks' {
 }
 
 const addWebpackHooks = addHooks<CSSWebpackHooks>(() => ({
+  postcssPlugins: new WaterfallHook(),
+  postcssEnvFeatures: new WaterfallHook(),
+  postcssEnvStage: new WaterfallHook(),
+  postcssEnvPreserve: new WaterfallHook(),
+  postcssEnvGrid: new WaterfallHook(),
+  cssCustomValues: new WaterfallHook(),
   cssWebpackIgnoreOrder: new WaterfallHook(),
   cssWebpackFileName: new WaterfallHook(),
   cssModuleClassNamePattern: new WaterfallHook(),
@@ -33,7 +44,6 @@ const addWebpackHooks = addHooks<CSSWebpackHooks>(() => ({
   cssWebpackMiniExtractOptions: new WaterfallHook(),
   cssWebpackLoaderModule: new WaterfallHook(),
   cssWebpackOptimizeOptions: new WaterfallHook(),
-  cssWebpackPostcssPlugins: new WaterfallHook(),
   cssWebpackPostcssLoaderOptions: new WaterfallHook(),
   cssWebpackPostcssLoaderContext: new WaterfallHook(),
   cssWebpackCacheDependencies: new WaterfallHook(),
@@ -43,7 +53,7 @@ const PLUGIN = 'SewingKit.CSS';
 
 interface Options {
   readonly id?: string;
-  readonly postcss?: boolean | CSSWebpackPostcssPlugins;
+  readonly postcss?: boolean | PostcssPlugins;
   readonly cssModules?: boolean;
 }
 
@@ -89,37 +99,30 @@ export function css({
       build.hook(({hooks, options: {simulateEnv, sourceMaps}}) => {
         hooks.configureHooks.hook(addWebpackHooks);
 
-        hooks.configure.hook((configure) => {
-          configure.webpackRules?.hook(async (rules) => {
-            return [
-              ...rules,
-              {
-                test: /\.css$/,
-                use: await createCSSWebpackRuleSet({
-                  id,
-                  api,
-                  configuration: configure,
-                  project,
-                  sourceMaps,
-                  postcss,
-                  cssModules,
-                  env: simulateEnv,
-                  cacheDependencies: [],
-                  cacheDirectory: 'css',
-                }),
-              } as import('webpack').RuleSetRule,
-            ];
-          });
+        hooks.configure.hook((configuration) => {
+          if (postcss) {
+            configuration.postcssPlugins?.hook(
+              createBasePresetAdder(configuration),
+            );
+          }
+
+          configuration.webpackRules?.hook(
+            createWebpackRuleAdder({
+              sourceMaps,
+              configuration,
+              env: simulateEnv,
+            }),
+          );
 
           if (simulateEnv !== Env.Production) return;
 
-          configure.webpackOptimizeMinizers?.hook(async (minimizers) => {
+          configuration.webpackOptimizeMinizers?.hook(async (minimizers) => {
             const [
               {default: OptimizeCssAssetsPlugin},
               optimizeOptions,
             ] = await Promise.all([
               import('optimize-css-assets-webpack-plugin'),
-              configure.cssWebpackOptimizeOptions!.run({
+              configuration.cssWebpackOptimizeOptions!.run({
                 cssProcessorOptions: {
                   map: {inline: false, annotations: true},
                 },
@@ -149,25 +152,25 @@ export function css({
             ];
           });
 
-          configure.webpackPlugins?.hook(async (plugins) => {
+          configuration.webpackPlugins?.hook(async (plugins) => {
             const [
               {default: MiniCssExtractPlugin},
               cssWebpackFileName,
               ignoreOrder,
             ] = await Promise.all([
               import('mini-css-extract-plugin'),
-              configure.cssWebpackFileName!.run('[name]-[contenthash].css'),
+              configuration.cssWebpackFileName!.run('[name]-[contenthash].css'),
               // We will default to ignoring order if using CSS modules,
               // because CSS modules use class namespacing to avoid most
               // of the problems associated with reordering CSS.
-              configure.cssWebpackIgnoreOrder!.run(cssModules),
+              configuration.cssWebpackIgnoreOrder!.run(cssModules),
             ] as const);
 
             return [
               ...plugins,
               // Generates the actual .css files
               new MiniCssExtractPlugin(
-                await configure.cssWebpackMiniExtractOptions!.run({
+                await configuration.cssWebpackMiniExtractOptions!.run({
                   ignoreOrder,
                   filename: cssWebpackFileName,
                   chunkFilename: cssWebpackFileName.replace(/\[name\]/, '[id]'),
@@ -181,51 +184,158 @@ export function css({
       dev.hook(({hooks, options: {sourceMaps}}) => {
         hooks.configureHooks.hook(addWebpackHooks);
 
-        hooks.configure.hook((configure) => {
-          configure.webpackRules?.hook(async (rules) => {
-            return [
-              ...rules,
-              {
-                test: /\.css$/,
-                use: await createCSSWebpackRuleSet({
-                  api,
-                  configuration: configure,
-                  project,
-                  sourceMaps,
-                  env: Env.Development,
-                  cacheDependencies: [],
-                  cacheDirectory: 'css',
-                }),
-              } as import('webpack').RuleSetRule,
-            ];
-          });
+        hooks.configure.hook((configuration) => {
+          configuration.postcssPlugins!.hook(
+            createBasePresetAdder(configuration),
+          );
+
+          configuration.webpackRules?.hook(
+            createWebpackRuleAdder({
+              sourceMaps,
+              configuration,
+              env: Env.Development,
+            }),
+          );
+        });
+      });
+
+      function createWebpackRuleAdder(
+        options: Pick<
+          Parameters<typeof createCSSWebpackRuleSet>[0],
+          'env' | 'sourceMaps' | 'configuration'
+        >,
+      ) {
+        return async (rules: readonly import('webpack').Rule[]) => {
+          return [
+            ...rules,
+            {
+              test: /\.css$/,
+              use: await createCSSWebpackRuleSet({
+                id,
+                api,
+                project,
+                cssModules,
+                cacheDependencies: [],
+                cacheDirectory: 'css',
+                postcss: Boolean(postcss),
+                ...options,
+              }),
+            } as import('webpack').RuleSetRule,
+          ];
+        };
+      }
+
+      function createBasePresetAdder(configuration: Partial<CSSWebpackHooks>) {
+        return async (plugins: PostcssPlugins) => {
+          if (typeof postcss === 'object') {
+            return {...plugins, ...postcss};
+          }
+
+          const [
+            cssCustomValues,
+            postcssEnvFeatures,
+            postcssEnvPreserve,
+            postcssEnvStage,
+            postcssEnvGrid,
+          ] = await Promise.all([
+            configuration.cssCustomValues!.run([]),
+            configuration.postcssEnvFeatures!.run({}),
+            configuration.postcssEnvPreserve!.run(true),
+            configuration.postcssEnvStage!.run(2),
+            configuration.postcssEnvGrid!.run('autoplace'),
+          ] as const);
+
+          return {
+            ...plugins,
+            [ENV_PRESET]: {
+              autoprefixer: {grid: postcssEnvGrid},
+              stage: postcssEnvStage,
+              features: postcssEnvFeatures,
+              preserve: postcssEnvPreserve,
+              importFrom: cssCustomValues,
+            },
+          };
+        };
+      }
+    },
+  );
+}
+
+export function postcssPlugins(
+  plugins: ValueOrGetter<PostcssPlugins, [PostcssPlugins]>,
+) {
+  return createProjectPlugin(
+    `${PLUGIN}.SetPostcssPlugins`,
+    ({tasks: {dev, build}}) => {
+      build.hook(({hooks}) => {
+        hooks.configure.hook(({postcssPlugins}) => {
+          postcssPlugins?.hook(async (allPlugins) => ({
+            ...allPlugins,
+            ...(await unwrapPossibleGetter(plugins, allPlugins)),
+          }));
+        });
+      });
+
+      dev.hook(({hooks}) => {
+        hooks.configure.hook(({postcssPlugins}) => {
+          postcssPlugins?.hook(async (allPlugins) => ({
+            ...allPlugins,
+            ...(await unwrapPossibleGetter(plugins, allPlugins)),
+          }));
         });
       });
     },
   );
 }
 
-export function postcssPlugins(
-  plugins: ValueOrGetter<{[key: string]: object}>,
+export function postcssEnvFeatures(
+  features: ValueOrGetter<PostcssFeatures, [PostcssFeatures]>,
 ) {
   return createProjectPlugin(
-    `${PLUGIN}.SetPostcssPlugins`,
+    `${PLUGIN}.SetPostcssEnvFeatures`,
     ({tasks: {dev, build}}) => {
       build.hook(({hooks}) => {
-        hooks.configure.hook(({cssWebpackPostcssPlugins}) => {
-          cssWebpackPostcssPlugins?.hook(async (allPlugins) => ({
-            ...allPlugins,
-            ...(await unwrapPossibleGetter(plugins)),
+        hooks.configure.hook(({postcssEnvFeatures}) => {
+          postcssEnvFeatures?.hook(async (allFeatures) => ({
+            ...allFeatures,
+            ...(await unwrapPossibleGetter(features, allFeatures)),
           }));
         });
       });
 
       dev.hook(({hooks}) => {
-        hooks.configure.hook(({cssWebpackPostcssPlugins}) => {
-          cssWebpackPostcssPlugins?.hook(async (allPlugins) => ({
-            ...allPlugins,
-            ...(await unwrapPossibleGetter(plugins)),
+        hooks.configure.hook(({postcssEnvFeatures}) => {
+          postcssEnvFeatures?.hook(async (allFeatures) => ({
+            ...allFeatures,
+            ...(await unwrapPossibleGetter(features, allFeatures)),
           }));
+        });
+      });
+    },
+  );
+}
+
+export function cssCustomValues(
+  importFrom: ValueOrGetter<ValueOrArray<ImportFrom>, [readonly ImportFrom[]]>,
+) {
+  return createProjectPlugin(
+    `${PLUGIN}.SetPostcssEnvFeatures`,
+    ({tasks: {dev, build}}) => {
+      build.hook(({hooks}) => {
+        hooks.configure.hook(({cssCustomValues}) => {
+          cssCustomValues?.hook(async (allImports) => [
+            ...allImports,
+            ...(await unwrapPossibleArrayGetter(importFrom, allImports)),
+          ]);
+        });
+      });
+
+      dev.hook(({hooks}) => {
+        hooks.configure.hook(({cssCustomValues}) => {
+          cssCustomValues?.hook(async (allImports) => [
+            ...allImports,
+            ...(await unwrapPossibleArrayGetter(importFrom, allImports)),
+          ]);
         });
       });
     },
@@ -311,14 +421,4 @@ export function cssWebpackLoaderOptions(
       });
     },
   );
-}
-
-type ValueOrGetter<Value> = Value | (() => Value | Promise<Value>);
-
-function unwrapPossibleGetter<T>(
-  maybeGetter: ValueOrGetter<T>,
-): T | Promise<T> {
-  return typeof maybeGetter === 'function'
-    ? (maybeGetter as any)()
-    : maybeGetter;
 }

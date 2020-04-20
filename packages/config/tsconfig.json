@@ -9,7 +9,6 @@
   "references": [
     {"path": "../core"},
     {"path": "../model"},
-    {"path": "../plugins"},
-    {"path": "../babel-preset"}
+    {"path": "../plugins"}
   ]
 }

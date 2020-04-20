@@ -1,6 +1,5 @@
 import {createProjectPlugin} from '@sewing-kit/plugins';
 import {} from '@sewing-kit/plugin-jest';
-import {} from '@sewing-kit/plugin-babel';
 import {} from '@sewing-kit/plugin-webpack';
 
 const PLUGIN = 'SewingKit.Json';
@@ -26,7 +25,6 @@ export function json() {
               import('@sewing-kit/hooks').BuildPackageConfigurationHooks
           >,
         ) => {
-          configure.babelExtensions?.hook(addJsonExtension);
           configure.webpackExtensions?.hook(addJsonExtension);
         },
       );

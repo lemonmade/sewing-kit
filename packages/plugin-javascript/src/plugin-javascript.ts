@@ -1,139 +1,175 @@
 import {
-  createProjectPlugin,
-  createWorkspaceLintPlugin,
   Env,
+  addHooks,
+  WaterfallHook,
+  createProjectPlugin,
+  unwrapPossibleArrayGetter,
+  ValueOrGetter,
+  ValueOrArray,
 } from '@sewing-kit/plugins';
 
-import {
-  Module as BabelPresetModule,
-  Target as BabelPresetTarget,
-} from '@sewing-kit/babel-preset';
-import {BabelConfig} from '@sewing-kit/plugin-babel';
-import {} from '@sewing-kit/plugin-jest';
-import {} from '@sewing-kit/plugin-eslint';
 import {} from '@sewing-kit/plugin-webpack';
 
-import {createJavaScriptWebpackRuleSet} from './utilities';
+import type {Options as BabelPresetOptions} from './babel-preset';
+import type {BabelHooks, BabelConfig} from './types';
+import {ENV_PRESET, createJavaScriptWebpackRuleSet} from './utilities';
+
+declare module '@sewing-kit/hooks' {
+  interface TestProjectConfigurationCustomHooks extends BabelHooks {}
+  interface BuildProjectConfigurationCustomHooks extends BabelHooks {}
+  interface DevProjectConfigurationCustomHooks extends BabelHooks {}
+}
 
 const PLUGIN = 'SewingKit.JavaScript';
 
 export function javascript() {
   return createProjectPlugin(PLUGIN, ({project, tasks: {dev, build, test}}) => {
+    const addBabelHooks = addHooks<BabelHooks>(() => ({
+      babelConfig: new WaterfallHook(),
+      babelIgnorePatterns: new WaterfallHook(),
+      babelExtensions: new WaterfallHook(),
+      babelCacheDependencies: new WaterfallHook(),
+    }));
+
     test.hook(({hooks}) => {
+      hooks.configureHooks.hook(addBabelHooks);
+
       hooks.configure.hook((configure) => {
-        // Unfortunately, some packages (like `graphql`) use `.mjs` for esmodule
-        // versions of the file, which Jest can't parse. To avoid transforming
-        // those otherwise-fine files, we prefer .js for tests only.
-        configure.jestExtensions?.hook((extensions) => [
-          '.js',
-          '.mjs',
-          ...extensions,
-        ]);
-
-        configure.jestTransforms?.hook((transforms, {babelTransform}) => ({
-          ...transforms,
-          ['^.+\\.[m|j]s$']: babelTransform,
-        }));
-
-        configure.babelConfig?.hook((babelConfig) => ({
-          ...babelConfig,
-          presets: [
-            ...(babelConfig.presets ?? []),
-            [
-              require.resolve('@sewing-kit/babel-preset'),
-              {
-                modules: BabelPresetModule.CommonJs,
-                target: BabelPresetTarget.Node,
-              },
-            ],
-          ],
-        }));
+        configure.babelConfig?.hook(
+          addBaseBabelPreset({modules: 'commonjs', target: 'node'}),
+        );
       });
     });
 
     build.hook(({hooks, options}) => {
-      hooks.configure.hook(
-        (
-          configure: Partial<
-            import('@sewing-kit/hooks').BuildPackageConfigurationHooks &
-              import('@sewing-kit/hooks').BuildWebAppConfigurationHooks &
-              import('@sewing-kit/hooks').BuildServiceConfigurationHooks
-          >,
-        ) => {
-          configure.babelConfig?.hook(addBaseBabelPreset);
-          configure.babelExtensions?.hook(addJavaScriptExtensions);
-          configure.webpackExtensions?.hook(addJavaScriptExtensions);
-          configure.webpackRules?.hook(async (rules) => [
-            ...rules,
-            {
-              test: /\.m?js/,
-              exclude: /node_modules/,
-              use: await createJavaScriptWebpackRuleSet({
-                project,
-                env: options.simulateEnv,
-                configuration: configure,
-                cacheDirectory: 'js',
-                cacheDependencies: [],
-              }),
-            },
-          ]);
-        },
-      );
+      hooks.configureHooks.hook(addBabelHooks);
+
+      hooks.configure.hook((configure) => {
+        configure.babelConfig?.hook(addBaseBabelPreset());
+        configure.webpackRules?.hook(async (rules) => [
+          ...rules,
+          {
+            test: /\.m?js/,
+            exclude: /node_modules/,
+            use: await createJavaScriptWebpackRuleSet({
+              project,
+              env: options.simulateEnv,
+              configuration: configure,
+              cacheDirectory: 'js',
+              cacheDependencies: [],
+            }),
+          },
+        ]);
+      });
     });
 
     dev.hook(({hooks}) => {
-      hooks.configure.hook(
-        (
-          configure: Partial<
-            import('@sewing-kit/hooks').DevPackageConfigurationHooks &
-              import('@sewing-kit/hooks').DevWebAppConfigurationHooks &
-              import('@sewing-kit/hooks').DevServiceConfigurationHooks
-          >,
-        ) => {
-          configure.babelConfig?.hook(addBaseBabelPreset);
-          configure.webpackExtensions?.hook(addJavaScriptExtensions);
-          configure.webpackRules?.hook(async (rules) => [
-            ...rules,
-            {
-              test: /\.m?js/,
-              exclude: /node_modules/,
-              use: await createJavaScriptWebpackRuleSet({
-                project,
-                env: Env.Development,
-                configuration: configure,
-                cacheDirectory: 'js',
-                cacheDependencies: [],
-              }),
-            },
-          ]);
-        },
-      );
+      hooks.configureHooks.hook(addBabelHooks);
+
+      hooks.configure.hook((configure) => {
+        configure.babelConfig?.hook(addBaseBabelPreset());
+        configure.webpackRules?.hook(async (rules) => [
+          ...rules,
+          {
+            test: /\.m?js/,
+            exclude: /node_modules/,
+            use: await createJavaScriptWebpackRuleSet({
+              project,
+              env: Env.Development,
+              configuration: configure,
+              cacheDirectory: 'js',
+              cacheDependencies: [],
+            }),
+          },
+        ]);
+      });
     });
   });
 }
 
-export function workspaceJavaScript() {
-  return createWorkspaceLintPlugin(PLUGIN, ({hooks}) => {
-    hooks.configure.hook((hooks) => {
-      hooks.eslintExtensions?.hook((extensions) => [
-        ...extensions,
-        '.mjs',
-        '.js',
-      ]);
-    });
-  });
+type Preset = NonNullable<BabelConfig['presets']>[number];
+type Plugin = NonNullable<BabelConfig['plugins']>[number];
+
+export function babelPresets(
+  presets: ValueOrGetter<ValueOrArray<Preset>, [Preset[]]>,
+) {
+  return createProjectPlugin(
+    `${PLUGIN}.BabelPresets`,
+    ({tasks: {test, build, dev}}) => {
+      const addBabelPresets = async (
+        config: BabelConfig,
+      ): Promise<BabelConfig> => ({
+        ...config,
+        presets: [
+          ...(config.presets ?? []),
+          ...(await unwrapPossibleArrayGetter(presets, config.presets ?? [])),
+        ],
+      });
+
+      test.hook(({hooks}) => {
+        hooks.configure.hook(({babelConfig}) => {
+          babelConfig?.hook(addBabelPresets);
+        });
+      });
+
+      build.hook(({hooks}) => {
+        hooks.configure.hook(({babelConfig}) => {
+          babelConfig?.hook(addBabelPresets);
+        });
+      });
+
+      dev.hook(({hooks}) => {
+        hooks.configure.hook(({babelConfig}) => {
+          babelConfig?.hook(addBabelPresets);
+        });
+      });
+    },
+  );
 }
 
-function addBaseBabelPreset(babelConfig: BabelConfig) {
-  return {
-    ...babelConfig,
+export function babelPlugins(
+  plugins: ValueOrGetter<ValueOrArray<Plugin>, [Plugin[]]>,
+) {
+  return createProjectPlugin(
+    `${PLUGIN}.BabelPlugins`,
+    ({tasks: {test, build, dev}}) => {
+      const addBabelPlugins = async (
+        config: BabelConfig,
+      ): Promise<BabelConfig> => ({
+        ...config,
+        plugins: [
+          ...(config.plugins ?? []),
+          ...(await unwrapPossibleArrayGetter(plugins, config.plugins ?? [])),
+        ],
+      });
+
+      test.hook(({hooks}) => {
+        hooks.configure.hook(({babelConfig}) => {
+          babelConfig?.hook(addBabelPlugins);
+        });
+      });
+
+      build.hook(({hooks}) => {
+        hooks.configure.hook(({babelConfig}) => {
+          babelConfig?.hook(addBabelPlugins);
+        });
+      });
+
+      dev.hook(({hooks}) => {
+        hooks.configure.hook(({babelConfig}) => {
+          babelConfig?.hook(addBabelPlugins);
+        });
+      });
+    },
+  );
+}
+
+function addBaseBabelPreset(options: BabelPresetOptions = {}) {
+  return (config: BabelConfig): BabelConfig => ({
+    ...config,
     presets: [
-      ...(babelConfig.presets ?? []),
-      require.resolve('@sewing-kit/babel-preset'),
+      ...(config.presets ?? []),
+      [require.resolve(ENV_PRESET), options],
     ],
-  };
-}
-
-function addJavaScriptExtensions(extensions: readonly string[]) {
-  return ['.mjs', '.js', ...extensions];
+  });
 }

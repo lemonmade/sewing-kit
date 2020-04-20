@@ -35,7 +35,10 @@ export function eslint() {
       ...steps,
       api.createStep({id: 'ESLint.Lint', label: 'run eslint'}, async (step) => {
         const {fix = false} = options;
-        const extensions = await configuration.eslintExtensions!.run([]);
+        const extensions = await configuration.eslintExtensions!.run([
+          '.mjs',
+          '.js',
+        ]);
         const args = toArgs(
           await configuration.eslintFlags!.run({
             fix,

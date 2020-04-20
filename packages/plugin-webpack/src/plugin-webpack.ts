@@ -146,13 +146,14 @@ export function webpackBuild({config, resources}: BuildWebpackOptions = {}) {
   return createProjectBuildPlugin(
     `${PLUGIN}.Build`,
     ({api, hooks, options, project, workspace}) => {
-      hooks.steps.hook((steps, {configuration}) => [
+      hooks.steps.hook((steps, context) => [
         ...steps,
         createWebpackBuildStep({
           api,
           project,
           workspace,
-          hooks: configuration,
+          hooks: context.configuration,
+          variant: 'variant' in context ? (context as any).variant : {},
           env: options.simulateEnv,
           sourceMaps: options.sourceMaps ?? true,
           config,
@@ -170,6 +171,9 @@ interface BuildWebpackStepOptions extends BuildWebpackOptions {
   workspace: Workspace;
   project: Project;
   sourceMaps: boolean;
+  variant:
+    | import('@sewing-kit/hooks').BuildPackageOptions
+    | import('@sewing-kit/hooks').BuildWebAppOptions;
 }
 
 export function createWebpackBuildStep({
@@ -177,6 +181,7 @@ export function createWebpackBuildStep({
   api,
   hooks,
   project,
+  variant,
   workspace,
   sourceMaps,
   config,
@@ -191,6 +196,7 @@ export function createWebpackBuildStep({
           api,
           hooks,
           project,
+          variant,
           workspace,
           sourceMaps,
           config,
@@ -225,12 +231,20 @@ async function createWebpackConfig({
   api,
   hooks,
   project,
+  variant,
   workspace,
   sourceMaps,
   config: explicitConfig = {},
 }: Pick<
   BuildWebpackStepOptions,
-  'env' | 'api' | 'hooks' | 'project' | 'workspace' | 'sourceMaps' | 'config'
+  | 'env'
+  | 'api'
+  | 'hooks'
+  | 'project'
+  | 'workspace'
+  | 'sourceMaps'
+  | 'config'
+  | 'variant'
 >) {
   if (hooks.webpackConfig == null) {
     throw new MissingPluginError('@sewing-kit/plugin-webpack');
@@ -276,20 +290,30 @@ async function createWebpackConfig({
       : []),
   ]);
 
-  const extensions = await hooks.webpackExtensions!.run([]);
+  const extensions = await hooks.webpackExtensions!.run(['.mjs', '.js']);
+
+  const variantPart = Object.keys(variant).map((key) => {
+    const value = (variant as any)[key];
+
+    if (typeof value === 'boolean') return value ? key : `no-${key}`;
+
+    return value;
+  });
   const outputPath = await hooks.webpackOutputDirectory!.run(
     projectType(project, {
       webApp: (webApp) =>
         workspace.fs.buildPath(
           workspace.webApps.length > 1 ? `apps/${webApp.name}` : 'app',
+          ...variantPart,
         ),
       service: (service) =>
         workspace.fs.buildPath(
           workspace.services.length > 1
             ? `services/${service.name}`
             : 'service',
+          ...variantPart,
         ),
-      package: (pkg) => pkg.fs.buildPath(),
+      package: (pkg) => pkg.fs.buildPath(...variantPart),
     }),
   );
 

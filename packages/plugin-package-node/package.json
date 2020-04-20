@@ -9,11 +9,9 @@
   },
   "dependencies": {
     "@sewing-kit/hooks": "^0.0.22",
-    "@sewing-kit/plugin-babel": "^0.0.38",
     "@sewing-kit/plugin-javascript": "^0.0.44",
     "@sewing-kit/plugin-package-utilities": "^0.0.30",
-    "@sewing-kit/plugins": "^0.0.21",
-    "immer": "^6.0.2"
+    "@sewing-kit/plugins": "^0.0.21"
   },
   "optionalDependencies": {
     "@sewing-kit/plugin-jest": "^0.0.38"
