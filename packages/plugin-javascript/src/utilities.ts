@@ -274,12 +274,7 @@ export function updateBabelEnvPreset(
   {addIfMissing = false} = {},
 ) {
   return updateBabelPreset<BabelPresetOptions>(
-    [
-      ENV_PRESET,
-      require.resolve(ENV_PRESET),
-      '@babel/preset-env',
-      require.resolve('@babel/preset-env'),
-    ],
+    [ENV_PRESET, require.resolve(ENV_PRESET)],
     options,
     {addIfMissing},
   );
