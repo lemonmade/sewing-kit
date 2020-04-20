@@ -4,6 +4,10 @@ module.exports = {
     'plugin:@sewing-kit/node',
     'plugin:@sewing-kit/prettier',
   ],
+  rules: {
+    // Leaving TODOs for the time being
+    'no-warning-comments': 'off',
+  },
   overrides: [
     {
       files: ['*.test.ts', '*.test.tsx', './tests/**/*'],

@@ -8,7 +8,7 @@ import {
 } from '@sewing-kit/plugins';
 import {} from '@sewing-kit/plugin-webpack';
 
-export function webpackBuilds() {
+export function vscode() {
   return createProjectPlugin('SewingKit.VSCode', ({tasks: {dev, build}}) => {
     // TODO: need a debug option on build/ dev
     // TODO: need an output hook/ plugin in webpack
