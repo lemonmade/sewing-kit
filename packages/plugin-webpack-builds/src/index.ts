@@ -1,8 +1,4 @@
 import {
-  Package,
-  Service,
-  WebApp,
-  createComposedWorkspacePlugin,
   createComposedProjectPlugin,
   createProjectPlugin,
 } from '@sewing-kit/plugins';
@@ -16,10 +12,5 @@ export function webpackBuilds() {
 }
 
 function webpackConfiguration() {
-  return createProjectPlugin(
-    'SewingKit.WebpackBuilds.Configuration',
-    ({project, tasks}) => {
-      tasks.build.hook(({hooks}) => {});
-    },
-  );
+  return createProjectPlugin('SewingKit.WebpackBuilds.Configuration', () => {});
 }

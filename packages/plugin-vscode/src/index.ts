@@ -1,11 +1,4 @@
-import {
-  Package,
-  Service,
-  WebApp,
-  createComposedWorkspacePlugin,
-  createComposedProjectPlugin,
-  createProjectPlugin,
-} from '@sewing-kit/plugins';
+import {createProjectPlugin} from '@sewing-kit/plugins';
 import {} from '@sewing-kit/plugin-webpack';
 
 export function vscode() {
@@ -14,7 +7,7 @@ export function vscode() {
     // TODO: need an output hook/ plugin in webpack
     build.hook(({hooks}) => {
       hooks.configure.hook((configure) => {
-        configure.webpackConfig.hook((config) => {
+        configure.webpackConfig?.hook((config) => {
           return {
             ...config,
             output: {
@@ -30,7 +23,7 @@ export function vscode() {
 
     dev.hook(({hooks}) => {
       hooks.configure.hook((configure) => {
-        configure.webpackConfig.hook((config) => {
+        configure.webpackConfig?.hook((config) => {
           return {
             ...config,
             output: {
@@ -44,13 +37,4 @@ export function vscode() {
       });
     });
   });
-}
-
-function webpackConfiguration() {
-  return createProjectPlugin(
-    'SewingKit.WebpackBuilds.Configuration',
-    ({project, tasks}) => {
-      tasks.build.hook(({hooks}) => {});
-    },
-  );
 }
