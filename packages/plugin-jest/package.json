@@ -8,12 +8,12 @@
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/plugins": "^0.0.21",
     "@sewing-kit/plugin-javascript": "^0.0.44",
-    "@types/jest": "^25.1.4",
-    "babel-jest": "^25.2.3",
-    "jest": "^25.2.3",
-    "jest-watch-typeahead": "^0.4.2"
+    "@sewing-kit/plugins": "^0.0.21",
+    "@types/jest": "^25.2.1",
+    "babel-jest": "^25.4.0",
+    "jest": "^25.4.0",
+    "jest-watch-typeahead": "^0.5.0"
   },
   "optionalDependencies": {
     "@babel/core": "^7.0.0"

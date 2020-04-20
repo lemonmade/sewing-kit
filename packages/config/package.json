@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@babel/core": "^7.8.0",
-    "@babel/preset-env": "^7.9.0",
+    "@babel/preset-env": "^7.9.5",
     "@babel/preset-typescript": "^7.9.0",
     "@babel/register": "^7.9.0",
     "@sewing-kit/core": "^0.0.38",

@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@sewing-kit/plugins": "^0.0.21",
-    "graphql-mini-transforms": "^1.0.4"
+    "graphql-mini-transforms": "^1.1.0"
   },
   "optionalDependencies": {
     "@sewing-kit/plugin-jest": "^0.0.38",
