@@ -354,7 +354,11 @@ async function createWebpackConfig({
         hooks.webpackTerserOptions!.run({
           ecma: 8,
           warnings: false,
-          compress: true,
+          // Per one of the authors of Preact, the extra pass may inline more esmodule imports
+          // @see https://github.com/webpack-contrib/mini-css-extract-plugin/pull/509#issuecomment-599083073
+          compress: {
+            passes: 2,
+          },
           ie8: false,
           safari10: true,
           mangle: {

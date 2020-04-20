@@ -53,6 +53,8 @@ export function esnextOutput() {
       dev.hook(({hooks}) => {
         hooks.configure.hook((configure) => {
           configure.webpackExtensions?.hook(addExtension);
+          // TODO: make resolve.mainFields include 'esnext', and recommend adding
+          // a "esnext": "index.esnext" to package.json for the package
           configure.webpackRules?.hook(async (rules) => [
             ...rules,
             {
