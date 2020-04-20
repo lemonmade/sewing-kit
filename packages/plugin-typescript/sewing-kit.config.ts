@@ -3,5 +3,9 @@ import {createSewingKitPackagePlugin} from '../../config/sewing-kit';
 
 export default createPackage((pkg) => {
   pkg.runtime(Runtime.Node);
+  pkg.entry({
+    name: 'babel-plugin-convert-empty-file-to-esmodule',
+    root: './src/babel-plugin-convert-empty-file-to-esmodule',
+  });
   pkg.use(createSewingKitPackagePlugin());
 });

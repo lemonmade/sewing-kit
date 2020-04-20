@@ -26,8 +26,19 @@ for (const file of glob('packages/*/*.{js,mjs,node,esnext,ts}', {
 const CUSTOM_ENTRIES = new Map([
   ['config', ['index', 'load']],
   ['plugin-javascript', ['index', 'babel-preset']],
+  [
+    'plugin-typescript',
+    ['index', 'babel-plugin-convert-empty-file-to-esmodule'],
+  ],
 ]);
-const NEEDS_FULL_BUILD = new Set(['eslint-plugin']);
+const NEEDS_FULL_BUILD = new Set([
+  // Needs a full build so it’s available for editor feedback
+  'eslint-plugin',
+  // Needs a full build so that the Babel configuration is available
+  // for self builds (Babel can’t reference sewing-kit’s source).
+  'plugin-javascript',
+  'plugin-typescript',
+]);
 
 const COMMONJS_DIRECTORY = 'build/cjs';
 const TS_DEFINITIONS_DIRECTORY = 'build/ts';
