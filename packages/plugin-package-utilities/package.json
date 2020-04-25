@@ -1,13 +1,13 @@
 {
   "name": "@sewing-kit/plugin-package-utilities",
   "license": "MIT",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/plugins": "^0.0.22"
+    "@sewing-kit/plugins": "^0.0.23"
   }
 }

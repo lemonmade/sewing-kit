@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/plugin-javascript",
   "license": "MIT",
-  "version": "0.0.47",
+  "version": "0.0.48",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -16,17 +16,17 @@
     "@babel/plugin-proposal-optional-chaining": "^7.9.0",
     "@babel/plugin-syntax-dynamic-import": "^7.8.3",
     "@babel/preset-env": "^7.9.5",
-    "@sewing-kit/hooks": "^0.0.22",
-    "@sewing-kit/plugins": "^0.0.22",
+    "@sewing-kit/hooks": "^0.0.23",
+    "@sewing-kit/plugins": "^0.0.23",
     "@types/babel__core": "^7.1.7",
     "babel-loader": "^8.1.0",
     "core-js": "^3.6.5",
     "node-object-hash": "^2.0.0"
   },
   "optionalDependencies": {
-    "@sewing-kit/plugin-eslint": "^0.0.34",
-    "@sewing-kit/plugin-jest": "^0.0.41",
-    "@sewing-kit/plugin-webpack": "^0.0.37",
+    "@sewing-kit/plugin-eslint": "^0.0.35",
+    "@sewing-kit/plugin-jest": "^0.0.42",
+    "@sewing-kit/plugin-webpack": "^0.0.38",
     "webpack": ">=4 <5"
   }
 }

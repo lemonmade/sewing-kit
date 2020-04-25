@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/plugin-react",
   "license": "MIT",
-  "version": "0.0.36",
+  "version": "0.0.37",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -9,11 +9,11 @@
   },
   "dependencies": {
     "@babel/preset-react": "^7.9.4",
-    "@sewing-kit/plugins": "^0.0.22"
+    "@sewing-kit/plugins": "^0.0.23"
   },
   "optionalDependencies": {
     "@babel/core": "^7.0.0",
     "@sewing-kit/plugin-jest": "^0.0.39",
-    "@sewing-kit/plugin-webpack": "^0.0.37"
+    "@sewing-kit/plugin-webpack": "^0.0.38"
   }
 }

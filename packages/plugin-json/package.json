@@ -1,15 +1,15 @@
 {
   "name": "@sewing-kit/plugin-json",
   "license": "MIT",
-  "version": "0.0.43",
+  "version": "0.0.44",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/plugin-webpack": "^0.0.37",
-    "@sewing-kit/plugins": "^0.0.22"
+    "@sewing-kit/plugin-webpack": "^0.0.38",
+    "@sewing-kit/plugins": "^0.0.23"
   },
   "optionalDependencies": {
     "@sewing-kit/plugin-jest": "^0.0.39"

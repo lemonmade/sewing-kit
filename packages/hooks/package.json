@@ -1,13 +1,13 @@
 {
   "name": "@sewing-kit/hooks",
   "license": "MIT",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/core": "^0.0.38"
+    "@sewing-kit/core": "^0.0.39"
   }
 }
