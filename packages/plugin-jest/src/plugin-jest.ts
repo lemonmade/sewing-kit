@@ -169,7 +169,7 @@ export function jest() {
 
                   const babelConfig = await hooks.babelConfig.run({});
                   const transform = await hooks.jestTransforms!.run(
-                    {},
+                    {'^.+\\.m?js$': babelTransform},
                     {babelTransform},
                   );
                   const environment = await hooks.jestEnvironment!.run('node');
@@ -179,9 +179,7 @@ export function jest() {
                   const extensions = (
                     await hooks.jestExtensions!.run(['.js', '.mjs', '.json'])
                   ).map((extension) => extension.replace(/^\./, ''));
-                  const moduleMapper = await hooks.jestModuleMapper!.run({
-                    ['^.+\\.[m|j]s$']: babelTransform,
-                  });
+                  const moduleMapper = await hooks.jestModuleMapper!.run({});
                   const setupEnvFiles = await hooks.jestSetupEnv!.run(
                     rootSetupEnvFiles,
                   );
@@ -193,7 +191,7 @@ export function jest() {
                     babelTransform,
                     `const {createTransformer} = require('babel-jest'); module.exports = createTransformer(${JSON.stringify(
                       babelConfig,
-                    )})`,
+                    )});`,
                   );
 
                   const config = await hooks.jestConfig!.run({
