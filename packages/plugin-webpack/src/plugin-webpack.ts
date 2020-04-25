@@ -290,7 +290,11 @@ async function createWebpackConfig({
       : []),
   ]);
 
-  const extensions = await hooks.webpackExtensions!.run(['.mjs', '.js']);
+  const extensions = await hooks.webpackExtensions!.run([
+    '.mjs',
+    '.js',
+    '.json',
+  ]);
 
   const variantPart = Object.keys(variant).map((key) => {
     const value = (variant as any)[key];

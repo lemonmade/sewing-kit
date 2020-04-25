@@ -17,7 +17,6 @@
     {"path": "./packages/plugin-jest"},
     {"path": "./packages/plugin-webpack"},
 
-    {"path": "./packages/plugin-json"},
     {"path": "./packages/plugin-javascript"},
     {"path": "./packages/plugin-typescript"},
     {"path": "./packages/plugin-graphql"},

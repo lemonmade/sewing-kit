@@ -177,7 +177,7 @@ export function jest() {
                   // versions of the file, which Jest can't parse. To avoid transforming
                   // those otherwise-fine files, we prefer .js for tests only.
                   const extensions = (
-                    await hooks.jestExtensions!.run(['.js', '.mjs'])
+                    await hooks.jestExtensions!.run(['.js', '.mjs', '.json'])
                   ).map((extension) => extension.replace(/^\./, ''));
                   const moduleMapper = await hooks.jestModuleMapper!.run({
                     ['^.+\\.[m|j]s$']: babelTransform,
