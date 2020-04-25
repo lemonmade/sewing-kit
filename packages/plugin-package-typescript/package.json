@@ -1,14 +1,14 @@
 {
   "name": "@sewing-kit/plugin-package-typescript",
   "license": "MIT",
-  "version": "0.0.48",
+  "version": "0.0.49",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/plugin-typescript": "^0.0.50",
+    "@sewing-kit/plugin-typescript": "^0.0.51",
     "@sewing-kit/plugins": "^0.0.23",
     "fs-extra": "^9.0.0"
   },

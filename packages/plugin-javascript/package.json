@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/plugin-javascript",
   "license": "MIT",
-  "version": "0.0.48",
+  "version": "0.0.49",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
