@@ -232,14 +232,14 @@ export function updateBabelPreset<Options extends object = object>(
 
     const newConfig = {
       ...config,
-      plugins:
-        config.plugins &&
+      presets:
+        config.presets &&
         (await Promise.all(
-          config.plugins.map<Promise<string | [string, object?]>>(
-            async (plugin) => {
-              const [name, currentOptions] = Array.isArray(plugin)
-                ? plugin
-                : [plugin];
+          config.presets.map<Promise<string | [string, object?]>>(
+            async (preset) => {
+              const [name, currentOptions] = Array.isArray(preset)
+                ? preset
+                : [preset];
 
               if (normalizedPresets.includes(name)) {
                 hasMatch = true;
@@ -250,16 +250,16 @@ export function updateBabelPreset<Options extends object = object>(
                 ];
               }
 
-              return plugin;
+              return preset;
             },
           ),
         )),
     };
 
     if (!hasMatch && addIfMissing) {
-      newConfig.plugins = newConfig.plugins ?? [];
+      newConfig.presets = newConfig.presets ?? [];
 
-      newConfig.plugins.push([
+      newConfig.presets.push([
         normalizedPresets[0],
         await unwrapPossibleGetter(options, {}),
       ]);

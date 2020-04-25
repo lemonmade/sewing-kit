@@ -39,7 +39,7 @@ export default function babelPresetSewingKit(
           useBuiltIns: polyfill,
           corejs: 3,
           modules: modules === 'preserve' ? false : modules,
-          targets: target === 'node' ? {node: true} : target,
+          targets: target === 'node' ? {node: 'current'} : target,
           ignoreBrowserslistConfig: target != null,
         },
       ],
