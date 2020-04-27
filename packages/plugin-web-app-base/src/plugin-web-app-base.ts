@@ -4,6 +4,7 @@ import getPort from 'get-port';
 import {
   Env,
   WebApp,
+  addHooks,
   Workspace,
   WaterfallHook,
   MissingPluginError,
@@ -15,11 +16,13 @@ import {} from '@sewing-kit/plugin-webpack';
 
 const PLUGIN = 'SewingKit.WebAppBase';
 
+interface Hooks {
+  readonly assetServerIp: WaterfallHook<string | undefined>;
+  readonly assetServerPort: WaterfallHook<number | undefined>;
+}
+
 declare module '@sewing-kit/hooks' {
-  interface DevWebAppConfigurationCustomHooks {
-    readonly assetServerIp: WaterfallHook<string | undefined>;
-    readonly assetServerPort: WaterfallHook<number | undefined>;
-  }
+  interface DevWebAppConfigurationCustomHooks extends Hooks {}
 }
 
 enum BuildStatus {
@@ -96,11 +99,12 @@ export function buildWebAppWithWebpack({
       });
 
       dev.hook(({hooks}) => {
-        hooks.configureHooks.hook((hooks) => ({
-          ...hooks,
-          assetServerIp: new WaterfallHook(),
-          assetServerPort: new WaterfallHook(),
-        }));
+        hooks.configureHooks.hook(
+          addHooks<Hooks>(() => ({
+            assetServerIp: new WaterfallHook(),
+            assetServerPort: new WaterfallHook(),
+          })),
+        );
 
         hooks.configure.hook((hooks) => {
           hooks.webpackOutputDirectory?.hook(() =>
