@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/plugin-javascript",
   "license": "MIT",
-  "version": "0.0.51",
+  "version": "0.0.52",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -24,7 +24,7 @@
     "node-object-hash": "^2.0.0"
   },
   "optionalDependencies": {
-    "@sewing-kit/plugin-webpack": "^0.0.40",
+    "@sewing-kit/plugin-webpack": "^0.0.41",
     "webpack": ">=4 <5"
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/plugin-web-app-base",
   "license": "MIT",
-  "version": "0.0.59",
+  "version": "0.0.60",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@sewing-kit/hooks": "^0.0.23",
-    "@sewing-kit/plugin-javascript": "^0.0.51",
+    "@sewing-kit/plugin-javascript": "^0.0.52",
     "@sewing-kit/plugins": "^0.0.23",
     "@types/koa": "^2.11.3",
     "@types/koa-webpack": "^5.0.1",
@@ -19,7 +19,7 @@
   },
   "optionalDependencies": {
     "@sewing-kit/plugin-javascript": "^0.0.50",
-    "@sewing-kit/plugin-webpack": "^0.0.40",
+    "@sewing-kit/plugin-webpack": "^0.0.41",
     "webpack": ">=4 <5"
   }
 }
