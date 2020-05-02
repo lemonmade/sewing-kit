@@ -62,11 +62,9 @@ export async function createCSSWebpackRuleSet({
           plugins: () =>
             pluginNames.map((plugin) => {
               const optionsOrEnabled = postcssPlugins[plugin];
-              /* eslint-disable @typescript-eslint/no-var-requires */
               return typeof optionsOrEnabled === 'boolean'
-                ? require(plugin)()
-                : require(plugin)(optionsOrEnabled);
-              /* eslint-enable @typescript-eslint/no-var-requires */
+                ? safeRequire(plugin)()
+                : safeRequire(plugin)(optionsOrEnabled);
             }),
         }
       : {};
@@ -178,6 +176,14 @@ export function updatePostcssPlugin<Options = object>(
 
     return newPlugins;
   };
+}
+
+function safeRequire(plugin: string): (...args: any[]) => any {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const required = require(plugin);
+  return required && required.__esModule
+    ? required.default ?? required
+    : required;
 }
 
 export function updatePostcssEnvPreset(

@@ -9,6 +9,7 @@ import {
   Project,
   Workspace,
   PluginApi,
+  addHooks,
   StepResources,
   MissingPluginError,
   WaterfallHook,
@@ -88,8 +89,7 @@ declare module '@sewing-kit/hooks' {
 
 const PLUGIN = 'SewingKit.Webpack';
 
-const addWebpackHooks = (hooks: any) => ({
-  ...hooks,
+const addWebpackHooks = addHooks<WebpackHooks>(() => ({
   webpackCachePath: new WaterfallHook(),
   webpackTarget: new WaterfallHook(),
   webpackRules: new WaterfallHook(),
@@ -100,6 +100,8 @@ const addWebpackHooks = (hooks: any) => ({
   webpackOutputDirectory: new WaterfallHook(),
   webpackOutputFilename: new WaterfallHook(),
   webpackOutputChunkFilename: new WaterfallHook(),
+  webpackOutputHashFunction: new WaterfallHook(),
+  webpackOutputHashDigestLength: new WaterfallHook(),
   webpackMainFields: new WaterfallHook(),
   webpackEntries: new WaterfallHook(),
   webpackExtensions: new WaterfallHook(),
@@ -110,12 +112,13 @@ const addWebpackHooks = (hooks: any) => ({
   webpackOptimizeNamedOutputs: new WaterfallHook(),
   webpackOptimizeMinizers: new WaterfallHook(),
   webpackOptimizeRuntimeChunk: new WaterfallHook(),
+  webpackOptimizeMinimize: new WaterfallHook(),
   webpackOptimizeSplitChunks: new WaterfallHook(),
   webpackTerserOptions: new WaterfallHook(),
   webpackTerserParallel: new WaterfallHook(),
   webpackTerserPluginOptions: new WaterfallHook(),
   webpackPerformance: new WaterfallHook(),
-});
+}));
 
 export function webpackHooks() {
   return createProjectPlugin(PLUGIN, ({tasks: {build, dev}}) => {
@@ -353,9 +356,11 @@ export async function createWebpackConfig({
   const publicPath = await hooks.webpackPublicPath!.run('/assets/');
   const entry = await hooks.webpackEntries!.run(
     projectType(project, {
-      webApp: (app) => app.entry && [app.entry],
-      service: (service) => service.entry && [service.entry],
-      package: (pkg) => pkg.entries[0]?.root && [pkg.entries[0].root],
+      webApp: (app) => app.entry && [app.fs.resolvePath(app.entry)],
+      service: (service) =>
+        service.entry && [service.fs.resolvePath(service.entry)],
+      package: (pkg) =>
+        pkg.entries[0]?.root && [pkg.fs.resolvePath(pkg.entries[0].root)],
     }) ?? [],
   );
 
@@ -767,14 +772,16 @@ async function unwrapPossibleArrayGetter<T>(
   return Array.isArray(result) ? result : [result];
 }
 
-function defaultWorkspaceAliases({fs, packages}: Workspace) {
+function defaultWorkspaceAliases({packages}: Workspace) {
   const aliases: {[key: string]: string} = {};
 
-  for (const {entries, runtimeName} of packages) {
+  for (const pkg of packages) {
+    const {entries, runtimeName} = pkg;
+
     for (const {name, root} of entries) {
       aliases[
         name ? join(runtimeName, `${name}$`) : `${runtimeName}$`
-      ] = fs.resolvePath(root);
+      ] = pkg.fs.resolvePath(root);
     }
   }
 
