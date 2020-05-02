@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/plugin-vscode",
   "license": "MIT",
-  "version": "0.0.49",
+  "version": "0.0.50",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -11,6 +11,6 @@
     "@sewing-kit/plugins": "^0.0.23"
   },
   "optionalDependencies": {
-    "@sewing-kit/plugin-webpack": "^0.0.39"
+    "@sewing-kit/plugin-webpack": "^0.0.40"
   }
 }
