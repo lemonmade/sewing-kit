@@ -3,6 +3,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
+    "run:ts": "babel-node --extensions .ts,.tsx,.mjs,.js,.json",
     "bootstrap:to-source": "babel-node --extensions .ts,.tsx,.mjs,.js,.json ./scripts/bootstrap",
     "bootstrap": "lerna bootstrap && yarn bootstrap:to-source && tsc --build",
     "sk:from-source": "babel-node --extensions .ts,.tsx,.mjs,.js -- ./packages/cli/src/cli",
