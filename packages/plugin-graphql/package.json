@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/plugin-graphql",
   "license": "MIT",
-  "version": "0.0.45",
+  "version": "0.0.46",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -12,7 +12,7 @@
     "graphql-mini-transforms": "^1.1.0"
   },
   "optionalDependencies": {
-    "@sewing-kit/plugin-jest": "^0.0.48",
-    "@sewing-kit/plugin-webpack": "^0.0.41"
+    "@sewing-kit/plugin-jest": "^0.0.49",
+    "@sewing-kit/plugin-webpack": "^0.0.42"
   }
 }

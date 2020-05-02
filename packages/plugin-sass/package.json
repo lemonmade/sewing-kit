@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/plugin-sass",
   "license": "MIT",
-  "version": "0.0.43",
+  "version": "0.0.44",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -16,7 +16,7 @@
     "@sewing-kit/plugin-css": "*"
   },
   "optionalDependencies": {
-    "@sewing-kit/plugin-webpack": "^0.0.41",
+    "@sewing-kit/plugin-webpack": "^0.0.42",
     "webpack": ">=4 <5"
   }
 }
