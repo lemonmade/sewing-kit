@@ -8,5 +8,9 @@
     "types": ["jest"]
   },
   "include": ["src/**/*.ts"],
-  "references": [{"path": "../hooks"}, {"path": "../plugins"}]
+  "references": [
+    {"path": "../hooks"},
+    {"path": "../plugins"},
+    {"path": "../plugin-javascript"}
+  ]
 }
