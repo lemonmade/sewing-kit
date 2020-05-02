@@ -20,12 +20,14 @@ import type {Options as BabelPresetOptions} from './babel-preset';
 export const ENV_PRESET = '@sewing-kit/plugin-javascript/babel-preset';
 
 export async function createJavaScriptWebpackRuleSet({
+  api,
   env,
   project,
   configuration,
   cacheDirectory: cacheDirectoryName,
   cacheDependencies: initialCacheDependencies = [],
 }: {
+  api: PluginApi;
   env: Env;
   project: Project;
   configuration:
@@ -44,7 +46,9 @@ export async function createJavaScriptWebpackRuleSet({
       '@babel/core',
       ...initialCacheDependencies,
     ]),
-    configuration.webpackCachePath!.run(cacheDirectoryName),
+    configuration.webpackCachePath!.run(
+      api.cachePath('webpack/babel', cacheDirectoryName),
+    ),
   ] as const);
 
   return [

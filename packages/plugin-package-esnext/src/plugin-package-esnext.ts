@@ -30,7 +30,7 @@ declare module '@sewing-kit/hooks' {
 export function esnextOutput() {
   return createProjectPlugin<Project>(
     `${PLUGIN}.Consumer`,
-    ({project, tasks: {build, dev}}) => {
+    ({api, project, tasks: {build, dev}}) => {
       build.hook(({hooks, options}) => {
         hooks.configure.hook((configure) => {
           configure.webpackExtensions?.hook(addExtension);
@@ -40,6 +40,7 @@ export function esnextOutput() {
               test: /\.esnext/,
               include: /node_modules/,
               use: await createJavaScriptWebpackRuleSet({
+                api,
                 project,
                 env: options.simulateEnv,
                 configuration: configure,
@@ -61,6 +62,7 @@ export function esnextOutput() {
               test: /\.esnext/,
               include: /node_modules/,
               use: await createJavaScriptWebpackRuleSet({
+                api,
                 project,
                 env: Env.Development,
                 configuration: configure,

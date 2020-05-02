@@ -33,64 +33,69 @@ declare module '@sewing-kit/hooks' {
 const PLUGIN = 'SewingKit.TypeScript';
 
 export function typescript() {
-  return createProjectPlugin(PLUGIN, ({project, tasks: {dev, build, test}}) => {
-    test.hook(({hooks}) => {
-      hooks.configure.hook((hooks) => {
-        hooks.jestExtensions?.hook(addTypeScriptExtensions);
-        hooks.jestTransforms?.hook((transforms, {babelTransform}) => ({
-          ...transforms,
-          ['^.+\\.tsx?$']: babelTransform,
-        }));
+  return createProjectPlugin(
+    PLUGIN,
+    ({api, project, tasks: {dev, build, test}}) => {
+      test.hook(({hooks}) => {
+        hooks.configure.hook((hooks) => {
+          hooks.jestExtensions?.hook(addTypeScriptExtensions);
+          hooks.jestTransforms?.hook((transforms, {babelTransform}) => ({
+            ...transforms,
+            ['^.+\\.tsx?$']: babelTransform,
+          }));
 
-        hooks.babelConfig?.hook(addTypeScriptBabelConfig);
+          hooks.babelConfig?.hook(addTypeScriptBabelConfig);
+        });
       });
-    });
 
-    build.hook(({hooks, options}) => {
-      hooks.configure.hook((configure) => {
-        configure.babelConfig?.hook(addTypeScriptBabelConfig);
-        configure.babelExtensions?.hook(addTypeScriptExtensions);
-        configure.webpackExtensions?.hook(addTypeScriptExtensions);
-        configure.webpackPlugins?.hook(addWebpackPlugins);
-        configure.webpackRules?.hook(async (rules) => [
-          ...rules,
-          {
-            test: /\.tsx?/,
-            exclude: /node_modules/,
-            use: await createJavaScriptWebpackRuleSet({
-              project,
-              env: options.simulateEnv,
-              configuration: configure,
-              cacheDirectory: 'ts',
-              cacheDependencies: [],
-            }),
-          },
-        ]);
+      build.hook(({hooks, options}) => {
+        hooks.configure.hook((configure) => {
+          configure.babelConfig?.hook(addTypeScriptBabelConfig);
+          configure.babelExtensions?.hook(addTypeScriptExtensions);
+          configure.webpackExtensions?.hook(addTypeScriptExtensions);
+          configure.webpackPlugins?.hook(addWebpackPlugins);
+          configure.webpackRules?.hook(async (rules) => [
+            ...rules,
+            {
+              test: /\.tsx?/,
+              exclude: /node_modules/,
+              use: await createJavaScriptWebpackRuleSet({
+                api,
+                project,
+                env: options.simulateEnv,
+                configuration: configure,
+                cacheDirectory: 'ts',
+                cacheDependencies: [],
+              }),
+            },
+          ]);
+        });
       });
-    });
 
-    dev.hook(({hooks}) => {
-      hooks.configure.hook((configure) => {
-        configure.babelConfig?.hook(addTypeScriptBabelConfig);
-        configure.webpackExtensions?.hook(addTypeScriptExtensions);
-        configure.webpackPlugins?.hook(addWebpackPlugins);
-        configure.webpackRules?.hook(async (rules) => [
-          ...rules,
-          {
-            test: /\.tsx?/,
-            exclude: /node_modules/,
-            use: await createJavaScriptWebpackRuleSet({
-              project,
-              env: Env.Development,
-              configuration: configure,
-              cacheDirectory: 'ts',
-              cacheDependencies: [],
-            }),
-          },
-        ]);
+      dev.hook(({hooks}) => {
+        hooks.configure.hook((configure) => {
+          configure.babelConfig?.hook(addTypeScriptBabelConfig);
+          configure.webpackExtensions?.hook(addTypeScriptExtensions);
+          configure.webpackPlugins?.hook(addWebpackPlugins);
+          configure.webpackRules?.hook(async (rules) => [
+            ...rules,
+            {
+              test: /\.tsx?/,
+              exclude: /node_modules/,
+              use: await createJavaScriptWebpackRuleSet({
+                api,
+                project,
+                env: Env.Development,
+                configuration: configure,
+                cacheDirectory: 'ts',
+                cacheDependencies: [],
+              }),
+            },
+          ]);
+        });
       });
-    });
-  });
+    },
+  );
 }
 
 export function workspaceTypeScript() {

@@ -23,68 +23,73 @@ declare module '@sewing-kit/hooks' {
 const PLUGIN = 'SewingKit.JavaScript';
 
 export function javascript() {
-  return createProjectPlugin(PLUGIN, ({project, tasks: {dev, build, test}}) => {
-    const addBabelHooks = addHooks<BabelHooks>(() => ({
-      babelConfig: new WaterfallHook(),
-      babelIgnorePatterns: new WaterfallHook(),
-      babelExtensions: new WaterfallHook(),
-      babelCacheDependencies: new WaterfallHook(),
-    }));
+  return createProjectPlugin(
+    PLUGIN,
+    ({api, project, tasks: {dev, build, test}}) => {
+      const addBabelHooks = addHooks<BabelHooks>(() => ({
+        babelConfig: new WaterfallHook(),
+        babelIgnorePatterns: new WaterfallHook(),
+        babelExtensions: new WaterfallHook(),
+        babelCacheDependencies: new WaterfallHook(),
+      }));
 
-    test.hook(({hooks}) => {
-      hooks.configureHooks.hook(addBabelHooks);
+      test.hook(({hooks}) => {
+        hooks.configureHooks.hook(addBabelHooks);
 
-      hooks.configure.hook((configure) => {
-        configure.babelConfig?.hook(
-          addBaseBabelPreset({modules: 'commonjs', target: 'node'}),
-        );
+        hooks.configure.hook((configure) => {
+          configure.babelConfig?.hook(
+            addBaseBabelPreset({modules: 'commonjs', target: 'node'}),
+          );
+        });
       });
-    });
 
-    build.hook(({hooks, options}) => {
-      hooks.configureHooks.hook(addBabelHooks);
+      build.hook(({hooks, options}) => {
+        hooks.configureHooks.hook(addBabelHooks);
 
-      hooks.configure.hook((configure) => {
-        configure.babelConfig?.hook(addBaseBabelPreset());
-        configure.webpackRules?.hook(async (rules) => [
-          ...rules,
-          {
-            test: /\.m?js/,
-            exclude: /node_modules/,
-            use: await createJavaScriptWebpackRuleSet({
-              project,
-              env: options.simulateEnv,
-              configuration: configure,
-              cacheDirectory: 'js',
-              cacheDependencies: [],
-            }),
-          },
-        ]);
+        hooks.configure.hook((configure) => {
+          configure.babelConfig?.hook(addBaseBabelPreset());
+          configure.webpackRules?.hook(async (rules) => [
+            ...rules,
+            {
+              test: /\.m?js/,
+              exclude: /node_modules/,
+              use: await createJavaScriptWebpackRuleSet({
+                api,
+                project,
+                env: options.simulateEnv,
+                configuration: configure,
+                cacheDirectory: 'js',
+                cacheDependencies: [],
+              }),
+            },
+          ]);
+        });
       });
-    });
 
-    dev.hook(({hooks}) => {
-      hooks.configureHooks.hook(addBabelHooks);
+      dev.hook(({hooks}) => {
+        hooks.configureHooks.hook(addBabelHooks);
 
-      hooks.configure.hook((configure) => {
-        configure.babelConfig?.hook(addBaseBabelPreset());
-        configure.webpackRules?.hook(async (rules) => [
-          ...rules,
-          {
-            test: /\.m?js/,
-            exclude: /node_modules/,
-            use: await createJavaScriptWebpackRuleSet({
-              project,
-              env: Env.Development,
-              configuration: configure,
-              cacheDirectory: 'js',
-              cacheDependencies: [],
-            }),
-          },
-        ]);
+        hooks.configure.hook((configure) => {
+          configure.babelConfig?.hook(addBaseBabelPreset());
+          configure.webpackRules?.hook(async (rules) => [
+            ...rules,
+            {
+              test: /\.m?js/,
+              exclude: /node_modules/,
+              use: await createJavaScriptWebpackRuleSet({
+                api,
+                project,
+                env: Env.Development,
+                configuration: configure,
+                cacheDirectory: 'js',
+                cacheDependencies: [],
+              }),
+            },
+          ]);
+        });
       });
-    });
-  });
+    },
+  );
 }
 
 type Preset = NonNullable<BabelConfig['presets']>[number];
