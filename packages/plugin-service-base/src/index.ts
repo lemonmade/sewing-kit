@@ -1,1 +1,1 @@
-export {buildServiceWithWebpack, devNodeService} from './plugin-service-base';
+export {webpackDevService} from './plugin-service-base';

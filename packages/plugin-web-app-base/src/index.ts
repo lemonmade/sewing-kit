@@ -1,1 +1,1 @@
-export {buildWebAppWithWebpack} from './plugin-web-app-base';
+export {webpackDevWebApp} from './plugin-web-app-base';

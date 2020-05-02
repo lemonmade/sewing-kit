@@ -3,6 +3,7 @@ export {
   webpackBuild,
   createWebpackBuildStep,
   createCacheLoaderRule,
+  createWebpackConfig,
   webpackHooks,
   webpackRules,
   webpackPlugins,

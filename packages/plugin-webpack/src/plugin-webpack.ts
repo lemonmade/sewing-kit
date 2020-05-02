@@ -170,10 +170,8 @@ interface BuildWebpackStepOptions extends BuildWebpackOptions {
   hooks: Partial<WebpackHooks>;
   workspace: Workspace;
   project: Project;
-  sourceMaps: boolean;
-  variant:
-    | import('@sewing-kit/hooks').BuildPackageOptions
-    | import('@sewing-kit/hooks').BuildWebAppOptions;
+  sourceMaps?: boolean;
+  variant?: object;
 }
 
 export function createWebpackBuildStep({
@@ -226,14 +224,14 @@ type Mutable<T> = {
   -readonly [K in keyof T]: T[K];
 };
 
-async function createWebpackConfig({
+export async function createWebpackConfig({
   env,
   api,
   hooks,
   project,
-  variant,
+  variant = {},
   workspace,
-  sourceMaps,
+  sourceMaps = false,
   config: explicitConfig = {},
 }: Pick<
   BuildWebpackStepOptions,
