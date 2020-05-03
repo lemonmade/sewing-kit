@@ -2,7 +2,7 @@
 
 > New to `sewing-kit`? [This guide](TODO) explains what `sewing-kit` is, how it’s organized, and how to use it in a project. Read through that overview if you haven’t already — it should help to clarify how to use the tools documented below.
 
-This package provides a `sewing-kit` plugin that help developers implement “differential serving”, where a different set of assets is used depending on the feature support of the browser requesting a page. It transpiles different features by environment using [`@babel/preset-env`](https://babeljs.io/docs/en/babel-preset-env) (for scripts) and [`postcss-preset-env`](https://preset-env.cssdb.org), so to get the full benefits you must also include [`@sewing-kit/plugin-javascript](TODO) and [`@sewing-kit/plugin-css](TODO), which add these environment presets by default.
+This package provides a `sewing-kit` plugin that helps developers implement “differential serving”, where a different set of assets is used depending on the feature support of the browser requesting a page. It transpiles different features by environment using [`@babel/preset-env`](https://babeljs.io/docs/en/babel-preset-env) (for scripts) and [`postcss-preset-env`](https://preset-env.cssdb.org), so to get the full benefits you must also include [`@sewing-kit/plugin-javascript](TODO) and [`@sewing-kit/plugin-css](TODO), which add these environment presets by default.
 
 ## Installation
 
@@ -12,7 +12,7 @@ yarn add @sewing-kit/plugin-differential-serving --dev
 
 ## `differentialServing()`
 
-The `css` function returns a `sewing-kit` plugin. This plugin applies to a single web app.
+The `differentialServing` function returns a `sewing-kit` plugin. This plugin applies to a single web app.
 
 ```ts
 import {createWebApp} from '@sewing-kit/config';
@@ -53,7 +53,7 @@ The order you put these values in determines their precedence when [resolving th
 
 ### Babel and PostCSS presets
 
-This plugin works by configuring `@sewing-kit/plugin-javascript/babel-preset` (which wraps `@babel/preset-env`) and `@sewing-kit/plugin-css (which wraps`postcss-preset-env`) to use the right`browserslist`query for each build. It does so by hooking in to the `babelConfig` and `postcssPlugins` hooks, and augmenting the configuration for those presets if they exist. It will do the same if it detects `@babel/preset-env` or `postcss-preset-env` are being used directly. If you have your own Babel or PostCSS presets that wrap the `env`presets, you can disable it for Babel by passing`babel: false`when constructing the plugin, and likewise with`postcss: false` for PostCSS.
+This plugin works by configuring `@sewing-kit/plugin-javascript/babel-preset` (which wraps `@babel/preset-env`) and `@sewing-kit/plugin-css (which wraps`postcss-preset-env`) to use the right`browserslist`query for each build. It does so by hooking in to the`babelConfig`and`postcssPlugins`hooks, and augmenting the configuration for those presets if they exist. It will do the same if it detects`@babel/preset-env`or`postcss-preset-env`are being used directly. If you have your own Babel or PostCSS presets that wrap the`env`presets, you can disable it for Babel by passing`babel: false`when constructing the plugin, and likewise with`postcss: false` for PostCSS.
 
 If you pass either of these options, you **must** configure your Babel and/ or PostCSS configuration with the right browsers yourself, which you can do with the help of the `browsers` key on the `variant` passed as part of the configuration hooks for the project.
 

@@ -1,6 +1,6 @@
 import {paramCase} from 'change-case';
 
-export function toArgs(flags: object, {dasherize = false} = {}) {
+export function toArgs(flags: object, {dasherize = false, json = true} = {}) {
   return Object.entries(flags).reduce<string[]>((all, [key, value]) => {
     const newArgs: string[] = [];
     const normalizedKey = dasherize ? paramCase(key) : key;
@@ -17,7 +17,11 @@ export function toArgs(flags: object, {dasherize = false} = {}) {
         ]),
       );
     } else if (value != null) {
-      newArgs.push(`--${normalizedKey}`, String(value));
+      if (typeof value === 'object' && json) {
+        newArgs.push(`--${normalizedKey}`, JSON.stringify(value));
+      } else {
+        newArgs.push(`--${normalizedKey}`, String(value));
+      }
     }
 
     return [...all, ...newArgs];
