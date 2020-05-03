@@ -6,11 +6,5 @@
     "rootDir": "src"
   },
   "include": ["src/**/*.ts"],
-  "references": [
-    {"path": "../graphql"},
-    {"path": "../plugins"},
-    {"path": "../plugin-eslint"},
-    {"path": "../plugin-jest"},
-    {"path": "../plugin-webpack"}
-  ]
+  "references": []
 }

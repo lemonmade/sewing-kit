@@ -19,9 +19,11 @@
 
     {"path": "./packages/plugin-javascript"},
     {"path": "./packages/plugin-typescript"},
-    {"path": "./packages/plugin-graphql"},
     {"path": "./packages/plugin-css"},
     {"path": "./packages/plugin-sass"},
+
+    {"path": "./packages/graphql"},
+    {"path": "./packages/plugin-graphql"},
 
     {"path": "./packages/plugin-react"},
 

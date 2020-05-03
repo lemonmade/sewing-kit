@@ -1,21 +1,37 @@
-import {createProjectPlugin, Service, WebApp, Env} from '@sewing-kit/plugins';
-import {} from '@sewing-kit/plugin-jest';
-import {} from '@sewing-kit/plugin-webpack';
+import {
+  Env,
+  WebApp,
+  Service,
+  createProjectPlugin,
+  createWorkspaceLintPlugin,
+} from '@sewing-kit/plugins';
+import type {ExportStyle} from '@sewing-kit/graphql';
+import type {} from '@sewing-kit/plugin-jest';
+import type {} from '@sewing-kit/plugin-webpack';
+import type {} from '@sewing-kit/plugin-eslint';
 
 const PLUGIN = 'SewingKit.GraphQL';
 
-export function graphql() {
+export interface Options {
+  readonly export?: ExportStyle;
+  readonly allowShortExtension?: boolean;
+}
+
+export function graphql({
+  export: exportStyle = 'document',
+  allowShortExtension = false,
+}: Options = {}) {
+  const [jestMatcher, webpackMatcher] = allowShortExtension
+    ? ['\\.(gql|graphql)$', /\.(graphql|gql)$/]
+    : ['\\.graphql$', /\.graphql$/];
+
   return createProjectPlugin<Service | WebApp>(
     PLUGIN,
     ({api, project, tasks: {build, dev, test}}) => {
       build.hook(({hooks, options: {simulateEnv}}) => {
         hooks.configure.hook(
           (
-            configure: Partial<
-              import('@sewing-kit/hooks').BuildWebAppConfigurationHooks &
-                import('@sewing-kit/hooks').BuildServiceConfigurationHooks &
-                import('@sewing-kit/hooks').BuildPackageConfigurationHooks
-            >,
+            configure: import('@sewing-kit/hooks').BuildProjectConfigurationHooks,
           ) => {
             configure.webpackRules?.hook(async (rules) => {
               const {createCacheLoaderRule} = await import(
@@ -25,7 +41,7 @@ export function graphql() {
               return [
                 ...rules,
                 {
-                  test: /\.graphql$/,
+                  test: webpackMatcher,
                   use: [
                     await createCacheLoaderRule({
                       env: simulateEnv,
@@ -36,9 +52,8 @@ export function graphql() {
                       dependencies: ['graphql'],
                     }),
                     {
-                      loader: require.resolve(
-                        'graphql-mini-transforms/webpack',
-                      ),
+                      loader: require.resolve('@sewing-kit/graphql/webpack'),
+                      options: {export: exportStyle},
                     },
                   ],
                 } as import('webpack').RuleSetRule,
@@ -51,11 +66,7 @@ export function graphql() {
       dev.hook(({hooks}) => {
         hooks.configure.hook(
           (
-            configure: Partial<
-              import('@sewing-kit/hooks').DevWebAppConfigurationHooks &
-                import('@sewing-kit/hooks').DevServiceConfigurationHooks &
-                import('@sewing-kit/hooks').DevPackageConfigurationHooks
-            >,
+            configure: import('@sewing-kit/hooks').DevProjectConfigurationHooks,
           ) => {
             configure.webpackRules?.hook(async (rules) => {
               const {createCacheLoaderRule} = await import(
@@ -65,7 +76,7 @@ export function graphql() {
               return [
                 ...rules,
                 {
-                  test: /\.graphql$/,
+                  test: webpackMatcher,
                   use: [
                     await createCacheLoaderRule({
                       env: Env.Development,
@@ -76,9 +87,8 @@ export function graphql() {
                       dependencies: ['graphql'],
                     }),
                     {
-                      loader: require.resolve(
-                        'graphql-mini-transforms/webpack',
-                      ),
+                      loader: require.resolve('@sewing-kit/graphql/webpack'),
+                      options: {export: exportStyle},
                     },
                   ],
                 } as import('webpack').RuleSetRule,
@@ -92,12 +102,30 @@ export function graphql() {
         hooks.configure.hook((hooks) => {
           hooks.jestTransforms?.hook((transforms) => ({
             ...transforms,
-            '\\.(gql|graphql)$': require.resolve(
-              'graphql-mini-transforms/jest',
-            ),
+            [jestMatcher]:
+              exportStyle === 'document'
+                ? require.resolve('@sewing-kit/graphql/jest')
+                : require.resolve('@sewing-kit/graphql/jest-simple'),
           }));
         });
       });
     },
   );
+}
+
+// TODO: add pre-build, -lint, -dev, and -type-check step to download
+// remote GraphQL schemas, or to generate the necessary representation
+// of local schemas
+export function workspaceGraphQL({
+  allowShortExtension = false,
+}: Pick<Options, 'allowShortExtension'> = {}) {
+  return createWorkspaceLintPlugin(PLUGIN, ({hooks}) => {
+    hooks.configure.hook((configuration) => {
+      configuration.eslintExtensions?.hook((extensions) =>
+        allowShortExtension
+          ? [...extensions, '.graphql', '.gql']
+          : [...extensions, '.graphql'],
+      );
+    });
+  });
 }
