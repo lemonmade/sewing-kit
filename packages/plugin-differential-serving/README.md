@@ -53,7 +53,7 @@ The order you put these values in determines their precedence when [resolving th
 
 ### Babel and PostCSS presets
 
-This plugin works by configuring `@sewing-kit/plugin-javascript/babel-preset` (which wraps `@babel/preset-env`) and `@sewing-kit/plugin-css (which wraps`postcss-preset-env`) to use the right`browserslist`query for each build. It does so by hooking in to the`babelConfig`and`postcssPlugins`hooks, and augmenting the configuration for those presets if they exist. It will do the same if it detects`@babel/preset-env`or`postcss-preset-env`are being used directly. If you have your own Babel or PostCSS presets that wrap the`env`presets, you can disable it for Babel by passing`babel: false`when constructing the plugin, and likewise with`postcss: false` for PostCSS.
+This plugin works by configuring `@sewing-kit/plugin-javascript/babel-preset` (which wraps `@babel/preset-env`) and `@sewing-kit/plugin-css` (which wraps`postcss-preset-env`) to use the right `browserslist` query for each build. It does so by hooking in to the `babelConfig` and `postcssPlugins` hooks, and augmenting the configuration for those presets if they exist. It will do the same if it detects `@babel/preset-env` or `postcss-preset-env` are being used directly. If you have your own Babel or PostCSS presets that wrap the `env` presets, you can disable it for Babel by passing `babel: false` when constructing the plugin, and likewise with `postcss: false` for PostCSS.
 
 If you pass either of these options, you **must** configure your Babel and/ or PostCSS configuration with the right browsers yourself, which you can do with the help of the `browsers` key on the `variant` passed as part of the configuration hooks for the project.
 
