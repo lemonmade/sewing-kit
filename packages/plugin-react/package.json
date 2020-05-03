@@ -9,7 +9,9 @@
   },
   "dependencies": {
     "@babel/preset-react": "^7.9.4",
-    "@sewing-kit/plugins": "^0.0.23"
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.3.0-beta.5",
+    "@sewing-kit/plugins": "^0.0.23",
+    "react-refresh": "^0.8.2"
   },
   "optionalDependencies": {
     "@babel/core": "^7.0.0",

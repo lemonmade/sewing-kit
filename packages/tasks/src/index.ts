@@ -192,7 +192,10 @@ export interface BuildProjectTask<Type extends Project> {
 // DEV
 // ==================================================================
 
+export type DevReloadStyle = 'fast' | false;
+
 export interface DevTaskOptions {
+  readonly reload?: DevReloadStyle;
   readonly sourceMaps?: boolean;
 }
 

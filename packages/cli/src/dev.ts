@@ -19,12 +19,28 @@ import {
 
 export const dev = createCommand(
   {
+    '--reload': String,
     '--source-maps': Boolean,
   },
-  async ({'--source-maps': sourceMaps}, context) => {
-    await runDev(context, {sourceMaps});
+  async ({'--source-maps': sourceMaps, '--reload': reload}, context) => {
+    await runDev(context, {
+      sourceMaps,
+      reload: reload == null ? undefined : normalizeReload(reload),
+    });
   },
 );
+
+function normalizeReload(reload: string): DevTaskOptions['reload'] {
+  switch (reload) {
+    case 'none':
+      return false;
+    case 'fast':
+      return 'fast';
+    default: {
+      throw new Error(`Unknown --reload option: ${reload}`);
+    }
+  }
+}
 
 export async function runDev(
   taskContext: TaskContext,
