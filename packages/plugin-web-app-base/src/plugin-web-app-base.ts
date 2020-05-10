@@ -175,7 +175,9 @@ export function webpackDevWebApp({
               app.use(
                 await koaWebpack({
                   compiler,
-                  hotClient: options.reload === 'fast',
+                  hotClient: options.reload === 'fast' && {
+                    logLevel: 'silent',
+                  },
                   devMiddleware: {logLevel: 'silent'} as any,
                 }),
               );
