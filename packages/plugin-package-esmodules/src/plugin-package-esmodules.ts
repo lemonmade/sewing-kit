@@ -6,11 +6,8 @@ import {
   createProjectBuildPlugin,
 } from '@sewing-kit/plugins';
 import {
-  createWriteEntriesStep,
   ExportStyle,
-} from '@sewing-kit/plugin-package-utilities';
-import {
-  updateBabelEnvPreset,
+  updateSewingKitBabelPreset,
   createCompileBabelStep,
 } from '@sewing-kit/plugin-javascript';
 import {} from '@sewing-kit/plugin-webpack';
@@ -25,7 +22,7 @@ declare module '@sewing-kit/hooks' {
   }
 }
 
-const updateBabelPreset = updateBabelEnvPreset({
+const updateBabelPreset = updateSewingKitBabelPreset({
   modules: 'preserve',
   polyfill: 'usage',
 });
@@ -95,10 +92,6 @@ export function buildEsModulesOutput() {
           outputPath,
           extension: '.mjs',
           configFile: 'babel.esm.js',
-        }),
-        createWriteEntriesStep(context, {
-          outputPath,
-          extension: '.mjs',
           exportStyle: ExportStyle.EsModules,
         }),
       ];

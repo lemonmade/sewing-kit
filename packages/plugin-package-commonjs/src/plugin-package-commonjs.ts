@@ -1,10 +1,7 @@
 import {Package, Runtime, createProjectBuildPlugin} from '@sewing-kit/plugins';
 import {
-  createWriteEntriesStep,
   ExportStyle,
-} from '@sewing-kit/plugin-package-utilities';
-import {
-  updateBabelEnvPreset,
+  updateSewingKitBabelPreset,
   createCompileBabelStep,
 } from '@sewing-kit/plugin-javascript';
 
@@ -17,12 +14,12 @@ declare module '@sewing-kit/hooks' {
   }
 }
 
-const setCommonJsModules = updateBabelEnvPreset({
+const setCommonJsModules = updateSewingKitBabelPreset({
   modules: 'commonjs',
   polyfill: 'usage',
 });
 
-const setNodeTarget = updateBabelEnvPreset({
+const setNodeTarget = updateSewingKitBabelPreset({
   target: 'node',
   polyfill: 'usage',
 });
@@ -64,11 +61,7 @@ export function buildCommonJsOutput() {
           configuration,
           outputPath,
           configFile: 'babel.cjs.js',
-        }),
-        createWriteEntriesStep(context, {
-          outputPath,
           exportStyle: ExportStyle.CommonJs,
-          extension: '.js',
         }),
       ];
     });

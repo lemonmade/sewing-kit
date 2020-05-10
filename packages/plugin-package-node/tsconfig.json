@@ -9,7 +9,6 @@
   "references": [
     {"path": "../hooks"},
     {"path": "../plugins"},
-    {"path": "../plugin-package-utilities"},
     {"path": "../plugin-javascript"},
     {"path": "../plugin-jest"}
   ]

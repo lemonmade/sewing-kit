@@ -8,7 +8,7 @@ import {
   createProjectDevPlugin,
 } from '@sewing-kit/plugins';
 import {createWebpackConfig} from '@sewing-kit/plugin-webpack';
-import {updateBabelEnvPreset} from '@sewing-kit/plugin-javascript';
+import {updateSewingKitBabelPreset} from '@sewing-kit/plugin-javascript';
 
 const PLUGIN = 'SewingKit.WebAppBase';
 
@@ -58,7 +58,7 @@ export function webpackDevWebApp({
 
       hooks.configure.hook((hooks) => {
         hooks.babelConfig?.hook(
-          updateBabelEnvPreset({
+          updateSewingKitBabelPreset({
             target: [
               'last 1 chrome versions',
               'last 1 chromeandroid versions',

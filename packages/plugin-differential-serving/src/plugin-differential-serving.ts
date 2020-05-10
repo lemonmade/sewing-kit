@@ -1,6 +1,6 @@
 import {BuildWebAppOptions} from '@sewing-kit/hooks';
 import {createProjectBuildPlugin, WebApp} from '@sewing-kit/plugins';
-import {updateBabelEnvPreset} from '@sewing-kit/plugin-javascript';
+import {updateSewingKitBabelPreset} from '@sewing-kit/plugin-javascript';
 import {updatePostcssEnvPreset} from '@sewing-kit/plugin-css';
 
 import {} from '@sewing-kit/plugin-webpack';
@@ -46,7 +46,7 @@ export function differentialServing({
 
       if (babel) {
         configuration.babelConfig?.hook(
-          updateBabelEnvPreset(
+          updateSewingKitBabelPreset(
             {target: browserslistQuery},
             {addIfMissing: false},
           ),

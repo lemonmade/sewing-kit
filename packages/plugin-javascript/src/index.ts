@@ -1,8 +1,9 @@
 export {javascript, babelPlugins, babelPresets} from './plugin-javascript';
 export {
+  ExportStyle,
   createJavaScriptWebpackRuleSet,
   createCompileBabelStep,
-  updateBabelEnvPreset,
+  updateSewingKitBabelPreset,
   updateBabelPlugin,
   updateBabelPreset,
 } from './utilities';

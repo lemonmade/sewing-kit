@@ -5,12 +5,9 @@ import {
   createProjectTestPlugin,
 } from '@sewing-kit/plugins';
 import {
-  createWriteEntriesStep,
   ExportStyle,
-} from '@sewing-kit/plugin-package-utilities';
-import {
   createCompileBabelStep,
-  updateBabelEnvPreset,
+  updateSewingKitBabelPreset,
 } from '@sewing-kit/plugin-javascript';
 
 import {} from '@sewing-kit/plugin-jest';
@@ -53,7 +50,7 @@ export function buildNodeOutput() {
       }
 
       configurationHooks.babelConfig?.hook(
-        updateBabelEnvPreset({
+        updateSewingKitBabelPreset({
           modules: 'commonjs',
           target: 'node',
         }),
@@ -75,11 +72,7 @@ export function buildNodeOutput() {
           outputPath,
           configuration,
           configFile: 'babel.node.js',
-        }),
-        createWriteEntriesStep(context, {
-          outputPath,
           exportStyle: ExportStyle.CommonJs,
-          extension: EXTENSION,
         }),
       ];
     });

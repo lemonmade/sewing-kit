@@ -10,8 +10,6 @@
     {"path": "./packages/core"},
     {"path": "./packages/cli"},
 
-    {"path": "./packages/plugin-package-utilities"},
-
     {"path": "./packages/plugin-eslint"},
     {"path": "./packages/plugin-stylelint"},
     {"path": "./packages/plugin-jest"},

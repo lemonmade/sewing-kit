@@ -12,7 +12,7 @@ import type {} from '@sewing-kit/plugin-webpack';
 
 import type {Options as BabelPresetOptions} from './babel-preset';
 import type {BabelHooks, BabelConfig} from './types';
-import {ENV_PRESET, createJavaScriptWebpackRuleSet} from './utilities';
+import {CORE_PRESET, createJavaScriptWebpackRuleSet} from './utilities';
 
 declare module '@sewing-kit/hooks' {
   interface TestProjectConfigurationCustomHooks extends BabelHooks {}
@@ -22,7 +22,11 @@ declare module '@sewing-kit/hooks' {
 
 const PLUGIN = 'SewingKit.JavaScript';
 
-export function javascript() {
+interface Options {
+  readonly babelConfig?: Partial<BabelConfig>;
+}
+
+export function javascript({babelConfig}: Options = {}) {
   return createProjectPlugin(
     PLUGIN,
     ({api, project, tasks: {dev, build, test}}) => {
@@ -33,12 +37,17 @@ export function javascript() {
         babelCacheDependencies: new WaterfallHook(),
       }));
 
+      const explicitBabelConfig =
+        babelConfig &&
+        ((): BabelConfig => ({plugins: [], presets: [], ...babelConfig}));
+
       test.hook(({hooks}) => {
         hooks.configureHooks.hook(addBabelHooks);
 
         hooks.configure.hook((configure) => {
           configure.babelConfig?.hook(
-            addBaseBabelPreset({modules: 'commonjs', target: 'node'}),
+            explicitBabelConfig ??
+              addCoreBabelPreset({modules: 'commonjs', target: 'node'}),
           );
         });
       });
@@ -47,7 +56,9 @@ export function javascript() {
         hooks.configureHooks.hook(addBabelHooks);
 
         hooks.configure.hook((configure) => {
-          configure.babelConfig?.hook(addBaseBabelPreset());
+          configure.babelConfig?.hook(
+            explicitBabelConfig ?? addCoreBabelPreset(),
+          );
           configure.webpackRules?.hook(async (rules) => [
             ...rules,
             {
@@ -70,7 +81,9 @@ export function javascript() {
         hooks.configureHooks.hook(addBabelHooks);
 
         hooks.configure.hook((configure) => {
-          configure.babelConfig?.hook(addBaseBabelPreset());
+          configure.babelConfig?.hook(
+            explicitBabelConfig ?? addCoreBabelPreset(),
+          );
           configure.webpackRules?.hook(async (rules) => [
             ...rules,
             {
@@ -169,9 +182,9 @@ export function babelPlugins(
   );
 }
 
-function addBaseBabelPreset(options: BabelPresetOptions = {}) {
+function addCoreBabelPreset(options: BabelPresetOptions = {}) {
   return (config: BabelConfig): BabelConfig => ({
     ...config,
-    presets: [...config.presets, [require.resolve(ENV_PRESET), options]],
+    presets: [...config.presets, [require.resolve(CORE_PRESET), options]],
   });
 }

@@ -1,4 +1,4 @@
-import {resolve} from 'path';
+import {resolve, relative} from 'path';
 import {createHash} from 'crypto';
 
 import nodeObjectHash from 'node-object-hash';
@@ -17,7 +17,12 @@ import {
 import type {BabelHooks, BabelConfig} from './types';
 import type {Options as BabelPresetOptions} from './babel-preset';
 
-export const ENV_PRESET = '@sewing-kit/plugin-javascript/babel-preset';
+export const CORE_PRESET = '@sewing-kit/plugin-javascript/babel-preset';
+
+export enum ExportStyle {
+  EsModules,
+  CommonJs,
+}
 
 export async function createJavaScriptWebpackRuleSet({
   api,
@@ -102,6 +107,7 @@ interface CompileBabelOptions {
   readonly configFile: string;
   readonly outputPath: string;
   readonly extension?: string;
+  readonly exportStyle?: ExportStyle;
 }
 
 export function createCompileBabelStep({
@@ -111,6 +117,7 @@ export function createCompileBabelStep({
   configFile,
   outputPath,
   extension,
+  exportStyle,
 }: CompileBabelOptions) {
   return api.createStep(
     {id: 'Babel.Compile', label: 'compile with babel'},
@@ -174,8 +181,85 @@ export function createCompileBabelStep({
           {dasherize: true},
         ),
       ]);
+
+      await writeEntries({
+        project: pkg,
+        extension,
+        outputPath,
+        exportStyle,
+      });
     },
   );
+}
+
+async function writeEntries({
+  project,
+  extension = '.js',
+  outputPath,
+  exportStyle = ExportStyle.CommonJs,
+}: Pick<
+  CompileBabelOptions,
+  'project' | 'extension' | 'outputPath' | 'exportStyle'
+>) {
+  const sourceRoot = resolve(project.root, 'src');
+
+  await Promise.all(
+    project.entries.map(async (entry) => {
+      const absoluteEntryPath = (await project.fs.hasDirectory(entry.root))
+        ? project.fs.resolvePath(entry.root, 'index')
+        : project.fs.resolvePath(entry.root);
+
+      const relativeFromSourceRoot = relative(sourceRoot, absoluteEntryPath);
+      const destinationInOutput = resolve(outputPath, relativeFromSourceRoot);
+      const relativeFromRoot = normalizedRelative(
+        project.root,
+        destinationInOutput,
+      );
+
+      if (exportStyle === ExportStyle.CommonJs) {
+        await project.fs.write(
+          `${entry.name || 'index'}${extension}`,
+          `module.exports = require(${JSON.stringify(relativeFromRoot)});`,
+        );
+
+        return;
+      }
+
+      let hasDefault = true;
+      let content = '';
+
+      try {
+        content = await project.fs.read(
+          (await project.fs.glob(`${absoluteEntryPath}.*`))[0],
+        );
+
+        // export default ...
+        // export {Foo as default} from ...
+        // export {default} from ...
+        hasDefault =
+          /(?:export|as) default\b/.test(content) || /{default}/.test(content);
+      } catch {
+        // intentional no-op
+      }
+
+      await project.fs.write(
+        `${entry.name ?? 'index'}${extension}`,
+        [
+          `export * from ${JSON.stringify(relativeFromRoot)};`,
+          hasDefault
+            ? `export {default} from ${JSON.stringify(relativeFromRoot)};`
+            : false,
+        ]
+          .filter(Boolean)
+          .join('\n'),
+      );
+    }),
+  );
+}
+
+function normalizedRelative(from: string, to: string) {
+  const rel = relative(from, to);
+  return rel.startsWith('.') ? rel : `./${rel}`;
 }
 
 export function updateBabelPlugin<Options extends object = object>(
@@ -195,16 +279,23 @@ export function updateBabelPlugin<Options extends object = object>(
         (await Promise.all(
           config.plugins.map<Promise<string | [string, object?]>>(
             async (plugin) => {
-              const [name, currentOptions] = Array.isArray(plugin)
+              const [name, currentOptions = {}] = Array.isArray(plugin)
                 ? plugin
                 : [plugin];
 
               if (normalizedPlugins.includes(name)) {
                 hasMatch = true;
 
+                const newOptions = await unwrapPossibleGetter(
+                  options,
+                  currentOptions,
+                );
+
                 return [
                   name,
-                  await unwrapPossibleGetter(options, currentOptions ?? {}),
+                  typeof options === 'function'
+                    ? {...newOptions}
+                    : {...currentOptions, ...newOptions},
                 ];
               }
 
@@ -242,16 +333,23 @@ export function updateBabelPreset<Options extends object = object>(
         (await Promise.all(
           config.presets.map<Promise<string | [string, object?]>>(
             async (preset) => {
-              const [name, currentOptions] = Array.isArray(preset)
+              const [name, currentOptions = {}] = Array.isArray(preset)
                 ? preset
                 : [preset];
 
               if (normalizedPresets.includes(name)) {
                 hasMatch = true;
 
+                const newOptions = await unwrapPossibleGetter(
+                  options,
+                  currentOptions,
+                );
+
                 return [
                   name,
-                  await unwrapPossibleGetter(options, currentOptions ?? {}),
+                  typeof options === 'function'
+                    ? {...newOptions}
+                    : {...currentOptions, ...newOptions},
                 ];
               }
 
@@ -272,12 +370,12 @@ export function updateBabelPreset<Options extends object = object>(
   };
 }
 
-export function updateBabelEnvPreset(
+export function updateSewingKitBabelPreset(
   options: ValueOrGetter<BabelPresetOptions, [Partial<BabelPresetOptions>]>,
   {addIfMissing = false} = {},
 ) {
   return updateBabelPreset<BabelPresetOptions>(
-    [ENV_PRESET, require.resolve(ENV_PRESET)],
+    [CORE_PRESET, require.resolve(CORE_PRESET)],
     options,
     {addIfMissing},
   );
