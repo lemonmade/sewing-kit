@@ -1,8 +1,8 @@
 import type {WaterfallHook} from '@sewing-kit/plugins';
 
 export interface BabelConfig {
-  presets?: (string | [string, object?])[];
-  plugins?: (string | [string, object?])[];
+  presets: (string | [string, object?])[];
+  plugins: (string | [string, object?])[];
 }
 
 export interface BabelHooks {

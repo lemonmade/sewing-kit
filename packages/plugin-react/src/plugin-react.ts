@@ -109,11 +109,11 @@ function createBabelConfigAdjuster({
   return (config: BabelConfig): BabelConfig => ({
     ...config,
     presets: [
-      ...(config.presets ?? []),
+      ...config.presets,
       ['@babel/preset-react', {development, useBuiltIns: true}],
     ],
     plugins: fastReload
       ? config.plugins
-      : [...(config.plugins ?? []), 'react-refresh/babel'],
+      : [...config.plugins, 'react-refresh/babel'],
   });
 }

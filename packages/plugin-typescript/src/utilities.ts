@@ -8,16 +8,13 @@ export const addTypeScriptBabelConfig = (config: BabelConfig): BabelConfig => {
   return {
     ...config,
     plugins: [
-      ...(config.plugins ?? []),
+      ...config.plugins,
       [require.resolve('@babel/plugin-proposal-decorators'), {legacy: true}],
       require.resolve(
         '@sewing-kit/plugin-typescript/babel-plugin-convert-empty-file-to-esmodule',
       ),
     ],
-    presets: [
-      ...(config.presets ?? []),
-      require.resolve('@babel/preset-typescript'),
-    ],
+    presets: [...config.presets, require.resolve('@babel/preset-typescript')],
   };
 };
 

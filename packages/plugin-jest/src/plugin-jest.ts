@@ -167,7 +167,10 @@ export function jest() {
                     'babel-transformer.js',
                   );
 
-                  const babelConfig = await hooks.babelConfig.run({});
+                  const babelConfig = await hooks.babelConfig.run({
+                    presets: [],
+                    plugins: [],
+                  });
                   const transform = await hooks.jestTransforms!.run(
                     {'^.+\\.m?js$': babelTransform},
                     {babelTransform},

@@ -41,7 +41,10 @@ export async function createJavaScriptWebpackRuleSet({
     babelCacheDependencies = [],
     cacheDirectory,
   ] = await Promise.all([
-    configuration.babelConfig?.run({}),
+    configuration.babelConfig?.run({
+      plugins: [],
+      presets: [],
+    }),
     configuration.babelCacheDependencies?.run([
       '@babel/core',
       ...initialCacheDependencies,
@@ -73,7 +76,7 @@ export async function createJavaScriptWebpackRuleSet({
 function babelCacheIdentifier(
   env: Env,
   project: Project,
-  babelOptions: BabelConfig,
+  babelOptions: Partial<BabelConfig>,
   dependencies: readonly string[],
 ) {
   const optionsHash = nodeObjectHash().hash(babelOptions);
@@ -123,7 +126,7 @@ export function createCompileBabelStep({
         babelIgnorePatterns,
         babelExtensions,
       ] = await Promise.all([
-        configuration.babelConfig.run({}),
+        configuration.babelConfig.run({presets: [], plugins: []}),
         configuration.babelIgnorePatterns!.run([]),
         configuration.babelExtensions!.run(['.mjs', '.js']),
       ]);
@@ -212,8 +215,6 @@ export function updateBabelPlugin<Options extends object = object>(
     };
 
     if (!hasMatch && addIfMissing) {
-      newConfig.plugins = newConfig.plugins ?? [];
-
       newConfig.plugins.push([
         normalizedPlugins[0],
         await unwrapPossibleGetter(options, {}),
@@ -261,8 +262,6 @@ export function updateBabelPreset<Options extends object = object>(
     };
 
     if (!hasMatch && addIfMissing) {
-      newConfig.presets = newConfig.presets ?? [];
-
       newConfig.presets.push([
         normalizedPresets[0],
         await unwrapPossibleGetter(options, {}),

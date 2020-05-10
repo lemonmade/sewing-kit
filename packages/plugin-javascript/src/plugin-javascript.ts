@@ -8,7 +8,7 @@ import {
   ValueOrArray,
 } from '@sewing-kit/plugins';
 
-import {} from '@sewing-kit/plugin-webpack';
+import type {} from '@sewing-kit/plugin-webpack';
 
 import type {Options as BabelPresetOptions} from './babel-preset';
 import type {BabelHooks, BabelConfig} from './types';
@@ -106,8 +106,8 @@ export function babelPresets(
       ): Promise<BabelConfig> => ({
         ...config,
         presets: [
-          ...(config.presets ?? []),
-          ...(await unwrapPossibleArrayGetter(presets, config.presets ?? [])),
+          ...config.presets,
+          ...(await unwrapPossibleArrayGetter(presets, config.presets)),
         ],
       });
 
@@ -143,8 +143,8 @@ export function babelPlugins(
       ): Promise<BabelConfig> => ({
         ...config,
         plugins: [
-          ...(config.plugins ?? []),
-          ...(await unwrapPossibleArrayGetter(plugins, config.plugins ?? [])),
+          ...config.plugins,
+          ...(await unwrapPossibleArrayGetter(plugins, config.plugins)),
         ],
       });
 
@@ -172,9 +172,6 @@ export function babelPlugins(
 function addBaseBabelPreset(options: BabelPresetOptions = {}) {
   return (config: BabelConfig): BabelConfig => ({
     ...config,
-    presets: [
-      ...(config.presets ?? []),
-      [require.resolve(ENV_PRESET), options],
-    ],
+    presets: [...config.presets, [require.resolve(ENV_PRESET), options]],
   });
 }

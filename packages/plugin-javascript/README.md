@@ -2,7 +2,7 @@
 
 > New to `sewing-kit`? [This guide](TODO) explains what `sewing-kit` is, how it’s organized, and how to use it in a project. Read through that overview if you haven’t already — it should help to clarify how to use the tools documented below.
 
-This package provides a collection of `sewing-kit` plugins and other utilities for using [Babel](https://babeljs.io).
+This package provides a collection of `sewing-kit` plugins and other utilities for using JavaScript. It includes built-in support for transforming JavaScript with [Babel](https://babeljs.io).
 
 ## Installation
 
@@ -36,9 +36,7 @@ This plugin adds the following hooks to each of the `TestProjectConfigurationHoo
     hooks.configure.hook((configure) => {
       configure.babelConfig!.hook((config) => ({
         ...config,
-        plugins: [
-          ...(config.plugins ?? [], require.resolve('my-babel-plugin')),
-        ],
+        plugins: [...config.plugins, require.resolve('my-babel-plugin')],
       }));
     });
   });
