@@ -14,16 +14,16 @@ const PLUGIN = 'SewingKit.GraphQL';
 
 export interface Options {
   readonly export?: ExportStyle;
-  readonly allowShortExtension?: boolean;
+  readonly extensions?: string[];
 }
+
+const DEFAULT_EXTENSIONS = ['.graphql'];
 
 export function graphql({
   export: exportStyle = 'document',
-  allowShortExtension = false,
+  extensions = DEFAULT_EXTENSIONS,
 }: Options = {}) {
-  const [jestMatcher, webpackMatcher] = allowShortExtension
-    ? ['\\.(gql|graphql)$', /\.(graphql|gql)$/]
-    : ['\\.graphql$', /\.graphql$/];
+  const {jestMatcher, webpackMatcher} = extensionsToMatchers(extensions);
 
   return createProjectPlugin<Service | WebApp>(
     PLUGIN,
@@ -113,19 +113,39 @@ export function graphql({
   );
 }
 
+function extensionsToMatchers(extensions: string[]) {
+  let extensionPart = '';
+
+  if (extensions.length === 1) {
+    extensionPart = stripLeadingDot(extensions[0]);
+  } else if (extensions.length > 1) {
+    extensionPart = `(${extensions.map(stripLeadingDot).join('|')})`;
+  }
+
+  return {
+    jestMatcher: `\\.${extensionPart}$`,
+    webpackMatcher: new RegExp(`\\.(${extensionPart})$`),
+  };
+}
+
 // TODO: add pre-build, -lint, -dev, and -type-check step to download
 // remote GraphQL schemas, or to generate the necessary representation
 // of local schemas
 export function workspaceGraphQL({
-  allowShortExtension = false,
-}: Pick<Options, 'allowShortExtension'> = {}) {
+  extensions: includeExtensions = DEFAULT_EXTENSIONS,
+}: Pick<Options, 'extensions'> = {}) {
   return createWorkspaceLintPlugin(PLUGIN, ({hooks}) => {
     hooks.configure.hook((configuration) => {
-      configuration.eslintExtensions?.hook((extensions) =>
-        allowShortExtension
-          ? [...extensions, '.graphql', '.gql']
-          : [...extensions, '.graphql'],
-      );
+      configuration.eslintExtensions?.hook((extensions) => [
+        ...extensions,
+        ...includeExtensions.map(
+          (extension) => `.${stripLeadingDot(extension)}`,
+        ),
+      ]);
     });
   });
+}
+
+function stripLeadingDot(extension: string) {
+  return extension.startsWith('.') ? extension.substring(1) : extension;
 }

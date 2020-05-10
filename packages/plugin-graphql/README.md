@@ -48,14 +48,15 @@ The `graphql()` plugin accepts the following options:
   });
   ```
 
-- `allowShortExtension: boolean` (default: false). Determines whether the transformations added by this plugin will also apply to `.gql` files.
+- `extensions: string[]` (default: `['.graphql']`). Determines what file extensions are treated as GraphQL files.
 
   ```ts
   import {createWebApp} from '@sewing-kit/config';
   import {graphql} from '@sewing-kit/plugin-graphql';
 
   export default createWebApp((app) => {
-    app.use(graphql({allowShortExtension: true}));
+    // Process both .graphql and .gql files
+    app.use(graphql({extensions: ['.graphql', '.gql']}));
   });
   ```
 
@@ -74,13 +75,13 @@ export default createWorkspace((app) => {
 
 This plugin automatically configures `eslint` to lint `.graphql` files, if the [`@sewing-kit/plugin-eslint` `eslint` plugin](TODO) is also included in the workspace. For this to have an effect, you should make sure to include ESLint rules that apply to `.graphql` files, like [`eslint-plugin-graphql`](https://github.com/apollographql/eslint-plugin-graphql).
 
-This plugin accepts the same `allowShortExtension` option as the `graphql` plugin to enable support for `.gql` files in ESLint.
+This plugin accepts the same `extensions` option as the `graphql` plugin to enable support for alternate GraphQL file extensions.
 
 ```ts
 import {createWorkspace} from '@sewing-kit/config';
 import {workspaceGraphQL} from '@sewing-kit/plugin-graphql';
 
 export default createWorkspace((app) => {
-  app.use(workspaceGraphQL({allowShortExtension: true}));
+  app.use(workspaceGraphQL({extensions: ['.graphql', '.gql']}));
 });
 ```
