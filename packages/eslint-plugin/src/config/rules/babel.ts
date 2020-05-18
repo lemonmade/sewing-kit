@@ -12,6 +12,12 @@ export default {
   'babel/no-invalid-this': 'error',
   // Doesn't fail when using do expressions or optional chaining
   'babel/no-unused-expressions': 'error',
+  // Doesn't complain about JSX fragment shorthand syntax (<>foo</>;)
+  'babel/quotes': [
+    'error',
+    'single',
+    {avoidEscape: true, allowTemplateLiterals: true},
+  ],
   // Rule to flag missing semicolons
   'babel/semi': 'error',
   // Doesn't complain when used with BigInt

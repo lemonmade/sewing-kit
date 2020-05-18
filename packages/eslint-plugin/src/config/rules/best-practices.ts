@@ -17,12 +17,18 @@ export default {
   curly: ['error', 'all'],
   // Require default case in switch statements
   'default-case': 'off',
+  // Enforce default clauses in switch statements to be last
+  'default-case-last': 'error',
+  // Enforce default parameters to be last
+  'default-param-last': 'error',
   // Encourages use of dot notation whenever possible
   'dot-notation': ['error', {allowKeywords: true}],
   // Enforces consistent newlines before or after dots
   'dot-location': ['error', 'property'],
   // Require the use of === and !==
   eqeqeq: ['error', 'allow-null'],
+  // Require grouped accessor pairs in object literals and classes
+  'grouped-accessor-pairs': 'error',
   // Make sure for-in loops have an if statement
   'guard-for-in': 'error',
   // enforce a maximum number of classes per file
@@ -33,6 +39,8 @@ export default {
   'no-case-declarations': 'error',
   // Disallow use of arguments.caller or arguments.callee
   'no-caller': 'error',
+  // Disallow returning value in constructor
+  'no-constructor-return': 'error',
   // Disallow division operators explicitly at beginning of regular expression
   'no-div-regex': 'error',
   // Disallow else after a return in an if
@@ -92,8 +100,6 @@ export default {
   'no-octal': 'error',
   // Allow reassignment of function parameters
   'no-param-reassign': 'off',
-  // Disallow use of process.env
-  'no-process-env': 'off',
   // Disallow usage of __proto__ property
   'no-proto': 'error',
   // Disallow declaring the same variable more than once
@@ -140,6 +146,8 @@ export default {
   'prefer-named-capture-group': 'off',
   // Require using Error objects as Promise rejection reasons
   'prefer-promise-reject-errors': ['error', {allowEmptyReject: true}],
+  // Disallow use of the RegExp constructor in favor of regular expression literals
+  'prefer-regex-literals': 'error',
   // Require use of the second argument for parseInt()
   radix: 'error',
   // Disallow async functions which have no await expression

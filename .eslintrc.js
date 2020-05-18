@@ -7,6 +7,8 @@ module.exports = {
   rules: {
     // Leaving TODOs for the time being
     'no-warning-comments': 'off',
+    // A bunch of tools do wonky stuff with Node
+    'node/global-require': 'off',
   },
   overrides: [
     {

@@ -1,5 +1,6 @@
-import {createHash} from 'crypto';
+import {join} from 'path';
 import {readFileSync} from 'fs';
+import {createHash} from 'crypto';
 
 import type {Transformer} from '@jest/transform';
 import {parse} from 'graphql';
@@ -22,7 +23,7 @@ const transformer: Transformer = {
     const utilityImports = `
       var {print} = require('graphql');
       var {cleanDocument} = require(${JSON.stringify(
-        `${__dirname}/document.js`,
+        join(__dirname, 'document.js'),
       )});
     `;
 

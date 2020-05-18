@@ -3,8 +3,6 @@
 export default {
   // enforce or disallow variable initializations at definition
   'init-declarations': 'off',
-  // Disallow the catch clause parameter name being the same as a variable in the outer scope
-  'no-catch-shadow': 'error',
   // Disallow deletion of variables
   'no-delete-var': 'error',
   // Disallow labels that share a name with a variable

@@ -21,10 +21,20 @@ export default {
   'react/forbid-foreign-prop-types': 'error',
   // Forbid certain propTypes
   'react/forbid-prop-types': ['error', {forbid: ['any', 'array']}],
+  // Standardize the way function component get defined
+  'react/function-component-definition': [
+    'error',
+    {
+      namedComponents: 'function-declaration',
+      unnamedComponents: 'arrow-function',
+    },
+  ],
   // Enforce using <> instead of <React.Fragment> for fragments
   'react/jsx-fragments': ['error', 'syntax'],
   // Prevent using this.state within a this.setState
   'react/no-access-state-in-setstate': 'error',
+  // Prevent adjacent inline elements not separated by whitespace
+  'react/no-adjacent-inline-elements': 'error',
   // Prevent using Array index in key prop
   'react/no-array-index-key': 'error',
   // Prevent passing children as props
@@ -95,6 +105,8 @@ export default {
   'react/sort-prop-types': 'off',
   // Enforce state initialization style
   'react/state-in-constructor': ['error', 'never'],
+  // Enforces where React component static properties should be positioned
+  'react/static-property-placement': ['error', 'static public field'],
   // Enforce style prop value being an object
   'react/style-prop-object': 'error',
   // Prevent void DOM elements (e.g. <img />, <br />) from receiving children
@@ -112,6 +124,8 @@ export default {
   'react/jsx-closing-tag-location': 'error',
   // Enforce curly braces or disallow unnecessary curly braces in JSX props and/or children
   'react/jsx-curly-brace-presence': ['error', 'never'],
+  // Enforce linebreaks in curly braces in JSX attributes and expressions
+  'react/jsx-curly-newline': ['error', 'consistent'],
   // Enforce or disallow spaces inside of curly braces in JSX attributes
   'react/jsx-curly-spacing': ['error', 'never', {allowMultiline: true}],
   // Enforce or disallow spaces around equal signs in JSX attributes
@@ -145,12 +159,16 @@ export default {
   'react/jsx-no-target-blank': 'error',
   // Disallow undeclared variables in JSX
   'react/jsx-no-undef': 'error',
+  // Disallow unnecessary fragments
+  'react/jsx-no-useless-fragment': 'error',
   // Limits every line in JSX to one expression each
   'react/jsx-one-expression-per-line': 'off',
   // Enforce PascalCase for user-defined JSX components
   'react/jsx-pascal-case': 'error',
   // Disallow multiple spaces between inline JSX props (fixable)
   'react/jsx-props-no-multi-spaces': 'error',
+  // Prevent usage of javascript: URLs
+  'react/jsx-no-script-url': 'error',
   // Enforce defaultProps declarations alphabetical sorting
   'react/jsx-sort-default-props': 'off',
   // Enforce props alphabetical sorting

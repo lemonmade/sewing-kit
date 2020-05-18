@@ -63,8 +63,6 @@ export default {
   'implicit-arrow-linebreak': 'off',
   // Disable eslint v4 stricter indent rules
   indent: 'off',
-  // Use eslint v3 indent rules: This option sets a specific tab width for your code
-  'indent-legacy': ['error', 2, {SwitchCase: 1, MemberExpression: 1}],
   // Specify whether double or single quotes should be used in JSX attributes
   'jsx-quotes': ['error', 'prefer-double'],
   // Enforces spacing between keys and values in object literal properties
@@ -99,10 +97,6 @@ export default {
   'new-cap': ['error', {newIsCap: true, capIsNew: false}],
   // Disallow the omission of parentheses when invoking a constructor with no arguments
   'new-parens': 'error',
-  // Allow/disallow an empty newline after var statement
-  'newline-after-var': 'off',
-  // Require newline before `return` statement
-  'newline-before-return': 'off',
   // Enforce newline after each call when chaining the calls
   'newline-per-chained-call': ['error', {ignoreChainWithDepth: 3}],
   // Disallow use of the Array constructor
@@ -169,14 +163,14 @@ export default {
     {blankLine: 'always', prev: 'directive', next: '*'},
     {blankLine: 'any', prev: 'directive', next: 'directive'},
   ],
+  // Disallow the use of Math.pow in favor of the ** operator
+  'prefer-exponentiation-operator': 'error',
   // disallow using Object.assign with an object literal as the first argument and prefer the use of object spread instead.
   'prefer-object-spread': 'error',
   // Require quotes around object literal property names
   'quote-props': ['error', 'as-needed'],
   // Specify whether backticks, double or single quotes should be used
   quotes: ['error', 'single', {avoidEscape: true, allowTemplateLiterals: true}],
-  // Require JSDoc comments
-  'require-jsdoc': 'off',
   // Enforce spacing before and after semicolons
   'semi-spacing': ['error', {before: false, after: true}],
   // enforce location of semicolons

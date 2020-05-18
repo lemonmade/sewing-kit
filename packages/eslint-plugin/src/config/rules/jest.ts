@@ -9,14 +9,14 @@ export default {
   'jest/no-focused-tests': 'error',
   // Make it easier to find failing tests by preventing duplicate test names in a suite.
   'jest/no-identical-title': 'error',
+  // Disallow specific matchers & modifiers
+  'jest/no-restricted-matchers': 'off',
   // Disallow Jasmine globals
   'jest/no-jasmine-globals': 'error',
   // Limited snapshot sizes to keep snapshops manageable and reviewable.
   'jest/no-large-snapshots': ['error', {maxSize: 12}],
   // For better failure messages, use `toHaveLength()` to on object lengths.
   'jest/prefer-to-have-length': 'error',
-  // Suggest using toMatchInlineSnapshot()
-  'jest/prefer-inline-snapshots': 'off',
   // For better failure messages, use `toBeNull()` to assert on null values.
   'jest/prefer-to-be-null': 'error',
   // For better failure messages, use `toBeUndefined()` to assert on undefined values.
@@ -45,8 +45,6 @@ export default {
   'jest/no-hooks': 'off',
   // Using a callback in asynchronous tests
   'jest/no-test-callback': 'error',
-  // Disallow using toBeTruthy() & toBeFalsy()
-  'jest/no-truthy-falsy': 'error',
   // Suggest using toBeCalledWith() OR toHaveBeenCalledWith()
   'jest/prefer-called-with': 'off',
   // Suggest using jest.spyOn()
@@ -63,6 +61,8 @@ export default {
   'jest/no-mocks-import': 'error',
   // Disallow commented out tests
   'jest/no-commented-out-tests': 'error',
+  // Disallow use of deprecated functions
+  'jest/no-deprecated-functions': 'error',
   // Disallow duplicate hooks within a `describe` block
   'jest/no-duplicate-hooks': 'error',
   // Disallow conditional logic
@@ -73,8 +73,6 @@ export default {
   'jest/no-export': 'error',
   // Prevents `expect` statements outside of a `test` or `it` block
   'jest/no-standalone-expect': 'error',
-  // Avoid using `expect().resolves`
-  'jest/no-expect-resolves': 'error',
   // Enforce titles don't duplicate the test function name or start with a space
   'jest/valid-title': 'error',
   // Suggest to have all hooks at top-level before tests

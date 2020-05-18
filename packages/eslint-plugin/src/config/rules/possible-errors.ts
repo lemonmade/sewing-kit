@@ -23,6 +23,8 @@ export default {
   'no-debugger': 'off',
   // Disallow duplicate arguments in functions
   'no-dupe-args': 'error',
+  // Disallow duplicate conditions in if-else-if chains
+  'no-dupe-else-if': 'error',
   // Disallow duplicate keys when creating object literals
   'no-dupe-keys': 'error',
   // Disallow a duplicate case label.
@@ -41,6 +43,8 @@ export default {
   'no-extra-semi': 'error',
   // Disallow overwriting functions written as function declarations
   'no-func-assign': 'error',
+  // Disallow assigning to imported bindings
+  'no-import-assign': 'error',
   // Disallow function or variable declarations in nested blocks
   'no-inner-declarations': 'error',
   // Disallow invalid regular expression strings in the RegExp constructor
@@ -55,6 +59,8 @@ export default {
   'no-prototype-builtins': 'error',
   // Disallow multiple spaces in a regular expression literal
   'no-regex-spaces': 'error',
+  // Disallow returning values from setters
+  'no-setter-return': 'error',
   // Disallow sparse arrays
   'no-sparse-arrays': 'error',
   // Disallow template literal placeholder syntax in regular strings
@@ -65,12 +71,12 @@ export default {
   'no-unsafe-finally': 'error',
   // Disallow negation of the left operand of an in expression
   'no-unsafe-negation': 'error',
+  // Disallow useless backreferences in regular expressions
+  'no-useless-backreference': 'error',
   // disallow assignments that can lead to race conditions due to usage of await or yield
   'require-atomic-updates': 'error',
   // Disallow comparisons with the value NaN
   'use-isnan': 'error',
-  // Ensure JSDoc comments are valid
-  'valid-jsdoc': 'off',
   // Ensure that the results of typeof are compared against a valid string
   'valid-typeof': 'error',
   // Avoid code that looks like two expressions but is actually one

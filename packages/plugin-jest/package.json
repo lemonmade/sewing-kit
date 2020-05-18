@@ -10,10 +10,10 @@
   "dependencies": {
     "@sewing-kit/plugin-javascript": "^0.0.53",
     "@sewing-kit/plugins": "^0.0.23",
-    "@types/jest": "^25.2.1",
-    "babel-jest": "^25.4.0",
-    "jest": "^25.4.0",
-    "jest-watch-typeahead": "^0.5.0"
+    "@types/jest": "^25.2.2",
+    "babel-jest": "^26.0.0",
+    "jest": "^26.0.0",
+    "jest-watch-typeahead": "^0.6.0"
   },
   "optionalDependencies": {
     "@babel/core": "^7.0.0"

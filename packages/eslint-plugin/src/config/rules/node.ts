@@ -1,28 +1,8 @@
 // see http://eslint.org/docs/rules/#nodejs and https://github.com/mysticatea/eslint-plugin-node
 
 export default {
-  // Enforce return after a callback
-  'callback-return': 'off',
-  // Disallow require() outside of the top-level module scope
-  'global-require': 'off',
-  // Enforces error handling in callbacks
-  'handle-callback-err': ['error', '^.*(e|E)rr(or)?$'],
-  // Disallow use of the Buffer() constructor
-  'no-buffer-constructor': 'error',
-  // Disallow mixing regular variable and require declarations
-  'no-mixed-requires': 'off',
-  // Disallow use of new operator with the require function
-  'no-new-require': 'error',
-  // Disallow string concatenation with __dirname and __filename
-  'no-path-concat': 'error',
-  // Disallow process.exit()
-  'no-process-exit': 'off',
-  // Restrict usage of specified node imports
-  'no-restricted-imports': 'off',
-  // Restrict usage of specified node modules
-  'no-restricted-modules': 'off',
-  // Disallow use of synchronous methods
-  'no-sync': 'off',
+  // Require return statements after callbacks
+  'node/callback-return': 'off',
   // Disallow import declarations of extraneous packages
   // defer to import/no-extraneous-dependencies
   'node/no-extraneous-import': 'off',
@@ -31,6 +11,12 @@ export default {
   'node/no-extraneous-require': 'off',
   // Enforce either module.exports or exports.
   'node/exports-style': ['error', 'module.exports'],
+  // Enforce the style of file extensions in import declarations
+  'node/file-extension-in-import': 'off',
+  // Require require() calls to be placed at top-level module scope
+  'node/global-require': 'error',
+  // Require error handling in callbacks
+  'node/handle-callback-err': 'error',
   // enforce either Buffer or require("buffer").Buffer
   'node/prefer-global/buffer': 'error',
   //	enforce either console or require("console")
@@ -47,10 +33,26 @@ export default {
   'node/prefer-global/url': 'error',
   // Disallow deprecated API.
   'node/no-deprecated-api': 'error',
+  // Disallow string concatenation with __dirname and __filename
+  'node/no-path-concat': 'error',
   // Disallow import and export declarations for files that don't exist.
   'node/no-missing-import': 'off',
   // Disallow require()s for files that don't exist.
   'node/no-missing-require': 'off',
+  // Disallow require calls to be mixed with regular variable declarations
+  'node/no-mixed-requires': ['error', {allowCall: true}],
+  // Disallow new operators with calls to require
+  'node/no-new-require': 'error',
+  // Disallow the use of process.env
+  'node/no-process-env': 'off',
+  // Disallow the use of process.exit()
+  'node/no-process-exit': 'off',
+  // Disallow specified modules when loaded by import declarations
+  'node/no-restricted-import': 'off',
+  // Disallow specified modules when loaded by require
+  'node/no-restricted-require': 'off',
+  // Disallow synchronous methods
+  'node/no-sync': 'off',
   // Disallow import and export declarations for files that are not published.
   'node/no-unpublished-import': 'off',
   // Disallow bin files that npm ignores.

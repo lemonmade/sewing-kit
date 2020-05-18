@@ -18,6 +18,8 @@ export default {
         // for ensuring proper `this` usage in functions not assigned to
         // object properties.
         'babel/no-invalid-this': 'off',
+        // Handled by TypeScript plugin
+        'babel/quotes': 'off',
 
         // Handled by TypeScript itself
         'no-undef': 'off',

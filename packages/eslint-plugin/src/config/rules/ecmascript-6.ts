@@ -23,6 +23,10 @@ export default {
   'no-duplicate-imports': 'off',
   // Disallow use of the new operator with the Symbol object
   'no-new-symbol': 'error',
+  // Disallow specified names in exports
+  'no-restricted-exports': 'off',
+  // Disallow specified modules when loaded by `import`
+  'no-restricted-imports': 'off',
   // Disallow to use this/super before super() calling in constructors.
   'no-this-before-super': 'error',
   // Disallow unnecessary computed property keys in object literals
@@ -47,8 +51,6 @@ export default {
   'prefer-rest-params': 'error',
   // Suggest using the spread operator instead of .apply()
   'prefer-spread': 'error',
-  // Suggest using Reflect methods where applicable
-  'prefer-reflect': 'off',
   // Suggest using template literals instead of strings concatenation
   'prefer-template': 'error',
   // Enforce spacing between rest and spread operators and their expressions
