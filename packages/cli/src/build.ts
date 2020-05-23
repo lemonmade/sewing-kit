@@ -59,6 +59,10 @@ export async function runBuild(
     configure: new SeriesHook(),
     pre: new WaterfallHook(),
     post: new WaterfallHook(),
+    project: new SeriesHook(),
+    package: new SeriesHook(),
+    service: new SeriesHook(),
+    webApp: new SeriesHook(),
   };
 
   await build.run({
@@ -81,10 +85,15 @@ export async function runBuild(
         configureHooks: new WaterfallHook(),
       };
 
-      await build.run({
+      const projectDetails = {
+        project: webApp,
         options,
         hooks,
-      });
+      };
+
+      await buildTaskHooks.project.run(projectDetails);
+      await buildTaskHooks.webApp.run(projectDetails);
+      await build.run({options, hooks});
 
       const variants = await hooks.variants.run([]);
 
@@ -149,6 +158,14 @@ export async function runBuild(
         configureHooks: new WaterfallHook(),
       };
 
+      const projectDetails = {
+        project: service,
+        options,
+        hooks,
+      };
+
+      await buildTaskHooks.project.run(projectDetails);
+      await buildTaskHooks.service.run(projectDetails);
       await build.run({options, hooks});
 
       const configuration = await hooks.configureHooks.run({});
@@ -191,7 +208,15 @@ export async function runBuild(
         configureHooks: new WaterfallHook(),
       };
 
-      await build.run({hooks, options});
+      const projectDetails = {
+        project: pkg,
+        options,
+        hooks,
+      };
+
+      await buildTaskHooks.project.run(projectDetails);
+      await buildTaskHooks.package.run(projectDetails);
+      await build.run({options, hooks});
 
       const variants = await hooks.variants.run([]);
 

@@ -54,6 +54,10 @@ export async function runDev(
     configure: new SeriesHook(),
     pre: new WaterfallHook(),
     post: new WaterfallHook(),
+    project: new SeriesHook(),
+    package: new SeriesHook(),
+    service: new SeriesHook(),
+    webApp: new SeriesHook(),
   };
 
   await dev.run({
@@ -75,6 +79,14 @@ export async function runDev(
         steps: new WaterfallHook(),
       };
 
+      const projectDetails = {
+        project: webApp,
+        options,
+        hooks,
+      };
+
+      await devTaskHooks.project.run(projectDetails);
+      await devTaskHooks.webApp.run(projectDetails);
       await dev.run({options, hooks});
 
       const configuration = await hooks.configureHooks.run({});
@@ -116,6 +128,14 @@ export async function runDev(
         steps: new WaterfallHook(),
       };
 
+      const projectDetails = {
+        project: service,
+        options,
+        hooks,
+      };
+
+      await devTaskHooks.project.run(projectDetails);
+      await devTaskHooks.service.run(projectDetails);
       await dev.run({options, hooks});
 
       const configuration = await hooks.configureHooks.run({
@@ -157,6 +177,14 @@ export async function runDev(
         steps: new WaterfallHook(),
       };
 
+      const projectDetails = {
+        project: pkg,
+        options,
+        hooks,
+      };
+
+      await devTaskHooks.project.run(projectDetails);
+      await devTaskHooks.package.run(projectDetails);
       await dev.run({options, hooks});
 
       const configuration = await hooks.configureHooks.run({});

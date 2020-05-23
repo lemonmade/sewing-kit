@@ -31,6 +31,7 @@ interface FlagNames {
 
 interface RunnerOptions {
   readonly flagNames?: FlagNames;
+  readonly permission?: StepRunPermission;
 }
 
 interface StepCounts {
@@ -330,12 +331,15 @@ export async function run(
 
         for (const step of steps) {
           stepTracker.setStepParent(step, parent);
-          subStepLog((fmt) => fmt`starting sub-step {info ${step.label}}`);
-          groupLog(createStepDebugLog(step, target, context, {flagNames}), {
-            level: LogLevel.Debug,
-          });
 
           const permission = checkStep(step);
+
+          groupLog(
+            createStepDebugLog(step, target, context, {flagNames, permission}),
+            {
+              level: LogLevel.Debug,
+            },
+          );
 
           if (
             permission === StepRunPermission.Excluded ||
@@ -356,7 +360,11 @@ export async function run(
                 }`,
               {level: LogLevel.Debug},
             );
+
+            continue;
           }
+
+          subStepLog((fmt) => fmt`starting sub-step {info ${step.label}}`);
 
           const stepLog = (loggable: Loggable, options?: LogOptions) => {
             groupLog((fmt) => fmt`log from {info ${parent.label}}`, options);
@@ -768,8 +776,7 @@ function createChecker(skip?: readonly string[], isolate?: readonly string[]) {
       return StepRunPermission.Default;
     }
 
-    if (isExplicitlyIsolated && !isExplicitlyIsolated(step))
-      return StepRunPermission.Excluded;
+    if (isExplicitlyIsolated?.(step)) return StepRunPermission.Excluded;
 
     if (isExplicitlySkipped) {
       if (isExplicitlySkipped(step)) return StepRunPermission.Skipped;
@@ -805,7 +812,10 @@ function createStepDebugLog(
   step: Step,
   target: StepTarget,
   context: TaskContext,
-  {flagNames: {skip, isolate} = {}}: RunnerOptions = {},
+  {
+    flagNames: {skip, isolate} = {},
+    permission = StepRunPermission.Default,
+  }: RunnerOptions = {},
 ): Loggable {
   const targetPart: Loggable =
     target instanceof Workspace
@@ -824,20 +834,27 @@ function createStepDebugLog(
       .filter(Boolean),
   ];
 
+  // Make sure we don't show how to skip/ isolate if they have already shown
+  // they know how.
+  const normalizedSkip =
+    skip && permission !== StepRunPermission.Skipped ? skip : undefined;
+  const normalizedIsolate =
+    isolate && permission !== StepRunPermission.Isolated ? isolate : undefined;
+
   if (!isCoreId(step.id)) {
-    if (skip && isolate) {
+    if (normalizedSkip && normalizedIsolate) {
       flagsPart = (fmt) =>
-        fmt`\n\nto skip this step, add {code ${skip} ${
+        fmt`\n\nto skip this step, add {code ${normalizedSkip} ${
           step.id
-        }} to your command.\nto isolate this step, add {code ${isolate} ${isolateContent.join(
+        }} to your command.\nto isolate this step, add {code ${normalizedIsolate} ${isolateContent.join(
           ',',
         )}} to your command.`;
-    } else if (skip) {
+    } else if (normalizedSkip) {
       flagsPart = (fmt) =>
-        fmt`\n\nto skip this step, add {code ${skip} ${step.id}} to your command.`;
-    } else if (isolate) {
+        fmt`\n\nto skip this step, add {code ${normalizedSkip} ${step.id}} to your command.`;
+    } else if (normalizedIsolate) {
       flagsPart = (fmt) =>
-        fmt`\n\nto isolate this step, add {code ${isolate} ${isolateContent.join(
+        fmt`\n\nto isolate this step, add {code ${normalizedIsolate} ${isolateContent.join(
           ',',
         )}} to your command.`;
     }
