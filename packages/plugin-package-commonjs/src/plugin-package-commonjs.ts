@@ -30,40 +30,36 @@ export function buildCommonJsOutput() {
 
     hooks.variants.hook((variants) => [...variants, {[VARIANT]: true}]);
 
-    hooks.configure.hook((configurationHooks, {commonjs}) => {
-      if (!commonjs) {
-        return;
-      }
+    hooks.variant.hook(({variant: {commonjs}, hooks}) => {
+      if (!commonjs) return;
 
-      configurationHooks.babelConfig?.hook((babelConfig) => {
-        const allEntriesAreNode = project.entries.every(
-          ({runtime}) => runtime === Runtime.Node,
-        );
+      hooks.configure.hook((configuration) => {
+        configuration.babelConfig?.hook((babelConfig) => {
+          const allEntriesAreNode = project.entries.every(
+            ({runtime}) => runtime === Runtime.Node,
+          );
 
-        return allEntriesAreNode
-          ? setNodeTarget(babelConfig)
-          : setCommonJsModules(babelConfig);
+          return allEntriesAreNode
+            ? setNodeTarget(babelConfig)
+            : setCommonJsModules(babelConfig);
+        });
       });
-    });
 
-    hooks.steps.hook((steps, {configuration, variant: {commonjs}}) => {
-      if (!commonjs) {
-        return steps;
-      }
+      hooks.steps.hook((steps, configuration) => {
+        const outputPath = project.fs.buildPath('cjs');
 
-      const outputPath = project.fs.buildPath('cjs');
-
-      return [
-        ...steps,
-        createCompileBabelStep({
-          api,
-          project,
-          configuration,
-          outputPath,
-          configFile: 'babel.cjs.js',
-          exportStyle: ExportStyle.CommonJs,
-        }),
-      ];
+        return [
+          ...steps,
+          createCompileBabelStep({
+            api,
+            project,
+            configuration,
+            outputPath,
+            configFile: 'babel.cjs.js',
+            exportStyle: ExportStyle.CommonJs,
+          }),
+        ];
+      });
     });
   });
 }

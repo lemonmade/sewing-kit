@@ -72,7 +72,7 @@ export async function runTests(
   const configuration = await testTaskHooks.configureHooks.run({});
   await testTaskHooks.configure.run(configuration);
 
-  const context = await testTaskHooks.context.run({configuration});
+  const workspaceContext = await testTaskHooks.context.run({configuration});
 
   await Promise.all(
     workspace.projects.map(async (project) => {
@@ -87,16 +87,20 @@ export async function runTests(
           configure: new SeriesHook(),
         };
 
-        const projectDetails = {
-          project,
+        const details = {
           options,
           hooks,
-          context,
+          context: workspaceContext,
+        };
+
+        const projectDetails = {
+          project,
+          ...details,
         };
 
         await testTaskHooks.project.run(projectDetails);
         await testTaskHooks.webApp.run(projectDetails);
-        await test.run({options, hooks, context});
+        await test.run(details);
         await hooks.configure.run(await hooks.configureHooks.run({}));
       } else if (project instanceof WebApp) {
         const hooks: TestWebAppHooks = {
@@ -104,16 +108,20 @@ export async function runTests(
           configure: new SeriesHook(),
         };
 
-        const projectDetails = {
-          project,
+        const details = {
           options,
           hooks,
-          context,
+          context: workspaceContext,
+        };
+
+        const projectDetails = {
+          project,
+          ...details,
         };
 
         await testTaskHooks.project.run(projectDetails);
         await testTaskHooks.webApp.run(projectDetails);
-        await test.run({options, hooks, context});
+        await test.run(details);
         await hooks.configure.run(await hooks.configureHooks.run({}));
       } else if (project instanceof Service) {
         const hooks: TestWebAppHooks = {
@@ -121,25 +129,28 @@ export async function runTests(
           configure: new SeriesHook(),
         };
 
-        const projectDetails = {
-          project,
+        const details = {
           options,
           hooks,
-          context,
+          context: workspaceContext,
+        };
+
+        const projectDetails = {
+          project,
+          ...details,
         };
 
         await testTaskHooks.project.run(projectDetails);
         await testTaskHooks.webApp.run(projectDetails);
-        await test.run({options, hooks, context});
+        await test.run(details);
         await hooks.configure.run(await hooks.configureHooks.run({}));
       }
     }),
   );
 
-  const stepDetails = {configuration, context};
-  const pre = await testTaskHooks.pre.run([], stepDetails);
-  const steps = await testTaskHooks.steps.run([], stepDetails);
-  const post = await testTaskHooks.post.run([], stepDetails);
+  const pre = await testTaskHooks.pre.run([], workspaceContext);
+  const steps = await testTaskHooks.steps.run([], workspaceContext);
+  const post = await testTaskHooks.post.run([], workspaceContext);
 
   await run(taskContext, {
     title: 'test',

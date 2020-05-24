@@ -68,33 +68,33 @@ export function buildEsModulesOutput() {
 
     hooks.variants.hook((variants) => [...variants, {[VARIANT]: true}]);
 
-    hooks.configure.hook((configure, {esmodules}) => {
-      if (!esmodules) {
-        return;
-      }
+    hooks.variant.hook(({variant: {esmodules}, hooks}) => {
+      if (!esmodules) return;
 
-      configure.babelConfig?.hook(updateBabelPreset);
-    });
+      hooks.configure.hook((configuration) => {
+        configuration.babelConfig?.hook(updateBabelPreset);
+      });
 
-    hooks.steps.hook((steps, {configuration, variant: {esmodules}}) => {
-      if (!esmodules) {
-        return steps;
-      }
+      hooks.steps.hook((steps, configuration) => {
+        if (!esmodules) {
+          return steps;
+        }
 
-      const outputPath = project.fs.buildPath('esm');
+        const outputPath = project.fs.buildPath('esm');
 
-      return [
-        ...steps,
-        createCompileBabelStep({
-          api,
-          project,
-          configuration,
-          outputPath,
-          extension: '.mjs',
-          configFile: 'babel.esm.js',
-          exportStyle: ExportStyle.EsModules,
-        }),
-      ];
+        return [
+          ...steps,
+          createCompileBabelStep({
+            api,
+            project,
+            configuration,
+            outputPath,
+            extension: '.mjs',
+            configFile: 'babel.esm.js',
+            exportStyle: ExportStyle.EsModules,
+          }),
+        ];
+      });
     });
   });
 }

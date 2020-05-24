@@ -79,38 +79,34 @@ export function buildEsNextOutput() {
 
     hooks.variants.hook((variants) => [...variants, {[VARIANT]: true}]);
 
-    hooks.configure.hook((configure, {esnext}) => {
-      if (!esnext) {
-        return;
-      }
+    hooks.variant.hook(({variant: {esnext}, hooks}) => {
+      if (!esnext) return;
 
-      configure.babelConfig?.hook(
-        updateSewingKitBabelPreset({
-          modules: 'preserve',
-          target: ['last 1 chrome version'],
-        }),
-      );
-    });
+      hooks.configure.hook((configuration) => {
+        configuration.babelConfig?.hook(
+          updateSewingKitBabelPreset({
+            modules: 'preserve',
+            target: ['last 1 chrome version'],
+          }),
+        );
+      });
 
-    hooks.steps.hook((steps, {configuration, variant: {esnext}}) => {
-      if (!esnext) {
-        return steps;
-      }
+      hooks.steps.hook((steps, configuration) => {
+        const outputPath = project.fs.buildPath('esnext');
 
-      const outputPath = project.fs.buildPath('esnext');
-
-      return [
-        ...steps,
-        createCompileBabelStep({
-          api,
-          project,
-          outputPath,
-          configuration,
-          extension: EXTENSION,
-          configFile: 'babel.esnext.js',
-          exportStyle: ExportStyle.EsModules,
-        }),
-      ];
+        return [
+          ...steps,
+          createCompileBabelStep({
+            api,
+            project,
+            outputPath,
+            configuration,
+            extension: EXTENSION,
+            configFile: 'babel.esnext.js',
+            exportStyle: ExportStyle.EsModules,
+          }),
+        ];
+      });
     });
   });
 }

@@ -88,6 +88,7 @@ export type StepTarget =
 export interface StepDetails {
   readonly step: Step;
   readonly target: StepTarget;
+  readonly dependencies?: readonly Step[];
 }
 
 export interface RunOptions {
@@ -439,8 +440,8 @@ export async function run(
       logSeparator();
     }
 
-    const stepPromises = steps.map(({step, target}) =>
-      stepQueue.enqueue(step, async () => {
+    const stepPromises = steps.map(({step, target, dependencies = []}) =>
+      stepQueue.enqueue(step, dependencies, async () => {
         const focusedStep: FocusedStep = {
           step,
           state: FocusedStepState.Running,
@@ -680,6 +681,11 @@ interface StepQueueRunner {
   run(run: () => Promise<void>): Promise<void>;
 }
 
+interface Work {
+  perform(): any;
+  readonly missingDependencies: Set<Step>;
+}
+
 class StepQueue {
   private readonly cpus: number;
   // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
@@ -687,7 +693,8 @@ class StepQueue {
   private readonly memory: number;
   private readonly runners = new Set<StepQueueRunner>();
   private readonly availableRunners: StepQueueRunner[] = [];
-  private readonly queue: (() => Promise<void>)[] = [];
+  private readonly queue: Work[] = [];
+  private readonly completed = new Set<Step>();
 
   private get isUnderinitialized() {
     return this.runners.size < this.cpus;
@@ -698,7 +705,7 @@ class StepQueue {
     this.memory = memory;
   }
 
-  enqueue(_step: Step, run: () => Promise<void>) {
+  enqueue(step: Step, dependencies: readonly Step[], run: () => Promise<void>) {
     // const {resources: {cpu: defaultCpu, memory} = {}} = step;
     // const cpu = defaultCpu ?? 1;
 
@@ -712,41 +719,67 @@ class StepQueue {
     //   }\n  memory: ${this.memory}`,
     // }
 
-    let runner: StepQueueRunner;
+    const perform = async () => {
+      await run();
 
-    if (this.isUnderinitialized) {
-      runner = {
-        run: async (run) => {
-          try {
-            await run();
-          } finally {
-            this.release(runner);
-          }
-        },
-      };
+      this.completed.add(step);
 
-      this.runners.add(runner);
-      return runner.run(run);
-    } else if (this.availableRunners.length > 0) {
-      return this.availableRunners.pop()!.run(run);
-    } else {
+      for (const {missingDependencies} of this.queue) {
+        missingDependencies.delete(step);
+      }
+    };
+
+    const filteredDependencies = dependencies.filter(
+      (dependency) => !this.completed.has(dependency),
+    );
+
+    if (
+      filteredDependencies.length > 0 ||
+      (this.availableRunners.length === 0 && !this.isUnderinitialized)
+    ) {
       return new Promise((resolve, reject) => {
-        this.queue.push(async () => {
-          try {
-            await run();
-            resolve();
-          } catch (error) {
-            reject(error);
-          }
+        this.queue.push({
+          perform: async () => {
+            try {
+              await perform();
+              resolve();
+            } catch (error) {
+              reject(error);
+            }
+          },
+          missingDependencies: new Set(dependencies),
         });
       });
     }
+
+    const runner: StepQueueRunner = this.isUnderinitialized
+      ? {
+          run: async (run) => {
+            try {
+              await run();
+            } finally {
+              this.release(runner);
+            }
+          },
+        }
+      : this.availableRunners.pop()!;
+
+    this.runners.add(runner);
+    return runner.run(perform);
   }
 
   private release(runner: StepQueueRunner) {
     if (this.queue.length > 0) {
-      const work = this.queue.shift()!;
-      process.nextTick(() => runner.run(work));
+      const firstAvailableIndex = this.queue.findIndex(
+        ({missingDependencies}) => missingDependencies.size === 0,
+      );
+
+      if (firstAvailableIndex >= 0) {
+        const [work] = this.queue.splice(firstAvailableIndex, 1);
+        process.nextTick(() => runner.run(work.perform));
+      } else {
+        this.availableRunners.push(runner);
+      }
     } else {
       this.availableRunners.push(runner);
     }

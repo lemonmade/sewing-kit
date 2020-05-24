@@ -41,26 +41,28 @@ export function differentialServing({
       ),
     ]);
 
-    hooks.configure.hook((configuration, {browsers}) => {
-      const browserslistQuery = browsers && browserGroups[browsers];
+    hooks.variant.hook(({variant: {browsers}, hooks}) => {
+      hooks.configure.hook((configuration) => {
+        const browserslistQuery = browsers && browserGroups[browsers];
 
-      if (babel) {
-        configuration.babelConfig?.hook(
-          updateSewingKitBabelPreset(
-            {target: browserslistQuery},
-            {addIfMissing: false},
-          ),
-        );
-      }
+        if (babel) {
+          configuration.babelConfig?.hook(
+            updateSewingKitBabelPreset(
+              {target: browserslistQuery},
+              {addIfMissing: false},
+            ),
+          );
+        }
 
-      if (postcss) {
-        configuration.postcssPlugins?.hook(
-          updatePostcssEnvPreset(
-            {browsers: browserslistQuery},
-            {addIfMissing: false},
-          ),
-        );
-      }
+        if (postcss) {
+          configuration.postcssPlugins?.hook(
+            updatePostcssEnvPreset(
+              {browsers: browserslistQuery},
+              {addIfMissing: false},
+            ),
+          );
+        }
+      });
     });
   });
 }

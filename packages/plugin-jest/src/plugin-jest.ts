@@ -52,7 +52,7 @@ declare module '@sewing-kit/hooks' {
     readonly jestFlags: WaterfallHook<JestFlags>;
   }
 
-  interface TestProjectCustomWorkspaceContext {
+  interface TestWorkspaceCustomContext {
     readonly jestProjectConfigurations: Map<
       Project,
       TestProjectConfigurationHooks

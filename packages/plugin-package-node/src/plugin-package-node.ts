@@ -44,37 +44,33 @@ export function buildNodeOutput() {
       return [...variants, {[VARIANT]: true}];
     });
 
-    hooks.configure.hook((configurationHooks, {node}) => {
-      if (!node) {
-        return;
-      }
+    hooks.variant.hook(({variant: {node}, hooks}) => {
+      if (!node) return;
 
-      configurationHooks.babelConfig?.hook(
-        updateSewingKitBabelPreset({
-          modules: 'commonjs',
-          target: 'node',
-        }),
-      );
-    });
+      hooks.configure.hook((configurationHooks) => {
+        configurationHooks.babelConfig?.hook(
+          updateSewingKitBabelPreset({
+            modules: 'commonjs',
+            target: 'node',
+          }),
+        );
+      });
 
-    hooks.steps.hook((steps, {configuration, variant: {node}}) => {
-      if (!node) {
-        return steps;
-      }
+      hooks.steps.hook((steps, configuration) => {
+        const outputPath = project.fs.buildPath('node');
 
-      const outputPath = project.fs.buildPath('node');
-
-      return [
-        ...steps,
-        createCompileBabelStep({
-          api,
-          project,
-          outputPath,
-          configuration,
-          configFile: 'babel.node.js',
-          exportStyle: ExportStyle.CommonJs,
-        }),
-      ];
+        return [
+          ...steps,
+          createCompileBabelStep({
+            api,
+            project,
+            outputPath,
+            configuration,
+            configFile: 'babel.node.js',
+            exportStyle: ExportStyle.CommonJs,
+          }),
+        ];
+      });
     });
   });
 }

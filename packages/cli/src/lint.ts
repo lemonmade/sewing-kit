@@ -26,9 +26,12 @@ export const lint = createCommand(
   },
 );
 
-export async function runLint(context: TaskContext, options: LintTaskOptions) {
-  const {workspace} = context;
-  const {lint} = await createWorkspaceTasksAndApplyPlugins(context);
+export async function runLint(
+  taskContext: TaskContext,
+  options: LintTaskOptions,
+) {
+  const {workspace} = taskContext;
+  const {lint} = await createWorkspaceTasksAndApplyPlugins(taskContext);
 
   const hooks: LintWorkspaceTaskHooks = {
     configureHooks: new WaterfallHook(),
@@ -36,6 +39,7 @@ export async function runLint(context: TaskContext, options: LintTaskOptions) {
     pre: new WaterfallHook(),
     steps: new WaterfallHook(),
     post: new WaterfallHook(),
+    context: new WaterfallHook(),
   };
 
   await lint.run({
@@ -46,15 +50,13 @@ export async function runLint(context: TaskContext, options: LintTaskOptions) {
   const configuration = await hooks.configureHooks.run({});
   await hooks.configure.run(configuration);
 
-  const pre = await hooks.pre.run([], {configuration});
-  const steps = await hooks.steps.run([], {
-    configuration,
-  });
-  const post = await hooks.post.run([], {
-    configuration,
-  });
+  const context = await hooks.context.run({configuration});
 
-  await run(context, {
+  const pre = await hooks.pre.run([], context);
+  const steps = await hooks.steps.run([], context);
+  const post = await hooks.post.run([], context);
+
+  await run(taskContext, {
     title: 'lint',
     pre,
     post,

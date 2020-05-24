@@ -1,17 +1,21 @@
 import {
   SeriesHook,
   WaterfallHook,
+  TypeCheckWorkspaceContext,
   TypeCheckWorkspaceConfigurationHooks,
   TestWorkspaceConfigurationHooks,
   TestPackageHooks,
   TestWebAppHooks,
   TestServiceHooks,
-  TestProjectWorkspaceContext,
+  TestWorkspaceContext,
+  LintWorkspaceContext,
   LintWorkspaceConfigurationHooks,
+  BuildWorkspaceContext,
   BuildWorkspaceConfigurationHooks,
   BuildWebAppHooks,
   BuildPackageHooks,
   BuildServiceHooks,
+  DevWorkspaceContext,
   DevWorkspaceConfigurationHooks,
   DevWebAppHooks,
   DevPackageHooks,
@@ -63,16 +67,13 @@ export interface TypeCheckOptions {
   readonly cache?: boolean;
 }
 
-interface TypeCheckWorkspaceStepDetails {
-  readonly configuration: TypeCheckWorkspaceConfigurationHooks;
-}
-
 export interface TypeCheckWorkspaceTaskHooks {
   readonly configureHooks: WaterfallHook<TypeCheckWorkspaceConfigurationHooks>;
   readonly configure: SeriesHook<TypeCheckWorkspaceConfigurationHooks>;
-  readonly pre: WaterfallHook<readonly Step[], TypeCheckWorkspaceStepDetails>;
-  readonly steps: WaterfallHook<readonly Step[], TypeCheckWorkspaceStepDetails>;
-  readonly post: WaterfallHook<readonly Step[], TypeCheckWorkspaceStepDetails>;
+  readonly context: WaterfallHook<TypeCheckWorkspaceContext>;
+  readonly pre: WaterfallHook<readonly Step[], TypeCheckWorkspaceContext>;
+  readonly steps: WaterfallHook<readonly Step[], TypeCheckWorkspaceContext>;
+  readonly post: WaterfallHook<readonly Step[], TypeCheckWorkspaceContext>;
 }
 
 export interface TypeCheckWorkspaceTask {
@@ -90,16 +91,13 @@ export interface LintTaskOptions {
   readonly allowEmpty?: boolean;
 }
 
-interface LintWorkspaceStepDetails {
-  readonly configuration: LintWorkspaceConfigurationHooks;
-}
-
 export interface LintWorkspaceTaskHooks {
   readonly configureHooks: WaterfallHook<LintWorkspaceConfigurationHooks>;
   readonly configure: SeriesHook<LintWorkspaceConfigurationHooks>;
-  readonly pre: WaterfallHook<Step[], LintWorkspaceStepDetails>;
-  readonly steps: WaterfallHook<Step[], LintWorkspaceStepDetails>;
-  readonly post: WaterfallHook<Step[], LintWorkspaceStepDetails>;
+  readonly context: WaterfallHook<LintWorkspaceContext>;
+  readonly pre: WaterfallHook<Step[], LintWorkspaceContext>;
+  readonly steps: WaterfallHook<Step[], LintWorkspaceContext>;
+  readonly post: WaterfallHook<Step[], LintWorkspaceContext>;
 }
 
 export interface LintWorkspaceTask {
@@ -121,16 +119,16 @@ export interface TestTaskOptions {
 }
 
 export interface TestWorkspaceTaskHooks {
-  readonly pre: WaterfallHook<Step[], TestProjectWorkspaceContext>;
-  readonly post: WaterfallHook<Step[], TestProjectWorkspaceContext>;
-  readonly steps: WaterfallHook<Step[], TestProjectWorkspaceContext>;
+  readonly context: WaterfallHook<TestWorkspaceContext>;
+  readonly pre: WaterfallHook<Step[], TestWorkspaceContext>;
+  readonly post: WaterfallHook<Step[], TestWorkspaceContext>;
+  readonly steps: WaterfallHook<Step[], TestWorkspaceContext>;
   readonly project: SeriesHook<TestWorkspaceProjectDetails>;
   readonly webApp: SeriesHook<TestWorkspaceProjectDetails<WebApp>>;
   readonly package: SeriesHook<TestWorkspaceProjectDetails<Package>>;
   readonly service: SeriesHook<TestWorkspaceProjectDetails<Service>>;
   readonly configure: SeriesHook<TestWorkspaceConfigurationHooks>;
   readonly configureHooks: WaterfallHook<TestWorkspaceConfigurationHooks>;
-  readonly context: WaterfallHook<TestProjectWorkspaceContext>;
 }
 
 export type TestProjectTaskHooks<Type extends Project> = Type extends Package
@@ -148,8 +146,8 @@ export interface TestWorkspaceTask {
 
 export interface TestProjectTask<Type extends Project> {
   readonly hooks: TestProjectTaskHooks<Type>;
-  readonly context: TestProjectWorkspaceContext;
   readonly options: TestTaskOptions;
+  readonly context: TestWorkspaceContext;
 }
 
 export interface TestWorkspaceProjectDetails<Type extends Project = Project>
@@ -168,19 +166,16 @@ export interface BuildTaskOptions {
   readonly cache?: boolean;
 }
 
-interface BuildWorkspaceStepContext {
-  readonly configuration: BuildWorkspaceConfigurationHooks;
-}
-
 export interface BuildWorkspaceTaskHooks {
   readonly configureHooks: WaterfallHook<BuildWorkspaceConfigurationHooks>;
   readonly configure: SeriesHook<BuildWorkspaceConfigurationHooks>;
+  readonly context: WaterfallHook<BuildWorkspaceContext>;
   readonly project: SeriesHook<BuildWorkspaceProjectDetails>;
   readonly webApp: SeriesHook<BuildWorkspaceProjectDetails<WebApp>>;
   readonly package: SeriesHook<BuildWorkspaceProjectDetails<Package>>;
   readonly service: SeriesHook<BuildWorkspaceProjectDetails<Service>>;
-  readonly pre: WaterfallHook<readonly Step[], BuildWorkspaceStepContext>;
-  readonly post: WaterfallHook<readonly Step[], BuildWorkspaceStepContext>;
+  readonly pre: WaterfallHook<readonly Step[], BuildWorkspaceContext>;
+  readonly post: WaterfallHook<readonly Step[], BuildWorkspaceContext>;
 }
 
 export type BuildProjectTaskHooks<Type extends Project> = Type extends Package
@@ -199,6 +194,7 @@ export interface BuildWorkspaceTask {
 export interface BuildProjectTask<Type extends Project> {
   readonly hooks: BuildProjectTaskHooks<Type>;
   readonly options: BuildTaskOptions;
+  readonly context: BuildWorkspaceContext;
 }
 
 export interface BuildWorkspaceProjectDetails<Type extends Project = Project>
@@ -224,6 +220,7 @@ interface DevWorkspaceStepDetails {
 export interface DevWorkspaceTaskHooks {
   readonly configureHooks: WaterfallHook<DevWorkspaceConfigurationHooks>;
   readonly configure: SeriesHook<DevWorkspaceConfigurationHooks>;
+  readonly context: WaterfallHook<DevWorkspaceContext>;
   readonly project: SeriesHook<DevWorkspaceProjectDetails>;
   readonly webApp: SeriesHook<DevWorkspaceProjectDetails<WebApp>>;
   readonly package: SeriesHook<DevWorkspaceProjectDetails<Package>>;
@@ -248,6 +245,7 @@ export interface DevWorkspaceTask {
 export interface DevProjectTask<Type extends Project> {
   readonly hooks: DevProjectTaskHooks<Type>;
   readonly options: DevTaskOptions;
+  readonly context: DevWorkspaceContext;
 }
 
 export interface DevWorkspaceProjectDetails<Type extends Project = Project>

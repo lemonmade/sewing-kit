@@ -84,7 +84,7 @@ declare module '@sewing-kit/hooks' {
   interface BuildProjectConfigurationCustomHooks extends WebpackHooks {}
   interface DevProjectConfigurationCustomHooks extends WebpackHooks {}
   interface BuildProjectStepCustomContext extends WebpackContext {}
-  interface DevProjectStepCustomContext extends WebpackContext {}
+  interface DevProjectCustomContext extends WebpackContext {}
 }
 
 const PLUGIN = 'SewingKit.Webpack';

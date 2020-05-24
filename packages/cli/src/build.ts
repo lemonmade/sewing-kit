@@ -2,8 +2,11 @@ import {
   WaterfallHook,
   SeriesHook,
   BuildServiceHooks,
+  BuildServiceVariantHooks,
   BuildWebAppHooks,
+  BuildWebAppVariantHooks,
   BuildPackageHooks,
+  BuildPackageVariantHooks,
 } from '@sewing-kit/hooks';
 import {
   Env,
@@ -12,7 +15,7 @@ import {
 } from '@sewing-kit/tasks';
 
 import {LogLevel} from './ui';
-import {run} from './runner';
+import {run, StepDetails} from './runner';
 import {
   createStep,
   createCommand,
@@ -21,7 +24,11 @@ import {
   createProjectTasksAndApplyPlugins,
 } from './common';
 
-type ArrayElement<T> = T extends (infer U)[] ? U : never;
+type ArrayElement<T> = T extends (infer U)[]
+  ? U
+  : T extends readonly (infer U)[]
+  ? U
+  : never;
 
 export const build = createCommand(
   {
@@ -63,12 +70,18 @@ export async function runBuild(
     package: new SeriesHook(),
     service: new SeriesHook(),
     webApp: new SeriesHook(),
+    context: new WaterfallHook(),
   };
 
   await build.run({
     hooks: buildTaskHooks,
     options,
   });
+
+  const configuration = await buildTaskHooks.configureHooks.run({});
+  await buildTaskHooks.configure.run(configuration);
+
+  const workspaceContext = await buildTaskHooks.context.run({configuration});
 
   const webAppSteps = await Promise.all(
     workspace.webApps.map(async (webApp) => {
@@ -79,68 +92,113 @@ export async function runBuild(
 
       const hooks: BuildWebAppHooks = {
         variants: new WaterfallHook(),
+        variant: new SeriesHook(),
         steps: new WaterfallHook(),
         context: new WaterfallHook(),
         configure: new SeriesHook(),
         configureHooks: new WaterfallHook(),
       };
 
-      const projectDetails = {
-        project: webApp,
+      const details = {
         options,
         hooks,
+        context: workspaceContext,
+      };
+
+      const projectDetails = {
+        project: webApp,
+        ...details,
       };
 
       await buildTaskHooks.project.run(projectDetails);
       await buildTaskHooks.webApp.run(projectDetails);
-      await build.run({options, hooks});
+      await build.run(details);
 
-      const variants = await hooks.variants.run([]);
+      const [variants, context] = await Promise.all([
+        hooks.variants.run([]),
+        hooks.context.run({}),
+      ]);
 
       const stepsForVariant = async (
         variant: ArrayElement<typeof variants>,
       ) => {
+        const variantHooks: BuildWebAppVariantHooks = {
+          steps: new WaterfallHook(),
+          configure: new SeriesHook(),
+        };
+
+        await hooks.variant.run({variant, hooks: variantHooks});
+
         const configuration = await hooks.configureHooks.run({});
-        await hooks.configure.run(configuration, variant);
+        await hooks.configure.run(configuration);
+        await variantHooks.configure.run(configuration);
 
-        const context = await hooks.context.run({variant, configuration});
-
-        return hooks.steps.run([], context);
+        return variantHooks.steps.run([], configuration, context);
       };
 
-      return Promise.all(
-        variants.map(async (variant) => {
-          const steps = await stepsForVariant(variant);
+      const variantSteps = await Promise.all(
+        variants.map(
+          async (variant): Promise<StepDetails> => {
+            const steps = await stepsForVariant(variant);
 
-          const variantLabel: import('@sewing-kit/core').Loggable =
-            variants.length > 1
-              ? (fmt) =>
-                  fmt`web app {emphasis ${
+            const step = createStep(
+              {
+                id: 'SewingKit.BuildWebAppVariant',
+                label: (fmt) =>
+                  fmt`build web app {emphasis ${
                     webApp.name
-                  }} variant {subdued ${stringifyVariant(variant)}}`
-              : (fmt) => fmt`web app {emphasis ${webApp.name}}`;
+                  }} variant {subdued ${stringifyVariant(variant)}}`,
+              },
+              async (step) => {
+                if (steps.length === 0) {
+                  step.log('no build steps available', {level: LogLevel.Debug});
+                  return;
+                }
 
-          const step = createStep(
-            {
-              id:
-                variants.length > 1
-                  ? 'SewingKit.BuildPackageVariant'
-                  : 'SewingKit.BuildPackage',
-              label: (fmt) => fmt`build ${variantLabel}`,
-            },
-            async (step) => {
-              if (steps.length === 0) {
-                step.log('no build steps available', {level: LogLevel.Debug});
-                return;
-              }
+                await step.runNested(steps);
+              },
+            );
 
-              await step.runNested(steps);
-            },
-          );
-
-          return {step, target: webApp};
-        }),
+            return {step, target: webApp};
+          },
+        ),
       );
+
+      const additionalSteps: StepDetails[] = [];
+
+      if (hooks.steps.hasHooks) {
+        const configuration = await hooks.configureHooks.run({});
+        await hooks.configure.run(configuration);
+
+        const nonVariantSteps = await hooks.steps.run(
+          [],
+          configuration,
+          context,
+        );
+
+        const step = createStep(
+          {
+            id: 'SewingKit.BuildWebApp',
+            label: (fmt) => fmt`build web app {emphasis ${webApp.name}}`,
+          },
+          async (step) => {
+            if (nonVariantSteps.length === 0) {
+              step.log('no build steps available', {level: LogLevel.Debug});
+              return;
+            }
+
+            await step.runNested(nonVariantSteps);
+          },
+        );
+
+        additionalSteps.push({
+          step,
+          target: webApp,
+          dependencies: variantSteps.map(({step}) => step),
+        });
+      }
+
+      return [...variantSteps, ...additionalSteps];
     }),
   );
 
@@ -156,43 +214,112 @@ export async function runBuild(
         context: new WaterfallHook(),
         configure: new SeriesHook(),
         configureHooks: new WaterfallHook(),
+        variants: new WaterfallHook(),
+        variant: new SeriesHook(),
+      };
+
+      const details = {
+        options,
+        hooks,
+        context: workspaceContext,
       };
 
       const projectDetails = {
         project: service,
-        options,
-        hooks,
+        ...details,
       };
 
       await buildTaskHooks.project.run(projectDetails);
       await buildTaskHooks.service.run(projectDetails);
-      await build.run({options, hooks});
+      await build.run(details);
 
       const configuration = await hooks.configureHooks.run({});
       await hooks.configure.run(configuration);
 
-      const context = await hooks.context.run({configuration});
-      const steps = await hooks.steps.run([], context);
+      const [variants, context] = await Promise.all([
+        hooks.variants.run([]),
+        hooks.context.run({}),
+      ]);
 
-      const serviceLabel: import('@sewing-kit/core').Loggable = (fmt) =>
-        fmt`service {emphasis ${service.name}}`;
+      const stepsForVariant = async (
+        variant: ArrayElement<typeof variants>,
+      ) => {
+        const variantHooks: BuildServiceVariantHooks = {
+          steps: new WaterfallHook(),
+          configure: new SeriesHook(),
+        };
 
-      const step = createStep(
-        {
-          id: 'SewingKit.BuildService',
-          label: (fmt) => fmt`build ${serviceLabel}`,
-        },
-        async (step) => {
-          if (steps.length === 0) {
-            step.log('no build steps available', {level: LogLevel.Debug});
-            return;
-          }
+        await hooks.variant.run({variant, hooks: variantHooks});
 
-          await step.runNested(steps);
-        },
+        const configuration = await hooks.configureHooks.run({});
+
+        await hooks.configure.run(configuration);
+        await variantHooks.configure.run(configuration);
+
+        return variantHooks.steps.run([], configuration, context);
+      };
+
+      const variantSteps = await Promise.all(
+        variants.map(async (variant) => {
+          const steps = await stepsForVariant(variant);
+
+          const step = createStep(
+            {
+              id: 'SewingKit.BuildServiceVariant',
+              label: (fmt) =>
+                fmt`build service {emphasis ${
+                  service.name
+                }} variant {subdued ${stringifyVariant(variant)}}`,
+            },
+            async (step) => {
+              if (steps.length === 0) {
+                step.log('no build steps available', {level: LogLevel.Debug});
+                return;
+              }
+
+              await step.runNested(steps);
+            },
+          );
+
+          return {step, target: service};
+        }),
       );
 
-      return {step, target: service};
+      const additionalSteps: StepDetails[] = [];
+
+      if (hooks.steps.hasHooks) {
+        const configuration = await hooks.configureHooks.run({});
+        await hooks.configure.run(configuration);
+
+        const nonVariantSteps = await hooks.steps.run(
+          [],
+          configuration,
+          context,
+        );
+
+        const step = createStep(
+          {
+            id: 'SewingKit.BuildService',
+            label: (fmt) => fmt`build package {emphasis ${service.name}}`,
+          },
+          async (step) => {
+            if (nonVariantSteps.length === 0) {
+              step.log('no build steps available', {level: LogLevel.Debug});
+              return;
+            }
+
+            await step.runNested(nonVariantSteps);
+          },
+        );
+
+        additionalSteps.push({
+          step,
+          target: service,
+          dependencies: variantSteps.map(({step}) => step),
+        });
+      }
+
+      return [...variantSteps, ...additionalSteps];
     }),
   );
 
@@ -202,47 +329,61 @@ export async function runBuild(
 
       const hooks: BuildPackageHooks = {
         variants: new WaterfallHook(),
+        variant: new SeriesHook(),
         steps: new WaterfallHook(),
         context: new WaterfallHook(),
         configure: new SeriesHook(),
         configureHooks: new WaterfallHook(),
       };
 
-      const projectDetails = {
-        project: pkg,
+      const details = {
         options,
         hooks,
+        context: workspaceContext,
+      };
+
+      const projectDetails = {
+        project: pkg,
+        ...details,
       };
 
       await buildTaskHooks.project.run(projectDetails);
       await buildTaskHooks.package.run(projectDetails);
-      await build.run({options, hooks});
+      await build.run(details);
 
-      const variants = await hooks.variants.run([]);
+      const [variants, context] = await Promise.all([
+        hooks.variants.run([]),
+        hooks.context.run({}),
+      ]);
 
-      return Promise.all(
+      const stepsForVariant = async (
+        variant: ArrayElement<typeof variants>,
+      ) => {
+        const variantHooks: BuildPackageVariantHooks = {
+          steps: new WaterfallHook(),
+          configure: new SeriesHook(),
+        };
+
+        await hooks.variant.run({variant, hooks: variantHooks});
+
+        const configuration = await hooks.configureHooks.run({});
+        await hooks.configure.run(configuration);
+        await variantHooks.configure.run(configuration);
+
+        return variantHooks.steps.run([], configuration, context);
+      };
+
+      const variantSteps = await Promise.all(
         variants.map(async (variant) => {
-          const configuration = await hooks.configureHooks.run({});
-          await hooks.configure.run(configuration, variant);
-
-          const context = await hooks.context.run({variant, configuration});
-          const steps = await hooks.steps.run([], context);
-
-          const variantLabel: import('@sewing-kit/core').Loggable =
-            variants.length > 1
-              ? (fmt) =>
-                  fmt`package {emphasis ${
-                    pkg.name
-                  }} variant {subdued ${stringifyVariant(variant)}}`
-              : (fmt) => fmt`package {emphasis ${pkg.name}}`;
+          const steps = await stepsForVariant(variant);
 
           const step = createStep(
             {
-              id:
-                variants.length > 1
-                  ? 'SewingKit.BuildWebAppVariant'
-                  : 'SewingKit.BuildWebApp',
-              label: (fmt) => fmt`build ${variantLabel}`,
+              id: 'SewingKit.BuildPackageVariant',
+              label: (fmt) =>
+                fmt`build package {emphasis ${
+                  pkg.name
+                }} variant {subdued ${stringifyVariant(variant)}}`,
             },
             async (step) => {
               if (steps.length === 0) {
@@ -257,6 +398,42 @@ export async function runBuild(
           return {step, target: pkg};
         }),
       );
+
+      const additionalSteps: StepDetails[] = [];
+
+      if (hooks.steps.hasHooks) {
+        const configuration = await hooks.configureHooks.run({});
+        await hooks.configure.run(configuration);
+
+        const nonVariantSteps = await hooks.steps.run(
+          [],
+          configuration,
+          context,
+        );
+
+        const step = createStep(
+          {
+            id: 'SewingKit.BuildPackage',
+            label: (fmt) => fmt`build package {emphasis ${pkg.name}}`,
+          },
+          async (step) => {
+            if (nonVariantSteps.length === 0) {
+              step.log('no build steps available', {level: LogLevel.Debug});
+              return;
+            }
+
+            await step.runNested(nonVariantSteps);
+          },
+        );
+
+        additionalSteps.push({
+          step,
+          target: pkg,
+          dependencies: variantSteps.map(({step}) => step),
+        });
+      }
+
+      return [...variantSteps, ...additionalSteps];
     }),
   );
 
@@ -266,12 +443,9 @@ export async function runBuild(
     ...serviceSteps.flat(),
   ];
 
-  const configuration = await buildTaskHooks.configureHooks.run({});
-  await buildTaskHooks.configure.run(configuration);
-
   const [pre, post] = await Promise.all([
-    buildTaskHooks.pre.run([], {configuration}),
-    buildTaskHooks.post.run([], {configuration}),
+    buildTaskHooks.pre.run([], workspaceContext),
+    buildTaskHooks.post.run([], workspaceContext),
   ]);
 
   await run(taskContext, {

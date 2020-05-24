@@ -22,11 +22,11 @@ export const typeCheck = createCommand(
 );
 
 export async function runTypeCheck(
-  context: TaskContext,
+  taskContext: TaskContext,
   options: TypeCheckOptions,
 ) {
-  const {workspace} = context;
-  const {typeCheck} = await createWorkspaceTasksAndApplyPlugins(context);
+  const {workspace} = taskContext;
+  const {typeCheck} = await createWorkspaceTasksAndApplyPlugins(taskContext);
 
   const hooks: TypeCheckWorkspaceTaskHooks = {
     configureHooks: new WaterfallHook(),
@@ -34,6 +34,7 @@ export async function runTypeCheck(
     pre: new WaterfallHook(),
     steps: new WaterfallHook(),
     post: new WaterfallHook(),
+    context: new WaterfallHook(),
   };
 
   await typeCheck.run({
@@ -44,15 +45,13 @@ export async function runTypeCheck(
   const configuration = await hooks.configureHooks.run({});
   await hooks.configure.run(configuration);
 
-  const pre = await hooks.pre.run([], {configuration});
-  const steps = await hooks.steps.run([], {
-    configuration,
-  });
-  const post = await hooks.post.run([], {
-    configuration,
-  });
+  const context = await hooks.context.run({configuration});
 
-  await run(context, {
+  const pre = await hooks.pre.run([], context);
+  const steps = await hooks.steps.run([], context);
+  const post = await hooks.post.run([], context);
+
+  await run(taskContext, {
     title: 'type-check',
     pre,
     post,
