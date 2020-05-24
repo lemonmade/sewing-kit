@@ -21,7 +21,7 @@ export function webpackDevService({
         hooks.webpackOutputFilename?.hook(() => 'main.js');
       });
 
-      hooks.steps.hook((steps, {configuration, webpackBuildManager}) => {
+      hooks.steps.hook((steps, configuration, {webpackBuildManager}) => {
         return [
           ...steps,
           api.createStep(

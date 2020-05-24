@@ -149,20 +149,22 @@ export function webpackBuild({config, resources}: BuildWebpackOptions = {}) {
   return createProjectBuildPlugin(
     `${PLUGIN}.Build`,
     ({api, hooks, options, project, workspace}) => {
-      hooks.steps.hook((steps, context) => [
-        ...steps,
-        createWebpackBuildStep({
-          api,
-          project,
-          workspace,
-          hooks: context.configuration,
-          variant: 'variant' in context ? (context as any).variant : {},
-          env: options.simulateEnv,
-          sourceMaps: options.sourceMaps ?? true,
-          config,
-          resources,
-        }),
-      ]);
+      hooks.variant.hook(({variant, hooks}) => {
+        hooks.steps.hook((steps, configuration) => [
+          ...steps,
+          createWebpackBuildStep({
+            api,
+            project,
+            workspace,
+            hooks: configuration,
+            variant,
+            env: options.simulateEnv,
+            sourceMaps: options.sourceMaps ?? true,
+            config,
+            resources,
+          }),
+        ]);
+      });
     },
   );
 }

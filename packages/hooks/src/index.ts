@@ -325,9 +325,7 @@ export interface DevPackageConfigurationHooks
 
 export interface DevPackageCustomContext extends DevProjectCustomContext {}
 
-interface DevPackageCoreContext extends DevProjectCoreContext {
-  readonly configuration: DevPackageConfigurationHooks;
-}
+interface DevPackageCoreContext extends DevProjectCoreContext {}
 
 export interface DevPackageContext
   extends DevPackageCoreContext,
@@ -337,7 +335,11 @@ export interface DevPackageHooks {
   readonly configureHooks: WaterfallHook<DevPackageConfigurationHooks>;
   readonly configure: SeriesHook<DevPackageConfigurationHooks>;
   readonly context: WaterfallHook<DevPackageContext>;
-  readonly steps: WaterfallHook<readonly Step[], DevPackageContext>;
+  readonly steps: WaterfallHook<
+    readonly Step[],
+    DevPackageContext,
+    DevPackageContext
+  >;
 }
 
 // SERVICE
@@ -358,9 +360,7 @@ export interface DevServiceConfigurationHooks
 
 export interface DevServiceCustomContext extends DevProjectCustomContext {}
 
-interface DevServiceCoreContext extends DevProjectCoreContext {
-  readonly configuration: DevServiceConfigurationHooks;
-}
+interface DevServiceCoreContext extends DevProjectCoreContext {}
 
 export interface DevServiceContext
   extends DevServiceCoreContext,
@@ -370,7 +370,11 @@ export interface DevServiceHooks {
   readonly configureHooks: WaterfallHook<DevServiceConfigurationHooks>;
   readonly configure: SeriesHook<DevServiceConfigurationHooks>;
   readonly context: WaterfallHook<DevServiceContext>;
-  readonly steps: WaterfallHook<readonly Step[], DevServiceContext>;
+  readonly steps: WaterfallHook<
+    readonly Step[],
+    DevServiceConfigurationHooks,
+    DevServiceContext
+  >;
 }
 
 // WEB APP
@@ -386,9 +390,7 @@ export interface DevWebAppConfigurationHooks
 
 export interface DevWebAppCustomContext extends DevProjectCustomContext {}
 
-interface DevWebAppCoreContext extends DevProjectCoreContext {
-  readonly configuration: DevWebAppConfigurationHooks;
-}
+interface DevWebAppCoreContext extends DevProjectCoreContext {}
 
 export interface DevWebAppContext
   extends DevWebAppCoreContext,
@@ -398,7 +400,11 @@ export interface DevWebAppHooks {
   readonly configureHooks: WaterfallHook<DevWebAppConfigurationHooks>;
   readonly configure: SeriesHook<DevWebAppConfigurationHooks>;
   readonly context: WaterfallHook<DevWebAppContext>;
-  readonly steps: WaterfallHook<readonly Step[], DevWebAppContext>;
+  readonly steps: WaterfallHook<
+    readonly Step[],
+    DevWebAppConfigurationHooks,
+    DevWebAppContext
+  >;
 }
 
 // WORKSPACE

@@ -72,7 +72,7 @@ export function webpackDevWebApp({
         hooks.babelConfig?.hook(updateBabelConfig);
       });
 
-      hooks.steps.hook((steps, {configuration, webpackBuildManager}) => {
+      hooks.steps.hook((steps, configuration, {webpackBuildManager}) => {
         return [
           ...steps,
           api.createStep(

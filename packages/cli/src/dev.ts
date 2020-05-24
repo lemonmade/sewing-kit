@@ -103,8 +103,8 @@ export async function runDev(
       const configuration = await hooks.configureHooks.run({});
       await hooks.configure.run(configuration);
 
-      const context = await hooks.context.run({configuration});
-      const steps = await hooks.steps.run([], context);
+      const context = await hooks.context.run({});
+      const steps = await hooks.steps.run([], configuration, context);
 
       const step = createStep(
         {
@@ -160,8 +160,8 @@ export async function runDev(
       });
       await hooks.configure.run(configuration);
 
-      const context = await hooks.context.run({configuration});
-      const steps = await hooks.steps.run([], context);
+      const context = await hooks.context.run({});
+      const steps = await hooks.steps.run([], configuration, context);
 
       const step = createStep(
         {
@@ -211,8 +211,8 @@ export async function runDev(
       const configuration = await hooks.configureHooks.run({});
       await hooks.configure.run(configuration);
 
-      const context = await hooks.context.run({configuration});
-      const steps = await hooks.steps.run([], context);
+      const context = await hooks.context.run({});
+      const steps = await hooks.steps.run([], configuration, context);
 
       const step = createStep(
         {
@@ -236,8 +236,8 @@ export async function runDev(
   const allSteps = [...packageSteps, ...webAppSteps, ...serviceSteps];
 
   const [pre, post] = await Promise.all([
-    devTaskHooks.pre.run([], {configuration}),
-    devTaskHooks.post.run([], {configuration}),
+    devTaskHooks.pre.run([], workspaceContext),
+    devTaskHooks.post.run([], workspaceContext),
   ]);
 
   await run(taskContext, {
