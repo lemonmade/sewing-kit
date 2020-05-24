@@ -57,19 +57,19 @@ export function webpackDevWebApp({
       );
 
       hooks.configure.hook((hooks) => {
-        hooks.babelConfig?.hook(
-          updateSewingKitBabelPreset({
-            target: [
-              'last 1 chrome versions',
-              'last 1 chromeandroid versions',
-              'last 1 firefox versions',
-              'last 1 opera versions',
-              'last 1 edge versions',
-              'safari >= 11',
-              'ios >= 11',
-            ],
-          }),
-        );
+        const updateBabelConfig = updateSewingKitBabelPreset({
+          target: [
+            'last 1 chrome versions',
+            'last 1 chromeandroid versions',
+            'last 1 firefox versions',
+            'last 1 opera versions',
+            'last 1 edge versions',
+            'safari >= 11',
+            'ios >= 11',
+          ],
+        });
+
+        hooks.babelConfig?.hook(updateBabelConfig);
       });
 
       hooks.steps.hook((steps, {configuration, webpackBuildManager}) => {
