@@ -1,16 +1,16 @@
 {
   "name": "@sewing-kit/plugin-vscode",
   "license": "MIT",
-  "version": "0.0.53",
+  "version": "0.0.54",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/plugins": "^0.0.24"
+    "@sewing-kit/plugins": "^0.0.25"
   },
   "optionalDependencies": {
-    "@sewing-kit/plugin-webpack": "^0.0.43"
+    "@sewing-kit/plugin-webpack": "^0.0.44"
   }
 }
