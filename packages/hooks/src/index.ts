@@ -151,7 +151,7 @@ export interface BuildPackageVariantHooks {
   readonly configure: SeriesHook<BuildPackageConfigurationHooks>;
   readonly steps: WaterfallHook<
     readonly Step[],
-    BuildWebAppConfigurationHooks,
+    BuildPackageConfigurationHooks,
     BuildPackageContext
   >;
 }
@@ -169,7 +169,7 @@ export interface BuildPackageHooks {
   readonly context: WaterfallHook<BuildPackageContext>;
   readonly steps: WaterfallHook<
     readonly Step[],
-    BuildWebAppConfigurationHooks,
+    BuildPackageConfigurationHooks,
     BuildPackageContext
   >;
 }
@@ -201,7 +201,7 @@ export interface BuildServiceVariantHooks {
   readonly configure: SeriesHook<BuildServiceConfigurationHooks>;
   readonly steps: WaterfallHook<
     readonly Step[],
-    BuildWebAppConfigurationHooks,
+    BuildServiceConfigurationHooks,
     BuildServiceContext
   >;
 }
@@ -218,7 +218,7 @@ export interface BuildServiceHooks {
   readonly context: WaterfallHook<BuildServiceContext>;
   readonly steps: WaterfallHook<
     readonly Step[],
-    BuildWebAppConfigurationHooks,
+    BuildServiceConfigurationHooks,
     BuildServiceContext
   >;
   readonly variant: SeriesHook<BuildServiceVariantDetails>;
@@ -337,7 +337,7 @@ export interface DevPackageHooks {
   readonly context: WaterfallHook<DevPackageContext>;
   readonly steps: WaterfallHook<
     readonly Step[],
-    DevPackageContext,
+    DevPackageConfigurationHooks,
     DevPackageContext
   >;
 }
