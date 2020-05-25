@@ -72,7 +72,7 @@ export function webpackDevWebApp({
         hooks.babelConfig?.hook(updateBabelConfig);
       });
 
-      hooks.steps.hook((steps, configuration, {webpackBuildManager}) => {
+      hooks.steps.hook((steps, configuration) => {
         return [
           ...steps,
           api.createStep(
@@ -117,8 +117,6 @@ export function webpackDevWebApp({
               });
 
               compiler.hooks.done.tap(PLUGIN, (stats) => {
-                webpackBuildManager?.emit(project, stats);
-
                 if (stats.hasErrors()) {
                   store.set({status: BuildStatus.BuildError, stats});
                 } else {

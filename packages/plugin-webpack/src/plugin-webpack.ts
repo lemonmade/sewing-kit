@@ -17,6 +17,11 @@ import {
   createProjectBuildPlugin,
   Runtime,
 } from '@sewing-kit/plugins';
+import type {
+  BuildWebAppOptions,
+  BuildServiceOptions,
+  BuildPackageOptions,
+} from '@sewing-kit/hooks';
 
 interface WebpackHooks {
   readonly webpackCachePath: WaterfallHook<string>;
@@ -76,15 +81,28 @@ interface WebpackHooks {
   >;
 }
 
-interface WebpackContext {
-  readonly webpackBuildManager: BuildManager;
+type WebpackStats = import('webpack').Stats;
+
+interface WebpackProjectContext<Type extends Project = Project> {
+  readonly webpackStats: Map<
+    Type extends WebApp
+      ? BuildWebAppOptions
+      : Type extends Package
+      ? BuildPackageOptions
+      : Type extends Service
+      ? BuildServiceOptions
+      : never,
+    WebpackStats
+  >;
 }
 
 declare module '@sewing-kit/hooks' {
   interface BuildProjectConfigurationCustomHooks extends WebpackHooks {}
   interface DevProjectConfigurationCustomHooks extends WebpackHooks {}
-  interface BuildProjectStepCustomContext extends WebpackContext {}
-  interface DevProjectCustomContext extends WebpackContext {}
+
+  interface BuildWebAppCustomContext extends WebpackProjectContext<WebApp> {}
+  interface BuildPackageCustomContext extends WebpackProjectContext<Package> {}
+  interface BuildServiceCustomContext extends WebpackProjectContext<Service> {}
 }
 
 const PLUGIN = 'SewingKit.Webpack';
@@ -124,18 +142,14 @@ export function webpackHooks() {
   return createProjectPlugin(PLUGIN, ({tasks: {build, dev}}) => {
     build.hook(({hooks}) => {
       hooks.configureHooks.hook(addWebpackHooks);
-      hooks.context.hook((context: any) => ({
+      hooks.context.hook((context) => ({
         ...context,
-        webpackBuildManager: new BuildManager(),
+        webpackStats: new Map(),
       }));
     });
 
     dev.hook(({hooks}) => {
       hooks.configureHooks.hook(addWebpackHooks);
-      hooks.context.hook((context: any) => ({
-        ...context,
-        webpackBuildManager: new BuildManager(),
-      }));
     });
   });
 }
@@ -150,7 +164,7 @@ export function webpackBuild({config, resources}: BuildWebpackOptions = {}) {
     `${PLUGIN}.Build`,
     ({api, hooks, options, project, workspace}) => {
       hooks.variant.hook(({variant, hooks}) => {
-        hooks.steps.hook((steps, configuration) => [
+        hooks.steps.hook((steps, configuration, context) => [
           ...steps,
           createWebpackBuildStep({
             api,
@@ -162,6 +176,7 @@ export function webpackBuild({config, resources}: BuildWebpackOptions = {}) {
             sourceMaps: options.sourceMaps ?? true,
             config,
             resources,
+            context,
           }),
         ]);
       });
@@ -177,6 +192,7 @@ interface BuildWebpackStepOptions extends BuildWebpackOptions {
   project: Project;
   sourceMaps?: boolean;
   variant?: object;
+  context: Partial<WebpackProjectContext>;
 }
 
 export function createWebpackBuildStep({
@@ -189,11 +205,12 @@ export function createWebpackBuildStep({
   sourceMaps,
   config,
   resources,
+  context: {webpackStats},
 }: BuildWebpackStepOptions) {
   return api.createStep(
     {id: 'Webpack.Build', label: 'bundling with webpack', resources},
     async () => {
-      await buildWebpack(
+      const stats = await buildWebpack(
         await createWebpackConfig({
           env,
           api,
@@ -205,6 +222,8 @@ export function createWebpackBuildStep({
           config,
         }),
       );
+
+      if (variant) webpackStats?.set(variant as any, stats);
     },
   );
 }

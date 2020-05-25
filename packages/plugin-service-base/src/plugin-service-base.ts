@@ -21,7 +21,7 @@ export function webpackDevService({
         hooks.webpackOutputFilename?.hook(() => 'main.js');
       });
 
-      hooks.steps.hook((steps, configuration, {webpackBuildManager}) => {
+      hooks.steps.hook((steps, configuration) => {
         return [
           ...steps,
           api.createStep(
@@ -118,8 +118,7 @@ export function webpackDevService({
                 store.subscribe(updateServers);
                 await updateServers();
 
-                compiler.hooks.done.tap(PLUGIN, (stats) => {
-                  webpackBuildManager?.emit(project, stats);
+                compiler.hooks.done.tap(PLUGIN, () => {
                   store.set(true);
                 });
 
