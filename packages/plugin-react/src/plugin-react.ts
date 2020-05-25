@@ -113,7 +113,7 @@ function createBabelConfigAdjuster({
       ['@babel/preset-react', {development, useBuiltIns: true}],
     ],
     plugins: fastReload
-      ? config.plugins
-      : [...config.plugins, 'react-refresh/babel'],
+      ? [...config.plugins, 'react-refresh/babel']
+      : config.plugins,
   });
 }
