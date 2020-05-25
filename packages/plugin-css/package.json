@@ -1,14 +1,14 @@
 {
   "name": "@sewing-kit/plugin-css",
   "license": "MIT",
-  "version": "0.0.19",
+  "version": "0.1.0",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/plugins": "^0.0.25",
+    "@sewing-kit/plugins": "^0.1.0",
     "@types/mini-css-extract-plugin": "^0.9.1",
     "@types/optimize-css-assets-webpack-plugin": "^5.0.1",
     "css-loader": "^3.5.2",
@@ -20,8 +20,8 @@
     "style-loader": "^1.1.4"
   },
   "optionalDependencies": {
-    "@sewing-kit/plugin-jest": "^0.0.51",
-    "@sewing-kit/plugin-webpack": "^0.0.44",
+    "@sewing-kit/plugin-jest": "^0.1.0",
+    "@sewing-kit/plugin-webpack": "^0.1.0",
     "webpack": ">=4 <5"
   }
 }

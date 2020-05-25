@@ -1,22 +1,22 @@
 {
   "name": "@sewing-kit/plugin-sass",
   "license": "MIT",
-  "version": "0.0.46",
+  "version": "0.1.0",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/hooks": "^0.0.24",
-    "@sewing-kit/plugins": "^0.0.25",
+    "@sewing-kit/hooks": "^0.1.0",
+    "@sewing-kit/plugins": "^0.1.0",
     "sass-loader": "^8.0.2"
   },
   "peerDependencies": {
     "@sewing-kit/plugin-css": "*"
   },
   "optionalDependencies": {
-    "@sewing-kit/plugin-webpack": "^0.0.44",
+    "@sewing-kit/plugin-webpack": "^0.1.0",
     "webpack": ">=4 <5"
   }
 }

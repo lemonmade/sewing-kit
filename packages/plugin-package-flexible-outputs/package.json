@@ -1,19 +1,19 @@
 {
   "name": "@sewing-kit/plugin-package-flexible-outputs",
   "license": "MIT",
-  "version": "0.0.50",
+  "version": "0.1.0",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/plugin-package-binaries": "^0.0.40",
-    "@sewing-kit/plugin-package-commonjs": "^0.0.58",
-    "@sewing-kit/plugin-package-esmodules": "^0.0.59",
-    "@sewing-kit/plugin-package-esnext": "^0.0.60",
-    "@sewing-kit/plugin-package-node": "^0.0.59",
-    "@sewing-kit/plugin-package-typescript": "^0.0.57",
-    "@sewing-kit/plugins": "^0.0.25"
+    "@sewing-kit/plugin-package-binaries": "^0.1.0",
+    "@sewing-kit/plugin-package-commonjs": "^0.1.0",
+    "@sewing-kit/plugin-package-esmodules": "^0.1.0",
+    "@sewing-kit/plugin-package-esnext": "^0.1.0",
+    "@sewing-kit/plugin-package-node": "^0.1.0",
+    "@sewing-kit/plugin-package-typescript": "^0.1.0",
+    "@sewing-kit/plugins": "^0.1.0"
   }
 }

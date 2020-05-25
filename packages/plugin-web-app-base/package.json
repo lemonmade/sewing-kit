@@ -1,16 +1,16 @@
 {
   "name": "@sewing-kit/plugin-web-app-base",
   "license": "MIT",
-  "version": "0.0.66",
+  "version": "0.1.0",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/hooks": "^0.0.24",
-    "@sewing-kit/plugin-javascript": "^0.0.55",
-    "@sewing-kit/plugins": "^0.0.25",
+    "@sewing-kit/hooks": "^0.1.0",
+    "@sewing-kit/plugin-javascript": "^0.1.0",
+    "@sewing-kit/plugins": "^0.1.0",
     "@types/koa": "^2.11.3",
     "@types/koa-webpack": "^5.0.1",
     "get-port": "^5.1.1",
@@ -19,7 +19,7 @@
   },
   "optionalDependencies": {
     "@sewing-kit/plugin-javascript": "^0.0.55",
-    "@sewing-kit/plugin-webpack": "^0.0.44",
+    "@sewing-kit/plugin-webpack": "^0.1.0",
     "webpack": ">=4 <5"
   }
 }
