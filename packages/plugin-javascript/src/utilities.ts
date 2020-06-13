@@ -169,6 +169,8 @@ export function createCompileBabelStep({
             // @see https://babeljs.io/docs/en/babel-cli#ignoring-babelrcjson-
             noBabelrc: true,
             babelConfig: false,
+            copyFiles: true,
+            noCopyIgnored: true,
             extensions: babelExtensions.join(','),
             // @see https://babeljs.io/docs/en/babel-cli#ignore-files
             ignore:

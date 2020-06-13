@@ -41,12 +41,12 @@ declare module '@sewing-kit/hooks' {
     >;
     readonly jestTestMatch: WaterfallHook<readonly string[]>;
     readonly jestConfig: WaterfallHook<JestConfig>;
+    readonly jestWatchIgnore: WaterfallHook<readonly string[]>;
   }
 
   interface TestWorkspaceConfigurationCustomHooks {
     readonly jestSetupEnv: WaterfallHook<readonly string[]>;
     readonly jestSetupTests: WaterfallHook<readonly string[]>;
-    readonly jestWatchIgnore: WaterfallHook<readonly string[]>;
     readonly jestConfig: WaterfallHook<JestConfig>;
     readonly jestWatchPlugins: WaterfallHook<readonly string[]>;
     readonly jestFlags: WaterfallHook<JestFlags>;
@@ -90,27 +90,12 @@ export function jest() {
         ...hooks,
         jestSetupEnv: new WaterfallHook(),
         jestSetupTests: new WaterfallHook(),
-        jestWatchIgnore: new WaterfallHook(),
         jestWatchPlugins: new WaterfallHook(),
         jestConfig: new WaterfallHook(),
         jestFlags: new WaterfallHook(),
       }));
 
       hooks.configure.hook((configure) => {
-        configure.jestWatchIgnore!.hook((watchIgnore) => [
-          ...watchIgnore,
-          '/tmp/',
-          api.resolvePath(),
-          workspace.fs.buildPath(),
-          ...workspace.projects.map((project) => project.fs.buildPath()),
-        ]);
-
-        configure.jestWatchPlugins!.hook((watchPlugins) => [
-          ...watchPlugins,
-          'jest-watch-typeahead/filename',
-          'jest-watch-typeahead/testname',
-        ]);
-
         configure.jestSetupEnv!.hook(async (setupEnvFiles) => {
           const packageSetupEnvFiles = ([] as string[]).concat(
             ...(await Promise.all([
@@ -167,6 +152,11 @@ export function jest() {
                     'babel-transformer.js',
                   );
 
+                  const watchIgnore = await hooks.jestWatchIgnore!.run([
+                    project.fs.buildPath(),
+                    project.fs.resolvePath('node_modules/'),
+                  ]);
+
                   const babelConfig = await hooks.babelConfig.run({
                     presets: [],
                     plugins: [],
@@ -206,6 +196,7 @@ export function jest() {
                     moduleNameMapper: moduleMapper,
                     setupFiles: setupEnvFiles,
                     setupFilesAfterEnv: setupTestsFiles,
+                    watchPathIgnorePatterns: watchIgnore,
                     transform,
                   });
 
@@ -214,16 +205,15 @@ export function jest() {
               ),
             );
 
-            const watchPlugins = await configuration.jestWatchPlugins!.run([]);
-            const watchIgnorePatterns = await configuration.jestWatchIgnore!.run(
-              [],
-            );
+            const watchPlugins = await configuration.jestWatchPlugins!.run([
+              'jest-watch-typeahead/filename',
+              'jest-watch-typeahead/testname',
+            ]);
 
             const rootConfig = await configuration.jestConfig!.run({
               rootDir: workspace.root,
               projects: projects as any,
               watchPlugins,
-              watchPathIgnorePatterns: watchIgnorePatterns,
             });
 
             await api.write(
@@ -310,6 +300,7 @@ export function jestProjectHooks() {
           jestTransforms: new WaterfallHook(),
           jestTestMatch: new WaterfallHook(),
           jestConfig: new WaterfallHook(),
+          jestWatchIgnore: new WaterfallHook(),
         }));
 
         hooks.configure.hook((configure) => {
