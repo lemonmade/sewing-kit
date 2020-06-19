@@ -26,10 +26,7 @@ export default function babelPresetSewingKit(
       require.resolve('@babel/plugin-proposal-numeric-separator'),
       require.resolve('@babel/plugin-proposal-optional-chaining'),
       require.resolve('@babel/plugin-proposal-nullish-coalescing-operator'),
-      [
-        require.resolve('@babel/plugin-proposal-class-properties'),
-        {loose: true},
-      ],
+      require.resolve('@babel/plugin-proposal-class-properties'),
     ],
     presets: [
       [
@@ -41,6 +38,7 @@ export default function babelPresetSewingKit(
           modules: modules === 'preserve' ? false : modules,
           targets: target === 'node' ? {node: 'current'} : target,
           ignoreBrowserslistConfig: target != null,
+          bugfixes: true,
         },
       ],
     ],
