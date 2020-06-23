@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/plugin-package-esmodules",
   "license": "MIT",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@sewing-kit/hooks": "^0.1.0",
-    "@sewing-kit/plugin-javascript": "^0.1.2",
+    "@sewing-kit/plugin-javascript": "^0.1.3",
     "@sewing-kit/plugins": "^0.1.0"
   },
   "optionalDependencies": {
