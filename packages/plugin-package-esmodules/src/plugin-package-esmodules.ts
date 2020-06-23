@@ -23,8 +23,8 @@ declare module '@sewing-kit/hooks' {
 }
 
 const updateBabelPreset = updateSewingKitBabelPreset({
+  polyfill: 'inline',
   modules: 'preserve',
-  polyfill: 'usage',
 });
 
 export function esmodulesOutput() {

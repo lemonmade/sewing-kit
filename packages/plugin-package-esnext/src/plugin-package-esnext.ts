@@ -85,6 +85,7 @@ export function buildEsNextOutput() {
       hooks.configure.hook((configuration) => {
         configuration.babelConfig?.hook(
           updateSewingKitBabelPreset({
+            polyfill: 'inline',
             modules: 'preserve',
             target: ['last 1 chrome version'],
           }),

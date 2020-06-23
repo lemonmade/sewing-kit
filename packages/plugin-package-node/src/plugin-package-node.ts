@@ -50,6 +50,7 @@ export function buildNodeOutput() {
       hooks.configure.hook((configurationHooks) => {
         configurationHooks.babelConfig?.hook(
           updateSewingKitBabelPreset({
+            polyfill: 'inline',
             modules: 'commonjs',
             target: 'node',
           }),

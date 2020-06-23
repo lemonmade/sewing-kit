@@ -15,13 +15,13 @@ declare module '@sewing-kit/hooks' {
 }
 
 const setCommonJsModules = updateSewingKitBabelPreset({
+  polyfill: 'inline',
   modules: 'commonjs',
-  polyfill: 'usage',
 });
 
 const setNodeTarget = updateSewingKitBabelPreset({
+  polyfill: 'inline',
   target: 'node',
-  polyfill: 'usage',
 });
 
 export function buildCommonJsOutput() {

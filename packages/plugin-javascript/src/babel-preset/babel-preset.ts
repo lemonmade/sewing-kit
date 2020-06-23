@@ -1,6 +1,6 @@
 export type Module = 'preserve' | 'commonjs';
 
-export type Polyfill = 'usage' | 'entry';
+export type Polyfill = 'usage' | 'entry' | 'inline';
 
 export type Target = 'node';
 
@@ -33,7 +33,7 @@ export default function babelPresetSewingKit(
         require.resolve('@babel/preset-env'),
         {
           debug,
-          useBuiltIns: polyfill,
+          useBuiltIns: polyfill === 'inline' ? false : polyfill,
           corejs: 3,
           modules: modules === 'preserve' ? false : modules,
           targets: target === 'node' ? {node: 'current'} : target,
