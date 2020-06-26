@@ -1,18 +1,18 @@
 {
   "name": "@sewing-kit/plugin-package-esnext",
   "license": "MIT",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/hooks": "^0.1.0",
-    "@sewing-kit/plugin-javascript": "^0.1.3",
-    "@sewing-kit/plugins": "^0.1.0"
+    "@sewing-kit/hooks": "^0.1.1",
+    "@sewing-kit/plugin-javascript": "^0.1.4",
+    "@sewing-kit/plugins": "^0.1.1"
   },
   "optionalDependencies": {
-    "@sewing-kit/plugin-webpack": "^0.1.0"
+    "@sewing-kit/plugin-webpack": "^0.1.1"
   }
 }

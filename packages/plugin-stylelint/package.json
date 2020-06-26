@@ -1,15 +1,15 @@
 {
   "name": "@sewing-kit/plugin-stylelint",
   "license": "MIT",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/hooks": "^0.1.0",
-    "@sewing-kit/plugins": "^0.1.0",
+    "@sewing-kit/hooks": "^0.1.1",
+    "@sewing-kit/plugins": "^0.1.1",
     "stylelint": "^13.4.0"
   }
 }
