@@ -5,8 +5,8 @@ import {
   Package,
   WaterfallHook,
   createWorkspaceTestPlugin,
-  createProjectPlugin,
   toArgs,
+  addHooks,
   MissingPluginError,
 } from '@sewing-kit/plugins';
 import {} from '@sewing-kit/plugin-javascript';
@@ -26,31 +26,34 @@ type DeepReadonly<T> = Readonly<
 
 type JestConfig = DeepReadonly<import('@jest/types').Config.InitialOptions>;
 
-declare module '@sewing-kit/hooks' {
-  interface TestProjectConfigurationCustomHooks {
-    readonly jestExtensions: WaterfallHook<readonly string[]>;
-    readonly jestEnvironment: WaterfallHook<string>;
-    readonly jestModuleMapper: WaterfallHook<{
-      [key: string]: string;
-    }>;
-    readonly jestSetupEnv: WaterfallHook<readonly string[]>;
-    readonly jestSetupTests: WaterfallHook<readonly string[]>;
-    readonly jestTransforms: WaterfallHook<
-      {[key: string]: string},
-      {readonly babelTransform: string}
-    >;
-    readonly jestTestMatch: WaterfallHook<readonly string[]>;
-    readonly jestConfig: WaterfallHook<JestConfig>;
-    readonly jestWatchIgnore: WaterfallHook<readonly string[]>;
-  }
+interface JestProjectHooks {
+  readonly jestExtensions: WaterfallHook<readonly string[]>;
+  readonly jestEnvironment: WaterfallHook<string>;
+  readonly jestModuleMapper: WaterfallHook<{
+    [key: string]: string;
+  }>;
+  readonly jestSetupEnv: WaterfallHook<readonly string[]>;
+  readonly jestSetupTests: WaterfallHook<readonly string[]>;
+  readonly jestTransforms: WaterfallHook<
+    {[key: string]: string},
+    {readonly babelTransform: string}
+  >;
+  readonly jestTestMatch: WaterfallHook<readonly string[]>;
+  readonly jestConfig: WaterfallHook<JestConfig>;
+  readonly jestWatchIgnore: WaterfallHook<readonly string[]>;
+}
 
-  interface TestWorkspaceConfigurationCustomHooks {
-    readonly jestSetupEnv: WaterfallHook<readonly string[]>;
-    readonly jestSetupTests: WaterfallHook<readonly string[]>;
-    readonly jestConfig: WaterfallHook<JestConfig>;
-    readonly jestWatchPlugins: WaterfallHook<readonly string[]>;
-    readonly jestFlags: WaterfallHook<JestFlags>;
-  }
+interface JestWorkspaceHooks {
+  readonly jestSetupEnv: WaterfallHook<readonly string[]>;
+  readonly jestSetupTests: WaterfallHook<readonly string[]>;
+  readonly jestConfig: WaterfallHook<JestConfig>;
+  readonly jestWatchPlugins: WaterfallHook<readonly string[]>;
+  readonly jestFlags: WaterfallHook<JestFlags>;
+}
+
+declare module '@sewing-kit/hooks' {
+  interface TestProjectConfigurationCustomHooks extends JestProjectHooks {}
+  interface TestWorkspaceConfigurationCustomHooks extends JestWorkspaceHooks {}
 
   interface TestWorkspaceCustomContext {
     readonly jestProjectConfigurations: Map<
@@ -86,43 +89,40 @@ export function jest() {
       >();
       const rootConfigPath = api.configPath('jest/root.config.js');
 
-      hooks.configureHooks.hook((hooks) => ({
-        ...hooks,
-        jestSetupEnv: new WaterfallHook(),
-        jestSetupTests: new WaterfallHook(),
-        jestWatchPlugins: new WaterfallHook(),
-        jestConfig: new WaterfallHook(),
-        jestFlags: new WaterfallHook(),
-      }));
-
-      hooks.configure.hook((configure) => {
-        configure.jestSetupEnv!.hook(async (setupEnvFiles) => {
-          const packageSetupEnvFiles = ([] as string[]).concat(
-            ...(await Promise.all([
-              workspace.fs.glob('tests/setup/environment.*'),
-              workspace.fs.glob('tests/setup/environment/index.*'),
-            ])),
-          );
-
-          return [...setupEnvFiles, ...packageSetupEnvFiles];
-        });
-
-        configure.jestSetupTests!.hook(async (setupTestsFiles) => {
-          const packageSetupTestsFiles = ([] as string[]).concat(
-            ...(await Promise.all([
-              workspace.fs.glob('tests/setup/tests.*'),
-              workspace.fs.glob('tests/setup/tests/index.*'),
-            ])),
-          );
-
-          return [...setupTestsFiles, ...packageSetupTestsFiles];
-        });
-      });
+      hooks.configureHooks.hook(
+        addHooks<JestWorkspaceHooks>(() => ({
+          jestSetupEnv: new WaterfallHook(),
+          jestSetupTests: new WaterfallHook(),
+          jestWatchPlugins: new WaterfallHook(),
+          jestConfig: new WaterfallHook(),
+          jestFlags: new WaterfallHook(),
+        })),
+      );
 
       hooks.context.hook((context) => ({
         ...context,
         jestProjectConfigurations: projectConfigurations,
       }));
+
+      hooks.project.hook(({hooks, project, context}) => {
+        hooks.configureHooks.hook(
+          addHooks<JestProjectHooks>(() => ({
+            jestExtensions: new WaterfallHook(),
+            jestEnvironment: new WaterfallHook(),
+            jestModuleMapper: new WaterfallHook(),
+            jestSetupEnv: new WaterfallHook(),
+            jestSetupTests: new WaterfallHook(),
+            jestTransforms: new WaterfallHook(),
+            jestTestMatch: new WaterfallHook(),
+            jestConfig: new WaterfallHook(),
+            jestWatchIgnore: new WaterfallHook(),
+          })),
+        );
+
+        hooks.configure.hook((configuration) => {
+          context.jestProjectConfigurations!.set(project, configuration);
+        });
+      });
 
       hooks.pre.hook((steps, {configuration}) => [
         ...steps,
@@ -132,9 +132,40 @@ export function jest() {
             label: 'write jest configuration files',
           },
           async () => {
-            const [rootSetupEnvFiles, rootSetupTestsFiles] = await Promise.all([
-              configuration.jestSetupEnv!.run([]),
-              configuration.jestSetupTests!.run([]),
+            const internalModuleMap = workspace.packages.reduce<{
+              [key: string]: string;
+            }>(
+              (all, pkg) => ({
+                ...all,
+                ...packageEntryMatcherMap(pkg),
+              }),
+              {},
+            );
+
+            const [
+              setupEnvironment,
+              setupEnvironmentIndexes,
+              setupTests,
+              setupTestsIndexes,
+            ] = await Promise.all([
+              workspace.fs.glob('tests/setup/environment.*'),
+              workspace.fs.glob('tests/setup/environment/index.*'),
+              workspace.fs.glob('tests/setup/tests.*'),
+              workspace.fs.glob('tests/setup/tests/index.*'),
+            ]);
+
+            const [
+              rootSetupEnvironmentFiles,
+              rootSetupTestsFiles,
+            ] = await Promise.all([
+              configuration.jestSetupEnv!.run([
+                ...setupEnvironment,
+                ...setupEnvironmentIndexes,
+              ]),
+              configuration.jestSetupTests!.run([
+                ...setupTests,
+                ...setupTestsIndexes,
+              ]),
             ]);
 
             const projects = await Promise.all(
@@ -152,33 +183,57 @@ export function jest() {
                     'babel-transformer.js',
                   );
 
-                  const watchIgnore = await hooks.jestWatchIgnore!.run([
-                    project.fs.buildPath(),
-                    project.fs.resolvePath('node_modules/'),
+                  const [
+                    setupEnvironment,
+                    setupEnvironmentIndexes,
+                    setupTests,
+                    setupTestsIndexes,
+                  ] = await Promise.all([
+                    project.fs.glob('tests/setup/environment.*'),
+                    project.fs.glob('tests/setup/environment/index.*'),
+                    project.fs.glob('tests/setup/tests.*'),
+                    project.fs.glob('tests/setup/tests/index.*'),
                   ]);
 
-                  const babelConfig = await hooks.babelConfig.run({
-                    presets: [],
-                    plugins: [],
-                  });
-                  const transform = await hooks.jestTransforms!.run(
-                    {'^.+\\.m?js$': babelTransform},
-                    {babelTransform},
-                  );
-                  const environment = await hooks.jestEnvironment!.run('node');
-                  // Unfortunately, some packages (like `graphql`) use `.mjs` for esmodule
-                  // versions of the file, which Jest can't parse. To avoid transforming
-                  // those otherwise-fine files, we prefer .js for tests only.
-                  const extensions = (
-                    await hooks.jestExtensions!.run(['.js', '.mjs', '.json'])
-                  ).map((extension) => extension.replace(/^\./, ''));
-                  const moduleMapper = await hooks.jestModuleMapper!.run({});
-                  const setupEnvFiles = await hooks.jestSetupEnv!.run(
-                    rootSetupEnvFiles,
-                  );
-                  const setupTestsFiles = await hooks.jestSetupTests!.run(
-                    rootSetupTestsFiles,
-                  );
+                  const [
+                    environment,
+                    watchIgnore,
+                    babelConfig,
+                    transform,
+                    extensions,
+                    moduleMapper,
+                    setupEnvironmentFiles,
+                    setupTestsFiles,
+                  ] = await Promise.all([
+                    hooks.jestEnvironment!.run('node'),
+                    hooks.jestWatchIgnore!.run([
+                      project.fs.buildPath(),
+                      project.fs.resolvePath('node_modules/'),
+                    ]),
+                    hooks.babelConfig.run({
+                      presets: [],
+                      plugins: [],
+                    }),
+                    hooks.jestTransforms!.run(
+                      {'^.+\\.m?js$': babelTransform},
+                      {babelTransform},
+                    ),
+                    // Unfortunately, some packages (like `graphql`) use `.mjs` for esmodule
+                    // versions of the file, which Jest can't parse. To avoid transforming
+                    // those otherwise-fine files, we prefer .js for tests only.
+                    hooks.jestExtensions!.run(['.js', '.mjs', '.json']),
+                    hooks.jestModuleMapper!.run(internalModuleMap),
+                    hooks.jestSetupEnv!.run([
+                      ...rootSetupEnvironmentFiles,
+                      ...setupEnvironment,
+                      ...setupEnvironmentIndexes,
+                    ]),
+                    hooks.jestSetupEnv!.run([
+                      ...rootSetupTestsFiles,
+                      ...setupTests,
+                      ...setupTestsIndexes,
+                    ]),
+                  ]);
 
                   await api.write(
                     babelTransform,
@@ -191,10 +246,12 @@ export function jest() {
                     displayName: project.name,
                     rootDir: project.root,
                     testRegex: [`.+\\.test\\.(${extensions.join('|')})$`],
-                    moduleFileExtensions: extensions,
+                    moduleFileExtensions: extensions.map((extension) =>
+                      extension.replace(/^\./, ''),
+                    ),
                     testEnvironment: environment,
                     moduleNameMapper: moduleMapper,
-                    setupFiles: setupEnvFiles,
+                    setupFiles: setupEnvironmentFiles,
                     setupFilesAfterEnv: setupTestsFiles,
                     watchPathIgnorePatterns: watchIgnore,
                     transform,
@@ -271,74 +328,6 @@ export function jest() {
           }
         }),
       ]);
-    },
-  );
-}
-
-export function jestProjectHooks() {
-  return createProjectPlugin(
-    PLUGIN,
-    ({project, workspace, tasks: {test, build}}) => {
-      build.hook(({hooks}) => {
-        hooks.configure.hook((configurationHooks) => {
-          configurationHooks.babelIgnorePatterns?.hook((patterns) => [
-            ...patterns,
-            '**/test/',
-            '**/tests/',
-          ]);
-        });
-      });
-
-      test.hook(({hooks, context}) => {
-        hooks.configureHooks.hook((hooks) => ({
-          ...hooks,
-          jestExtensions: new WaterfallHook(),
-          jestEnvironment: new WaterfallHook(),
-          jestModuleMapper: new WaterfallHook(),
-          jestSetupEnv: new WaterfallHook(),
-          jestSetupTests: new WaterfallHook(),
-          jestTransforms: new WaterfallHook(),
-          jestTestMatch: new WaterfallHook(),
-          jestConfig: new WaterfallHook(),
-          jestWatchIgnore: new WaterfallHook(),
-        }));
-
-        hooks.configure.hook((configure) => {
-          context.jestProjectConfigurations!.set(project, configure);
-
-          configure.jestSetupEnv!.hook(async (setupEnvFiles) => {
-            const packageSetupEnvFiles = ([] as string[]).concat(
-              ...(await Promise.all([
-                project.fs.glob('tests/setup/environment.*'),
-                project.fs.glob('tests/setup/environment/index.*'),
-              ])),
-            );
-
-            return [...setupEnvFiles, ...packageSetupEnvFiles];
-          });
-
-          configure.jestSetupTests!.hook(async (setupTestsFiles) => {
-            const packageSetupTestsFiles = ([] as string[]).concat(
-              ...(await Promise.all([
-                project.fs.glob('tests/setup/tests.*'),
-                project.fs.glob('tests/setup/tests/index.*'),
-              ])),
-            );
-
-            return [...setupTestsFiles, ...packageSetupTestsFiles];
-          });
-
-          configure.jestModuleMapper!.hook((moduleMap) => {
-            return workspace.packages.reduce(
-              (all, pkg) => ({
-                ...all,
-                ...packageEntryMatcherMap(pkg),
-              }),
-              moduleMap,
-            );
-          });
-        });
-      });
     },
   );
 }

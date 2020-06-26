@@ -15,12 +15,14 @@ import {
   WaterfallHook,
   createProjectPlugin,
   createProjectBuildPlugin,
+  projectTypeSwitch,
   Runtime,
 } from '@sewing-kit/plugins';
 import type {
   BuildWebAppOptions,
   BuildServiceOptions,
   BuildPackageOptions,
+  BuildProjectVariantContext,
 } from '@sewing-kit/hooks';
 
 interface WebpackHooks {
@@ -82,18 +84,19 @@ interface WebpackHooks {
 }
 
 type WebpackStats = import('webpack').Stats;
+type WebpackStatsMap<Type extends Project> = Map<
+  Type extends WebApp
+    ? BuildWebAppOptions
+    : Type extends Package
+    ? BuildPackageOptions
+    : Type extends Service
+    ? BuildServiceOptions
+    : never,
+  WebpackStats
+>;
 
 interface WebpackProjectContext<Type extends Project = Project> {
-  readonly webpackStats: Map<
-    Type extends WebApp
-      ? BuildWebAppOptions
-      : Type extends Package
-      ? BuildPackageOptions
-      : Type extends Service
-      ? BuildServiceOptions
-      : never,
-    WebpackStats
-  >;
+  readonly webpackStats: WebpackStatsMap<Type>;
 }
 
 declare module '@sewing-kit/hooks' {
@@ -176,7 +179,8 @@ export function webpackBuild({config, resources}: BuildWebpackOptions = {}) {
             sourceMaps: options.sourceMaps ?? true,
             config,
             resources,
-            context,
+            stats: context.project.webpackStats,
+            runtimes: context.variant.runtimes,
           }),
         ]);
       });
@@ -192,7 +196,8 @@ interface BuildWebpackStepOptions extends BuildWebpackOptions {
   project: Project;
   sourceMaps?: boolean;
   variant?: object;
-  context: Partial<WebpackProjectContext>;
+  stats?: WebpackStatsMap<any>;
+  runtimes?: BuildProjectVariantContext['runtimes'];
 }
 
 export function createWebpackBuildStep({
@@ -205,12 +210,13 @@ export function createWebpackBuildStep({
   sourceMaps,
   config,
   resources,
-  context: {webpackStats},
+  stats,
+  runtimes,
 }: BuildWebpackStepOptions) {
   return api.createStep(
     {id: 'Webpack.Build', label: 'bundling with webpack', resources},
     async () => {
-      const stats = await buildWebpack(
+      const webpackStats = await buildWebpack(
         await createWebpackConfig({
           env,
           api,
@@ -220,10 +226,11 @@ export function createWebpackBuildStep({
           workspace,
           sourceMaps,
           config,
+          runtimes,
         }),
       );
 
-      if (variant) webpackStats?.set(variant as any, stats);
+      if (variant) stats?.set(variant as any, webpackStats);
     },
   );
 }
@@ -248,6 +255,15 @@ type Mutable<T> = {
   -readonly [K in keyof T]: T[K];
 };
 
+const RUNTIME_TO_TARGET: {
+  [K in Runtime]: Extract<import('webpack').Configuration['target'], string>;
+} = {
+  [Runtime.Node]: 'node',
+  [Runtime.Browser]: 'web',
+  [Runtime.WebWorker]: 'webworker',
+  [Runtime.ServiceWorker]: 'webworker',
+};
+
 export async function createWebpackConfig({
   env,
   api,
@@ -257,6 +273,7 @@ export async function createWebpackConfig({
   workspace,
   sourceMaps = false,
   config: explicitConfig = {},
+  runtimes,
 }: Pick<
   BuildWebpackStepOptions,
   | 'env'
@@ -267,6 +284,7 @@ export async function createWebpackConfig({
   | 'sourceMaps'
   | 'config'
   | 'variant'
+  | 'runtimes'
 >) {
   if (hooks.webpackConfig == null) {
     throw new MissingPluginError('@sewing-kit/plugin-webpack');
@@ -286,16 +304,18 @@ export async function createWebpackConfig({
     import('case-sensitive-paths-webpack-plugin'),
   ] as const);
 
-  const target = await hooks.webpackTarget!.run(
-    projectType(project, {
-      service: 'node',
-      webApp: 'web',
+  const runtime: Runtime =
+    runtimes?.[0] ??
+    projectTypeSwitch(project, {
+      service: Runtime.Node,
+      webApp: Runtime.Browser,
       package: (pkg) =>
         pkg.runtime === Runtime.Node || pkg.entries[0]?.runtime === Runtime.Node
-          ? 'node'
-          : 'web',
-    }),
-  );
+          ? Runtime.Node
+          : Runtime.Browser,
+    });
+
+  const target = await hooks.webpackTarget!.run(RUNTIME_TO_TARGET[runtime]);
 
   const mode = toMode(env);
   const cachePath = await hooks.webpackCachePath!.run(api.cachePath('webpack'));
@@ -326,7 +346,7 @@ export async function createWebpackConfig({
     return value;
   });
   const outputPath = await hooks.webpackOutputDirectory!.run(
-    projectType(project, {
+    projectTypeSwitch(project, {
       webApp: (webApp) =>
         workspace.fs.buildPath(
           workspace.webApps.length > 1 ? `apps/${webApp.name}` : 'app',
@@ -376,7 +396,7 @@ export async function createWebpackConfig({
 
   const publicPath = await hooks.webpackPublicPath!.run('/assets/');
   const entry = await hooks.webpackEntries!.run(
-    projectType(project, {
+    projectTypeSwitch(project, {
       webApp: (app) => app.entry && [app.fs.resolvePath(app.entry)],
       service: (service) =>
         service.entry && [service.fs.resolvePath(service.entry)],
@@ -578,33 +598,6 @@ function cacheIdentifierForDependencies({
   return `${prefix}${createHash('md5')
     .update(dependencyString)
     .digest('hex')}${postfix}`;
-}
-
-type TypeOrCreator<Type, ProjectType> = Type | ((project: ProjectType) => Type);
-
-function projectType<
-  PackageReturn = undefined,
-  WebAppReturn = undefined,
-  ServiceReturn = undefined
->(
-  project: Project,
-  {
-    package: pkg,
-    webApp,
-    service,
-  }: {
-    package?: TypeOrCreator<PackageReturn, Package>;
-    webApp?: TypeOrCreator<WebAppReturn, WebApp>;
-    service?: TypeOrCreator<ServiceReturn, Service>;
-  },
-) {
-  if (project instanceof Package) {
-    return typeof pkg === 'function' ? (pkg as any)(project) : pkg;
-  } else if (project instanceof WebApp) {
-    return typeof webApp === 'function' ? (webApp as any)(project) : webApp;
-  } else if (project instanceof Service) {
-    return typeof service === 'function' ? (service as any)(project) : service;
-  }
 }
 
 function toMode(env: Env) {

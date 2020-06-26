@@ -1,4 +1,32 @@
 import {paramCase} from 'change-case';
+import {Project, Package, WebApp, Service} from '@sewing-kit/model';
+
+type TypeOrCreator<Type, ProjectType> = Type | ((project: ProjectType) => Type);
+
+export function projectTypeSwitch<
+  PackageReturn = undefined,
+  WebAppReturn = undefined,
+  ServiceReturn = undefined
+>(
+  project: Project,
+  {
+    package: pkg,
+    webApp,
+    service,
+  }: {
+    package?: TypeOrCreator<PackageReturn, Package>;
+    webApp?: TypeOrCreator<WebAppReturn, WebApp>;
+    service?: TypeOrCreator<ServiceReturn, Service>;
+  },
+) {
+  if (project instanceof Package) {
+    return typeof pkg === 'function' ? (pkg as any)(project) : pkg;
+  } else if (project instanceof WebApp) {
+    return typeof webApp === 'function' ? (webApp as any)(project) : webApp;
+  } else if (project instanceof Service) {
+    return typeof service === 'function' ? (service as any)(project) : service;
+  }
+}
 
 export function toArgs(flags: object, {dasherize = false, json = true} = {}) {
   return Object.entries(flags).reduce<string[]>((all, [key, value]) => {

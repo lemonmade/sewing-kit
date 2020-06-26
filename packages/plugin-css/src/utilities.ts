@@ -1,13 +1,13 @@
 import {
   Env,
   Service,
-  WebApp,
   Project,
   PluginApi,
   Package,
   Runtime,
   ValueOrGetter,
   unwrapPossibleGetter,
+  projectTypeSwitch,
 } from '@sewing-kit/plugins';
 import type {CSSWebpackHooks, PostcssPlugins} from './types';
 import type {Options as PostcssPresetOptions} from './postcss-preset';
@@ -25,6 +25,7 @@ export async function createCSSWebpackRuleSet({
   cssModules = true,
   cacheDirectory,
   cacheDependencies: initialCacheDependencies = [],
+  runtimes = getDefaultRuntimes(project),
 }: {
   id?: string;
   env: Env;
@@ -35,10 +36,12 @@ export async function createCSSWebpackRuleSet({
   postcss?: boolean;
   cssModules?: boolean;
   cacheDirectory: string;
-  cacheDependencies?: string[];
+  cacheDependencies?: readonly string[];
+  runtimes?: readonly Runtime[];
 }) {
-  const isWebApp = project instanceof WebApp;
+  const fullCss = usesRealCss(runtimes);
   const production = env === Env.Production;
+  const finalPostcss = postcss && fullCss;
 
   const [
     {default: MiniCssExtractPlugin},
@@ -51,12 +54,12 @@ export async function createCSSWebpackRuleSet({
     configuration.cssModuleClassNamePattern!.run(
       production ? '[hash:base64:5]' : '[name]-[local]_[hash:base64:5]',
     ),
-    postcss ? configuration.postcssPlugins!.run({}) : Promise.resolve({}),
+    finalPostcss ? configuration.postcssPlugins!.run({}) : Promise.resolve({}),
   ] as const);
 
   const pluginNames = Object.keys(postcssPlugins);
   const postcssPluginOptions =
-    postcss && pluginNames.length > 0
+    finalPostcss && pluginNames.length > 0
       ? {
           ident: `postcss_${id}`,
           plugins: () =>
@@ -77,7 +80,7 @@ export async function createCSSWebpackRuleSet({
     ),
     configuration.cssWebpackPostcssLoaderContext!.run({}),
     configuration.cssWebpackCacheDependencies!.run([
-      ...(postcss ? ['postcss', ...pluginNames] : []),
+      ...(finalPostcss ? ['postcss', ...pluginNames] : []),
       ...initialCacheDependencies,
     ]),
   ] as const);
@@ -104,7 +107,7 @@ export async function createCSSWebpackRuleSet({
 
   const use: import('webpack').RuleSetUse[] = [];
 
-  if (isWebApp) {
+  if (fullCss) {
     use.push(
       production
         ? {loader: MiniCssExtractPlugin.loader}
@@ -138,6 +141,20 @@ export async function createCSSWebpackRuleSet({
   }
 
   return use;
+}
+
+export function usesRealCss(runtimes: readonly Runtime[]) {
+  return runtimes.some((runtime) => runtime === Runtime.Browser);
+}
+
+function getDefaultRuntimes(project: Project) {
+  return (
+    projectTypeSwitch(project, {
+      package: (pkg) => (pkg.runtime ? [pkg.runtime] : []),
+      webApp: () => [Runtime.Browser],
+      service: () => [Runtime.Node],
+    }) ?? []
+  );
 }
 
 export function updatePostcssPlugin<Options = object>(

@@ -9,6 +9,8 @@ import {
   unwrapPossibleGetter,
   ValueOrArray,
   unwrapPossibleArrayGetter,
+  projectTypeSwitch,
+  Runtime,
 } from '@sewing-kit/plugins';
 
 import {} from '@sewing-kit/plugin-jest';
@@ -21,7 +23,7 @@ import {
   CSSWebpackLoaderOptions,
   CSSWebpackLoaderModule,
 } from './types';
-import {createCSSWebpackRuleSet, ENV_PRESET} from './utilities';
+import {createCSSWebpackRuleSet, usesRealCss, ENV_PRESET} from './utilities';
 import type {Features as PostcssFeatures, ImportFrom} from './postcss-preset';
 
 declare module '@sewing-kit/hooks' {
@@ -100,83 +102,92 @@ export function css({
         hooks.configureHooks.hook(addWebpackHooks);
 
         hooks.configure.hook((configuration) => {
-          if (postcss) {
-            configuration.postcssPlugins?.hook(
-              createBasePresetAdder(configuration),
-            );
-          }
-
-          configuration.webpackRules?.hook(
-            createWebpackRuleAdder({
-              sourceMaps,
-              configuration,
-              env: simulateEnv,
-            }),
+          configuration.postcssPlugins?.hook(
+            createBasePresetAdder(configuration),
           );
+        });
 
-          if (simulateEnv !== Env.Production) return;
-
-          configuration.webpackOptimizeMinizers?.hook(async (minimizers) => {
-            const [
-              {default: OptimizeCssAssetsPlugin},
-              optimizeOptions,
-            ] = await Promise.all([
-              import('optimize-css-assets-webpack-plugin'),
-              configuration.cssWebpackOptimizeOptions!.run({
-                cssProcessorOptions: {
-                  map: {inline: false, annotations: true},
-                },
-                cssProcessorPluginOptions: {
-                  preset: [
-                    'default',
-                    {
-                      // This rule has an issue where multiple declarations
-                      // for the same property are merged into one, which can
-                      // change the semantics of code like:
-                      //
-                      // .klass {
-                      //   padding-left: 4rem;
-                      //   padding-left: calc(4rem + event(safe-area-inset-left));
-                      // }
-                      mergeLonghand: false,
-                    },
-                  ],
-                },
-                canPrint: false,
+        hooks.variant.hook(({hooks}) => {
+          hooks.configure.hook((configuration, {variant: {runtimes}}) => {
+            configuration.webpackRules?.hook(
+              createWebpackRuleAdder({
+                sourceMaps,
+                configuration,
+                env: simulateEnv,
+                runtimes,
               }),
-            ] as const);
+            );
 
-            return [
-              ...minimizers,
-              new OptimizeCssAssetsPlugin(optimizeOptions),
-            ];
-          });
+            if (simulateEnv !== Env.Production || !usesRealCss(runtimes))
+              return;
 
-          configuration.webpackPlugins?.hook(async (plugins) => {
-            const [
-              {default: MiniCssExtractPlugin},
-              cssWebpackFileName,
-              ignoreOrder,
-            ] = await Promise.all([
-              import('mini-css-extract-plugin'),
-              configuration.cssWebpackFileName!.run('[name]-[contenthash].css'),
-              // We will default to ignoring order if using CSS modules,
-              // because CSS modules use class namespacing to avoid most
-              // of the problems associated with reordering CSS.
-              configuration.cssWebpackIgnoreOrder!.run(cssModules),
-            ] as const);
-
-            return [
-              ...plugins,
-              // Generates the actual .css files
-              new MiniCssExtractPlugin(
-                await configuration.cssWebpackMiniExtractOptions!.run({
-                  ignoreOrder,
-                  filename: cssWebpackFileName,
-                  chunkFilename: cssWebpackFileName.replace(/\[name\]/, '[id]'),
+            configuration.webpackOptimizeMinizers?.hook(async (minimizers) => {
+              const [
+                {default: OptimizeCssAssetsPlugin},
+                optimizeOptions,
+              ] = await Promise.all([
+                import('optimize-css-assets-webpack-plugin'),
+                configuration.cssWebpackOptimizeOptions!.run({
+                  cssProcessorOptions: {
+                    map: {inline: false, annotations: true},
+                  },
+                  cssProcessorPluginOptions: {
+                    preset: [
+                      'default',
+                      {
+                        // This rule has an issue where multiple declarations
+                        // for the same property are merged into one, which can
+                        // change the semantics of code like:
+                        //
+                        // .klass {
+                        //   padding-left: 4rem;
+                        //   padding-left: calc(4rem + event(safe-area-inset-left));
+                        // }
+                        mergeLonghand: false,
+                      },
+                    ],
+                  },
+                  canPrint: false,
                 }),
-              ),
-            ];
+              ] as const);
+
+              return [
+                ...minimizers,
+                new OptimizeCssAssetsPlugin(optimizeOptions),
+              ];
+            });
+
+            configuration.webpackPlugins?.hook(async (plugins) => {
+              const [
+                {default: MiniCssExtractPlugin},
+                cssWebpackFileName,
+                ignoreOrder,
+              ] = await Promise.all([
+                import('mini-css-extract-plugin'),
+                configuration.cssWebpackFileName!.run(
+                  '[name]-[contenthash].css',
+                ),
+                // We will default to ignoring order if using CSS modules,
+                // because CSS modules use class namespacing to avoid most
+                // of the problems associated with reordering CSS.
+                configuration.cssWebpackIgnoreOrder!.run(cssModules),
+              ] as const);
+
+              return [
+                ...plugins,
+                // Generates the actual .css files
+                new MiniCssExtractPlugin(
+                  await configuration.cssWebpackMiniExtractOptions!.run({
+                    ignoreOrder,
+                    filename: cssWebpackFileName,
+                    chunkFilename: cssWebpackFileName.replace(
+                      /\[name\]/,
+                      '[id]',
+                    ),
+                  }),
+                ),
+              ];
+            });
           });
         });
       });
@@ -185,15 +196,25 @@ export function css({
         hooks.configureHooks.hook(addWebpackHooks);
 
         hooks.configure.hook((configuration) => {
-          configuration.postcssPlugins!.hook(
-            createBasePresetAdder(configuration),
-          );
+          const runtimes =
+            projectTypeSwitch(project, {
+              package: (pkg) => (pkg.runtime ? [pkg.runtime] : []),
+              webApp: () => [Runtime.Browser],
+              service: () => [Runtime.Node],
+            }) ?? [];
+
+          if (usesRealCss(runtimes)) {
+            configuration.postcssPlugins!.hook(
+              createBasePresetAdder(configuration),
+            );
+          }
 
           configuration.webpackRules?.hook(
             createWebpackRuleAdder({
               sourceMaps,
               configuration,
               env: Env.Development,
+              runtimes,
             }),
           );
         });
@@ -202,7 +223,7 @@ export function css({
       function createWebpackRuleAdder(
         options: Pick<
           Parameters<typeof createCSSWebpackRuleSet>[0],
-          'env' | 'sourceMaps' | 'configuration'
+          'env' | 'sourceMaps' | 'configuration' | 'runtimes'
         >,
       ) {
         return async (rules: readonly import('webpack').Rule[]) => {

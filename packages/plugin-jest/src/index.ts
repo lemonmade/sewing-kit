@@ -1,1 +1,1 @@
-export {jest, jestProjectHooks} from './plugin-jest';
+export {jest} from './plugin-jest';

@@ -207,9 +207,9 @@ async function writeEntries({
 
   await Promise.all(
     project.entries.map(async (entry) => {
-      const absoluteEntryPath = (await project.fs.hasDirectory(entry.root))
-        ? project.fs.resolvePath(entry.root, 'index')
-        : project.fs.resolvePath(entry.root);
+      const absoluteEntryPath = (await project.fs.hasFile(`${entry.root}.*`))
+        ? project.fs.resolvePath(entry.root)
+        : project.fs.resolvePath(entry.root, 'index');
 
       const relativeFromSourceRoot = relative(sourceRoot, absoluteEntryPath);
       const destinationInOutput = resolve(outputPath, relativeFromSourceRoot);

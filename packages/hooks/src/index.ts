@@ -1,4 +1,5 @@
-type Step = import('@sewing-kit/core').Step;
+import type {Step} from '@sewing-kit/core';
+import type {Runtime} from '@sewing-kit/model';
 
 // ==================================================================
 // PRIMITIVES
@@ -124,6 +125,14 @@ export interface BuildProjectContext
   extends BuildProjectCoreContext,
     Partial<BuildProjectCustomContext> {}
 
+export interface BuildProjectVariantCustomContext {}
+export interface BuildProjectVariantCoreContext {
+  readonly runtimes: readonly Runtime[];
+}
+export interface BuildProjectVariantContext
+  extends BuildProjectVariantCoreContext,
+    Partial<BuildProjectVariantCustomContext> {}
+
 // PACKAGE
 
 export interface BuildPackageOptions {}
@@ -147,12 +156,32 @@ export interface BuildPackageContext
   extends BuildPackageCoreContext,
     Partial<BuildPackageCustomContext> {}
 
+export interface BuildPackageVariantCustomContext
+  extends BuildProjectVariantCustomContext {}
+
+interface BuildPackageVariantCoreContext
+  extends BuildProjectVariantCoreContext {}
+
+export interface BuildPackageVariantContext
+  extends BuildPackageVariantCoreContext,
+    Partial<BuildPackageVariantCustomContext> {}
+
+export interface BuildPackageVariantHookContext {
+  readonly variant: BuildPackageVariantContext;
+  readonly project: BuildPackageContext;
+  readonly workspace: BuildWorkspaceContext;
+}
+
 export interface BuildPackageVariantHooks {
-  readonly configure: SeriesHook<BuildPackageConfigurationHooks>;
+  readonly context: WaterfallHook<BuildPackageVariantContext>;
+  readonly configure: SeriesHook<
+    BuildPackageConfigurationHooks,
+    BuildPackageVariantHookContext
+  >;
   readonly steps: WaterfallHook<
     readonly Step[],
     BuildPackageConfigurationHooks,
-    BuildPackageContext
+    BuildPackageVariantHookContext
   >;
 }
 
@@ -161,17 +190,25 @@ export interface BuildPackageVariantDetails {
   readonly hooks: BuildPackageVariantHooks;
 }
 
+export interface BuildPackageHookContext {
+  readonly project: BuildPackageContext;
+  readonly workspace: BuildWorkspaceContext;
+}
+
 export interface BuildPackageHooks {
   readonly variants: WaterfallHook<readonly Partial<BuildPackageOptions>[]>;
   readonly configureHooks: WaterfallHook<BuildPackageConfigurationHooks>;
-  readonly configure: SeriesHook<BuildPackageConfigurationHooks>;
-  readonly variant: SeriesHook<BuildPackageVariantDetails>;
+  readonly configure: SeriesHook<
+    BuildPackageConfigurationHooks,
+    BuildPackageHookContext
+  >;
   readonly context: WaterfallHook<BuildPackageContext>;
   readonly steps: WaterfallHook<
     readonly Step[],
     BuildPackageConfigurationHooks,
-    BuildPackageContext
+    BuildPackageHookContext
   >;
+  readonly variant: SeriesHook<BuildPackageVariantDetails>;
 }
 
 // SERVICE
@@ -197,12 +234,32 @@ export interface BuildServiceContext
   extends BuildServiceCoreContext,
     Partial<BuildServiceCustomContext> {}
 
+export interface BuildServiceVariantCustomContext
+  extends BuildProjectVariantCustomContext {}
+
+interface BuildServiceVariantCoreContext
+  extends BuildProjectVariantCoreContext {}
+
+export interface BuildServiceVariantContext
+  extends BuildServiceVariantCoreContext,
+    Partial<BuildServiceVariantCustomContext> {}
+
+export interface BuildServiceVariantHookContext {
+  readonly variant: BuildServiceVariantContext;
+  readonly project: BuildServiceContext;
+  readonly workspace: BuildWorkspaceContext;
+}
+
 export interface BuildServiceVariantHooks {
-  readonly configure: SeriesHook<BuildServiceConfigurationHooks>;
+  readonly context: WaterfallHook<BuildServiceVariantContext>;
+  readonly configure: SeriesHook<
+    BuildServiceConfigurationHooks,
+    BuildServiceVariantHookContext
+  >;
   readonly steps: WaterfallHook<
     readonly Step[],
     BuildServiceConfigurationHooks,
-    BuildServiceContext
+    BuildServiceVariantHookContext
   >;
 }
 
@@ -211,15 +268,23 @@ export interface BuildServiceVariantDetails {
   readonly hooks: BuildServiceVariantHooks;
 }
 
+export interface BuildServiceHookContext {
+  readonly project: BuildServiceContext;
+  readonly workspace: BuildWorkspaceContext;
+}
+
 export interface BuildServiceHooks {
   readonly variants: WaterfallHook<readonly Partial<BuildServiceOptions>[]>;
   readonly configureHooks: WaterfallHook<BuildServiceConfigurationHooks>;
-  readonly configure: SeriesHook<BuildServiceConfigurationHooks>;
+  readonly configure: SeriesHook<
+    BuildServiceConfigurationHooks,
+    BuildServiceHookContext
+  >;
   readonly context: WaterfallHook<BuildServiceContext>;
   readonly steps: WaterfallHook<
     readonly Step[],
     BuildServiceConfigurationHooks,
-    BuildServiceContext
+    BuildServiceHookContext
   >;
   readonly variant: SeriesHook<BuildServiceVariantDetails>;
 }
@@ -247,12 +312,32 @@ export interface BuildWebAppContext
   extends BuildWebAppCoreContext,
     Partial<BuildWebAppCustomContext> {}
 
+export interface BuildWebAppVariantCustomContext
+  extends BuildProjectVariantCustomContext {}
+
+interface BuildWebAppVariantCoreContext
+  extends BuildProjectVariantCoreContext {}
+
+export interface BuildWebAppVariantContext
+  extends BuildWebAppVariantCoreContext,
+    Partial<BuildWebAppVariantCustomContext> {}
+
+export interface BuildWebAppVariantHookContext {
+  readonly variant: BuildWebAppVariantContext;
+  readonly project: BuildWebAppContext;
+  readonly workspace: BuildWorkspaceContext;
+}
+
 export interface BuildWebAppVariantHooks {
-  readonly configure: SeriesHook<BuildWebAppConfigurationHooks>;
+  readonly context: WaterfallHook<BuildWebAppVariantContext>;
+  readonly configure: SeriesHook<
+    BuildWebAppConfigurationHooks,
+    BuildWebAppVariantHookContext
+  >;
   readonly steps: WaterfallHook<
     readonly Step[],
     BuildWebAppConfigurationHooks,
-    BuildWebAppContext
+    BuildWebAppVariantHookContext
   >;
 }
 
@@ -261,15 +346,23 @@ export interface BuildWebAppVariantDetails {
   readonly hooks: BuildWebAppVariantHooks;
 }
 
+export interface BuildWebAppHookContext {
+  readonly project: BuildWebAppContext;
+  readonly workspace: BuildWorkspaceContext;
+}
+
 export interface BuildWebAppHooks {
   readonly variants: WaterfallHook<readonly Partial<BuildWebAppOptions>[]>;
   readonly configureHooks: WaterfallHook<BuildWebAppConfigurationHooks>;
-  readonly configure: SeriesHook<BuildWebAppConfigurationHooks>;
+  readonly configure: SeriesHook<
+    BuildWebAppConfigurationHooks,
+    BuildWebAppHookContext
+  >;
   readonly context: WaterfallHook<BuildWebAppContext>;
   readonly steps: WaterfallHook<
     readonly Step[],
     BuildWebAppConfigurationHooks,
-    BuildWebAppContext
+    BuildWebAppHookContext
   >;
   readonly variant: SeriesHook<BuildWebAppVariantDetails>;
 }

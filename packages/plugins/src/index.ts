@@ -42,6 +42,7 @@ export type {
 export {
   toArgs,
   addHooks,
+  projectTypeSwitch,
   unwrapPossibleGetter,
   unwrapPossibleArrayGetter,
 } from './utilities';

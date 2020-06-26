@@ -14,6 +14,7 @@ import {
   BuildWorkspaceTaskHooks,
 } from '@sewing-kit/tasks';
 
+import {Runtime} from '@sewing-kit/model';
 import {LogLevel} from './ui';
 import {run, StepDetails} from './runner';
 import {
@@ -123,17 +124,28 @@ export async function runBuild(
         variant: ArrayElement<typeof variants>,
       ) => {
         const variantHooks: BuildWebAppVariantHooks = {
+          context: new WaterfallHook(),
           steps: new WaterfallHook(),
           configure: new SeriesHook(),
         };
 
         await hooks.variant.run({variant, hooks: variantHooks});
 
-        const configuration = await hooks.configureHooks.run({});
-        await hooks.configure.run(configuration);
-        await variantHooks.configure.run(configuration);
+        const [configuration, variantContext] = await Promise.all([
+          hooks.configureHooks.run({}),
+          variantHooks.context.run({runtimes: [Runtime.Browser]}),
+        ]);
 
-        return variantHooks.steps.run([], configuration, context);
+        const baseHookContext = {workspace: workspaceContext, project: context};
+        const variantHookContext = {
+          ...baseHookContext,
+          variant: variantContext,
+        };
+
+        await hooks.configure.run(configuration, baseHookContext);
+        await variantHooks.configure.run(configuration, variantHookContext);
+
+        return variantHooks.steps.run([], configuration, variantHookContext);
       };
 
       const variantSteps = await Promise.all(
@@ -168,12 +180,18 @@ export async function runBuild(
 
       if (hooks.steps.hasHooks) {
         const configuration = await hooks.configureHooks.run({});
-        await hooks.configure.run(configuration);
+
+        const hookContext = {
+          project: context,
+          workspace: workspaceContext,
+        };
+
+        await hooks.configure.run(configuration, hookContext);
 
         const nonVariantSteps = await hooks.steps.run(
           [],
           configuration,
-          context,
+          hookContext,
         );
 
         const step = createStep(
@@ -233,9 +251,6 @@ export async function runBuild(
       await buildTaskHooks.service.run(projectDetails);
       await build.run(details);
 
-      const configuration = await hooks.configureHooks.run({});
-      await hooks.configure.run(configuration);
-
       const [variants, context] = await Promise.all([
         hooks.variants.run([]),
         hooks.context.run({}),
@@ -245,18 +260,28 @@ export async function runBuild(
         variant: ArrayElement<typeof variants>,
       ) => {
         const variantHooks: BuildServiceVariantHooks = {
+          context: new WaterfallHook(),
           steps: new WaterfallHook(),
           configure: new SeriesHook(),
         };
 
         await hooks.variant.run({variant, hooks: variantHooks});
 
-        const configuration = await hooks.configureHooks.run({});
+        const [configuration, variantContext] = await Promise.all([
+          hooks.configureHooks.run({}),
+          variantHooks.context.run({runtimes: [Runtime.Node]}),
+        ]);
 
-        await hooks.configure.run(configuration);
-        await variantHooks.configure.run(configuration);
+        const baseHookContext = {workspace: workspaceContext, project: context};
+        const variantHookContext = {
+          ...baseHookContext,
+          variant: variantContext,
+        };
 
-        return variantHooks.steps.run([], configuration, context);
+        await hooks.configure.run(configuration, baseHookContext);
+        await variantHooks.configure.run(configuration, variantHookContext);
+
+        return variantHooks.steps.run([], configuration, variantHookContext);
       };
 
       const variantSteps = await Promise.all(
@@ -289,12 +314,18 @@ export async function runBuild(
 
       if (hooks.steps.hasHooks) {
         const configuration = await hooks.configureHooks.run({});
-        await hooks.configure.run(configuration);
+
+        const hookContext = {
+          project: context,
+          workspace: workspaceContext,
+        };
+
+        await hooks.configure.run(configuration, hookContext);
 
         const nonVariantSteps = await hooks.steps.run(
           [],
           configuration,
-          context,
+          hookContext,
         );
 
         const step = createStep(
@@ -360,17 +391,30 @@ export async function runBuild(
         variant: ArrayElement<typeof variants>,
       ) => {
         const variantHooks: BuildPackageVariantHooks = {
+          context: new WaterfallHook(),
           steps: new WaterfallHook(),
           configure: new SeriesHook(),
         };
 
         await hooks.variant.run({variant, hooks: variantHooks});
 
-        const configuration = await hooks.configureHooks.run({});
-        await hooks.configure.run(configuration);
-        await variantHooks.configure.run(configuration);
+        const [configuration, variantContext] = await Promise.all([
+          hooks.configureHooks.run({}),
+          variantHooks.context.run({
+            runtimes: pkg.runtime == null ? [] : [pkg.runtime],
+          }),
+        ]);
 
-        return variantHooks.steps.run([], configuration, context);
+        const baseHookContext = {workspace: workspaceContext, project: context};
+        const variantHookContext = {
+          ...baseHookContext,
+          variant: variantContext,
+        };
+
+        await hooks.configure.run(configuration, baseHookContext);
+        await variantHooks.configure.run(configuration, variantHookContext);
+
+        return variantHooks.steps.run([], configuration, variantHookContext);
       };
 
       const variantSteps = await Promise.all(
@@ -403,12 +447,18 @@ export async function runBuild(
 
       if (hooks.steps.hasHooks) {
         const configuration = await hooks.configureHooks.run({});
-        await hooks.configure.run(configuration);
+
+        const hookContext = {
+          project: context,
+          workspace: workspaceContext,
+        };
+
+        await hooks.configure.run(configuration, hookContext);
 
         const nonVariantSteps = await hooks.steps.run(
           [],
           configuration,
-          context,
+          hookContext,
         );
 
         const step = createStep(

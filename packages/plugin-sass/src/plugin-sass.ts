@@ -41,18 +41,15 @@ export function sass({
           sassIncludePaths: new WaterfallHook(),
         }));
 
-        hooks.configure.hook(
-          (
-            configuration: Partial<
-              import('@sewing-kit/hooks').BuildWebAppConfigurationHooks &
-                import('@sewing-kit/hooks').BuildServiceConfigurationHooks
-            >,
-          ) => {
-            configuration.cssWebpackCacheDependencies?.hook((dependencies) => [
-              ...dependencies,
-              'node-sass',
-            ]);
+        hooks.configure.hook((configuration) => {
+          configuration.cssWebpackCacheDependencies?.hook((dependencies) => [
+            ...dependencies,
+            'node-sass',
+          ]);
+        });
 
+        hooks.variant.hook(({hooks}) => {
+          hooks.configure.hook((configuration, {variant: {runtimes}}) => {
             configuration.webpackRules?.hook(async (rules) => {
               const sassIncludePaths = await configuration.sassIncludePaths!.run(
                 baseSassIncludes,
@@ -73,6 +70,7 @@ export function sass({
                       sourceMaps,
                       cacheDirectory: 'sass',
                       cacheDependencies: ['node-sass'],
+                      runtimes,
                     })),
                     {
                       path: 'sass-loader',
@@ -85,8 +83,8 @@ export function sass({
                 } as import('webpack').RuleSetRule,
               ];
             });
-          },
-        );
+          });
+        });
       });
 
       dev.hook(({hooks, options: {sourceMaps}}) => {
@@ -95,50 +93,43 @@ export function sass({
           sassIncludePaths: new WaterfallHook(),
         }));
 
-        hooks.configure.hook(
-          (
-            configuration: Partial<
-              import('@sewing-kit/hooks').DevWebAppConfigurationHooks &
-                import('@sewing-kit/hooks').DevServiceConfigurationHooks
-            >,
-          ) => {
-            configuration.cssWebpackCacheDependencies?.hook((dependencies) => [
-              ...dependencies,
-              'node-sass',
-            ]);
+        hooks.configure.hook((configuration) => {
+          configuration.cssWebpackCacheDependencies?.hook((dependencies) => [
+            ...dependencies,
+            'node-sass',
+          ]);
 
-            configuration.webpackRules?.hook(async (rules) => {
-              const sassIncludePaths = await configuration.sassIncludePaths!.run(
-                baseSassIncludes,
-              );
+          configuration.webpackRules?.hook(async (rules) => {
+            const sassIncludePaths = await configuration.sassIncludePaths!.run(
+              baseSassIncludes,
+            );
 
-              return [
-                ...rules,
-                {
-                  test: /\.scss$/,
-                  use: [
-                    ...(await createCSSWebpackRuleSet({
-                      api,
-                      env: Env.Development,
-                      configuration,
-                      project,
-                      sourceMaps,
-                      cacheDirectory: 'sass',
-                      cacheDependencies: ['node-sass'],
-                    })),
-                    {
-                      path: 'sass-loader',
-                      options: {
-                        sourceMap: sourceMaps,
-                        includePaths: sassIncludePaths,
-                      },
+            return [
+              ...rules,
+              {
+                test: /\.scss$/,
+                use: [
+                  ...(await createCSSWebpackRuleSet({
+                    api,
+                    env: Env.Development,
+                    configuration,
+                    project,
+                    sourceMaps,
+                    cacheDirectory: 'sass',
+                    cacheDependencies: ['node-sass'],
+                  })),
+                  {
+                    path: 'sass-loader',
+                    options: {
+                      sourceMap: sourceMaps,
+                      includePaths: sassIncludePaths,
                     },
-                  ],
-                } as import('webpack').RuleSetRule,
-              ];
-            });
-          },
-        );
+                  },
+                ],
+              } as import('webpack').RuleSetRule,
+            ];
+          });
+        });
       });
 
       test.hook(({hooks}) => {
