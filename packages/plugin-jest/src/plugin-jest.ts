@@ -242,13 +242,17 @@ export function jest() {
                     )});`,
                   );
 
+                  const normalizedExtensions = extensions.map((extension) =>
+                    extension.replace(/^\./, ''),
+                  );
+
                   const config = await hooks.jestConfig!.run({
                     displayName: project.name,
                     rootDir: project.root,
-                    testRegex: [`.+\\.test\\.(${extensions.join('|')})$`],
-                    moduleFileExtensions: extensions.map((extension) =>
-                      extension.replace(/^\./, ''),
-                    ),
+                    testRegex: [
+                      `.+\\.test\\.(${normalizedExtensions.join('|')})$`,
+                    ],
+                    moduleFileExtensions: normalizedExtensions,
                     testEnvironment: environment,
                     moduleNameMapper: moduleMapper,
                     setupFiles: setupEnvironmentFiles,
