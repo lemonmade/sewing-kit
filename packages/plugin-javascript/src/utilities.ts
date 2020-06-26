@@ -133,7 +133,23 @@ export function createCompileBabelStep({
         babelIgnorePatterns,
         babelExtensions,
       ] = await Promise.all([
-        configuration.babelConfig.run({presets: [], plugins: []}),
+        configuration.babelConfig.run({
+          presets: [],
+          plugins: [
+            // This avoids compilation targets without generators having bare
+            // `regeneratorRuntime` globals. It does mean that the final consumer
+            // needs to have the runtime dependency (`@babel/runtime`), though.
+            [
+              require.resolve('@babel/plugin-transform-runtime'),
+              {
+                corejs: false,
+                helpers: false,
+                regenerator: true,
+                useESModules: exportStyle === ExportStyle.EsModules,
+              },
+            ],
+          ],
+        }),
         configuration.babelIgnorePatterns!.run([]),
         configuration.babelExtensions!.run(['.mjs', '.js']),
       ]);
