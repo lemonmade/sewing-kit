@@ -13,9 +13,11 @@
     "@types/case-sensitive-paths-webpack-plugin": "^2.1.2",
     "@types/terser-webpack-plugin": "^2.2.0",
     "@types/webpack": "^4.41.12",
+    "@types/webpack-merge": "^4.1.5",
     "cache-loader": "^4.1.0",
     "case-sensitive-paths-webpack-plugin": "^2.3.0",
     "terser-webpack-plugin": "^3.0.1",
-    "webpack": "^4.42.1"
+    "webpack": "^4.42.1",
+    "webpack-merge": "^4.2.2"
   }
 }

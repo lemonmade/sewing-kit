@@ -297,11 +297,13 @@ export async function createWebpackConfig({
     {HashOutputPlugin},
     {default: TerserWebpackPlugin},
     {default: CaseSensitivePathsPlugin},
+    {default: merge},
   ] = await Promise.all([
     import('webpack'),
     import('@sewing-kit/webpack-plugin-hash-output'),
     import('terser-webpack-plugin'),
     import('case-sensitive-paths-webpack-plugin'),
+    import('webpack-merge'),
   ] as const);
 
   const runtime: Runtime =
@@ -501,46 +503,52 @@ export async function createWebpackConfig({
     hints: false,
   });
 
-  return hooks.webpackConfig.run({
-    mode,
-    target,
-    // We have to set this to be able to use these items when executing in
-    // node, otherwise strangeness happens, like __dirname resolving
-    // to '/'.
-    node:
-      target === 'node'
-        ? {
-            __dirname: true,
-            __filename: true,
-          }
-        : undefined,
-    entry: entry as Mutable<typeof entry>,
-    devtool,
-    resolve: {
-      alias: aliases,
-      extensions: extensions as Mutable<typeof extensions>,
-      mainFields: mainFields as Mutable<typeof mainFields>,
-    },
-    module: {rules: rules as Mutable<typeof rules>},
-    externals: externals as Mutable<typeof externals>,
-    optimization,
-    performance,
-    output: {
-      path: outputPath,
-      filename,
-      chunkFilename,
-      publicPath,
-      globalObject: target === 'node' ? 'global' : 'self',
-      hashFunction,
-      hashDigestLength,
-      // Setting crossorigin=anonymous on async chunks improves the browser
-      // behavior when errors are thrown from async chunks.
-      crossOriginLoading:
-        mode === 'development' && target === 'web' ? 'anonymous' : undefined,
-    },
-    plugins: plugins as Mutable<typeof plugins>,
-    ...explicitConfig,
-  });
+  return hooks.webpackConfig.run(
+    merge(
+      {
+        mode,
+        target,
+        // We have to set this to be able to use these items when executing in
+        // node, otherwise strangeness happens, like __dirname resolving
+        // to '/'.
+        node:
+          target === 'node'
+            ? {
+                __dirname: true,
+                __filename: true,
+              }
+            : undefined,
+        entry: entry as Mutable<typeof entry>,
+        devtool,
+        resolve: {
+          alias: aliases,
+          extensions: extensions as Mutable<typeof extensions>,
+          mainFields: mainFields as Mutable<typeof mainFields>,
+        },
+        module: {rules: rules as Mutable<typeof rules>},
+        externals: externals as Mutable<typeof externals>,
+        optimization,
+        performance,
+        output: {
+          path: outputPath,
+          filename,
+          chunkFilename,
+          publicPath,
+          globalObject: target === 'node' ? 'global' : 'self',
+          hashFunction,
+          hashDigestLength,
+          // Setting crossorigin=anonymous on async chunks improves the browser
+          // behavior when errors are thrown from async chunks.
+          crossOriginLoading:
+            mode === 'development' && target === 'web'
+              ? 'anonymous'
+              : undefined,
+        },
+        plugins: plugins as Mutable<typeof plugins>,
+      },
+      explicitConfig,
+    ),
+  );
 }
 
 interface CacheLoaderOptions {
