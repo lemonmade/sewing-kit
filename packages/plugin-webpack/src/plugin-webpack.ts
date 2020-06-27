@@ -3,6 +3,7 @@ import {createHash} from 'crypto';
 import {
   Env,
   Task,
+  Target,
   Service,
   WebApp,
   Package,
@@ -19,10 +20,9 @@ import {
   Runtime,
 } from '@sewing-kit/plugins';
 import type {
-  BuildWebAppOptions,
-  BuildServiceOptions,
-  BuildPackageOptions,
-  BuildProjectVariantContext,
+  BuildWebAppTargetOptions,
+  BuildServiceTargetOptions,
+  BuildPackageTargetOptions,
 } from '@sewing-kit/hooks';
 
 interface WebpackHooks {
@@ -86,11 +86,11 @@ interface WebpackHooks {
 type WebpackStats = import('webpack').Stats;
 type WebpackStatsMap<Type extends Project> = Map<
   Type extends WebApp
-    ? BuildWebAppOptions
+    ? BuildWebAppTargetOptions
     : Type extends Package
-    ? BuildPackageOptions
+    ? BuildPackageTargetOptions
     : Type extends Service
-    ? BuildServiceOptions
+    ? BuildServiceTargetOptions
     : never,
   WebpackStats
 >;
@@ -163,24 +163,22 @@ interface BuildWebpackOptions {
 }
 
 export function webpackBuild({config, resources}: BuildWebpackOptions = {}) {
-  return createProjectBuildPlugin(
+  return createProjectBuildPlugin<WebApp | Service>(
     `${PLUGIN}.Build`,
-    ({api, hooks, options, project, workspace}) => {
-      hooks.variant.hook(({variant, hooks}) => {
-        hooks.steps.hook((steps, configuration, context) => [
+    ({api, hooks, options, workspace}) => {
+      hooks.target.hook(({target, hooks, context}) => {
+        hooks.steps.hook((steps, configuration) => [
           ...steps,
           createWebpackBuildStep({
             api,
-            project,
             workspace,
             hooks: configuration,
-            variant,
             env: options.simulateEnv,
             sourceMaps: options.sourceMaps ?? true,
             config,
             resources,
             stats: context.project.webpackStats,
-            runtimes: context.variant.runtimes,
+            target,
           }),
         ]);
       });
@@ -192,26 +190,22 @@ interface BuildWebpackStepOptions extends BuildWebpackOptions {
   env: Env;
   api: PluginApi;
   hooks: Partial<WebpackHooks>;
+  target: Target<Project, any>;
   workspace: Workspace;
-  project: Project;
   sourceMaps?: boolean;
-  variant?: object;
   stats?: WebpackStatsMap<any>;
-  runtimes?: BuildProjectVariantContext['runtimes'];
 }
 
 export function createWebpackBuildStep({
   env,
   api,
   hooks,
-  project,
-  variant,
   workspace,
   sourceMaps,
   config,
   resources,
   stats,
-  runtimes,
+  target,
 }: BuildWebpackStepOptions) {
   return api.createStep(
     {id: 'Webpack.Build', label: 'bundling with webpack', resources},
@@ -221,16 +215,14 @@ export function createWebpackBuildStep({
           env,
           api,
           hooks,
-          project,
-          variant,
+          target,
           workspace,
           sourceMaps,
           config,
-          runtimes,
         }),
       );
 
-      if (variant) stats?.set(variant as any, webpackStats);
+      if (target) stats?.set(target as any, webpackStats);
     },
   );
 }
@@ -268,23 +260,13 @@ export async function createWebpackConfig({
   env,
   api,
   hooks,
-  project,
-  variant = {},
+  target,
   workspace,
   sourceMaps = false,
   config: explicitConfig = {},
-  runtimes,
 }: Pick<
   BuildWebpackStepOptions,
-  | 'env'
-  | 'api'
-  | 'hooks'
-  | 'project'
-  | 'workspace'
-  | 'sourceMaps'
-  | 'config'
-  | 'variant'
-  | 'runtimes'
+  'env' | 'api' | 'hooks' | 'target' | 'workspace' | 'sourceMaps' | 'config'
 >) {
   if (hooks.webpackConfig == null) {
     throw new MissingPluginError('@sewing-kit/plugin-webpack');
@@ -306,18 +288,11 @@ export async function createWebpackConfig({
     import('webpack-merge'),
   ] as const);
 
-  const runtime: Runtime =
-    runtimes?.[0] ??
-    projectTypeSwitch(project, {
-      service: Runtime.Node,
-      webApp: Runtime.Browser,
-      package: (pkg) =>
-        pkg.runtime === Runtime.Node || pkg.entries[0]?.runtime === Runtime.Node
-          ? Runtime.Node
-          : Runtime.Browser,
-    });
+  const runtime = [...target.runtime.runtimes][0] ?? Runtime.Browser;
 
-  const target = await hooks.webpackTarget!.run(RUNTIME_TO_TARGET[runtime]);
+  const webpackTarget = await hooks.webpackTarget!.run(
+    RUNTIME_TO_TARGET[runtime],
+  );
 
   const mode = toMode(env);
   const cachePath = await hooks.webpackCachePath!.run(api.cachePath('webpack'));
@@ -326,10 +301,10 @@ export async function createWebpackConfig({
 
   const plugins = await hooks.webpackPlugins!.run([
     new CaseSensitivePathsPlugin(),
-    ...(mode === 'development' && target === 'node'
+    ...(mode === 'development' && webpackTarget === 'node'
       ? [new LimitChunkCountPlugin({maxChunks: 1})]
       : []),
-    ...(mode === 'production' && target === 'web'
+    ...(mode === 'production' && webpackTarget === 'web'
       ? [new HashOutputPlugin()]
       : []),
   ]);
@@ -340,15 +315,15 @@ export async function createWebpackConfig({
     '.json',
   ]);
 
-  const variantPart = Object.keys(variant).map((key) => {
-    const value = (variant as any)[key];
+  const variantPart = Object.keys(target.options).map((key) => {
+    const value = (target.options as any)[key];
 
     if (typeof value === 'boolean') return value ? key : `no-${key}`;
 
     return value;
   });
   const outputPath = await hooks.webpackOutputDirectory!.run(
-    projectTypeSwitch(project, {
+    projectTypeSwitch(target.project, {
       webApp: (webApp) =>
         workspace.fs.buildPath(
           workspace.webApps.length > 1 ? `apps/${webApp.name}` : 'app',
@@ -371,9 +346,9 @@ export async function createWebpackConfig({
   let defaultSourcemaps: import('webpack').Options.Devtool | undefined;
 
   if (sourceMaps) {
-    if (target === 'web') {
+    if (webpackTarget === 'web') {
       defaultSourcemaps = mode === 'production' ? 'hidden-source-map' : 'eval';
-    } else if (target === 'node') {
+    } else if (webpackTarget === 'node') {
       defaultSourcemaps =
         mode === 'production' ? 'source-map' : 'hidden-source-map';
     }
@@ -384,7 +359,7 @@ export async function createWebpackConfig({
   const devtool = await hooks.webpackDevtool!.run(defaultSourcemaps);
 
   const filename = await hooks.webpackOutputFilename!.run(
-    target === 'web' && mode === 'production'
+    webpackTarget === 'web' && mode === 'production'
       ? '[name]-[chunkhash].js'
       : '[name].js',
   );
@@ -398,7 +373,7 @@ export async function createWebpackConfig({
 
   const publicPath = await hooks.webpackPublicPath!.run('/assets/');
   const entry = await hooks.webpackEntries!.run(
-    projectTypeSwitch(project, {
+    projectTypeSwitch(target.project, {
       webApp: (app) => app.entry && [app.fs.resolvePath(app.entry)],
       service: (service) =>
         service.entry && [service.fs.resolvePath(service.entry)],
@@ -463,16 +438,18 @@ export async function createWebpackConfig({
       ]);
     })(),
     hooks.webpackOptimizeRuntimeChunk!.run(
-      mode === 'production' && target === 'web' ? 'single' : false,
+      mode === 'production' && webpackTarget === 'web' ? 'single' : false,
     ),
     // TODO: what is the "best" default chunking strategy for the web?
     hooks.webpackOptimizeSplitChunks!.run(
-      mode === 'production' && target === 'web' ? {chunks: 'all'} : false,
+      mode === 'production' && webpackTarget === 'web'
+        ? {chunks: 'all'}
+        : false,
     ),
     hooks.webpackAliases!.run(defaultWorkspaceAliases(workspace)),
     // TODO do we still want to support jsnext:main?
     hooks.webpackMainFields!.run(
-      target === 'web'
+      webpackTarget === 'web'
         ? ['browser', 'module', 'jsnext:main', 'main']
         : ['module', 'jsnext:main', 'main'],
     ),
@@ -507,12 +484,12 @@ export async function createWebpackConfig({
     merge(
       {
         mode,
-        target,
+        target: webpackTarget,
         // We have to set this to be able to use these items when executing in
         // node, otherwise strangeness happens, like __dirname resolving
         // to '/'.
         node:
-          target === 'node'
+          webpackTarget === 'node'
             ? {
                 __dirname: true,
                 __filename: true,
@@ -534,13 +511,13 @@ export async function createWebpackConfig({
           filename,
           chunkFilename,
           publicPath,
-          globalObject: target === 'node' ? 'global' : 'self',
+          globalObject: webpackTarget === 'node' ? 'global' : 'self',
           hashFunction,
           hashDigestLength,
           // Setting crossorigin=anonymous on async chunks improves the browser
           // behavior when errors are thrown from async chunks.
           crossOriginLoading:
-            mode === 'development' && target === 'web'
+            mode === 'development' && webpackTarget === 'web'
               ? 'anonymous'
               : undefined,
         },
@@ -744,7 +721,9 @@ function createWebpackConfigurationChangePlugin(
   return createProjectPlugin<WebApp | Service>(id, ({tasks: {build, dev}}) => {
     if (include.includes(Task.Build)) {
       build.hook(({hooks}) => {
-        hooks.configure.hook(run);
+        hooks.target.hook(({hooks}) => {
+          hooks.configure.hook(run);
+        });
       });
     }
 

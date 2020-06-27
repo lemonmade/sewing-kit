@@ -55,25 +55,27 @@ export function javascript({babelConfig}: Options = {}) {
       build.hook(({hooks, options}) => {
         hooks.configureHooks.hook(addBabelHooks);
 
-        hooks.configure.hook((configure) => {
-          configure.babelConfig?.hook(
-            explicitBabelConfig ?? addCoreBabelPreset(),
-          );
-          configure.webpackRules?.hook(async (rules) => [
-            ...rules,
-            {
-              test: /\.m?js/,
-              exclude: /node_modules/,
-              use: await createJavaScriptWebpackRuleSet({
-                api,
-                project,
-                env: options.simulateEnv,
-                configuration: configure,
-                cacheDirectory: 'js',
-                cacheDependencies: [],
-              }),
-            },
-          ]);
+        hooks.target.hook(({hooks}) => {
+          hooks.configure.hook((configure) => {
+            configure.babelConfig?.hook(
+              explicitBabelConfig ?? addCoreBabelPreset(),
+            );
+            configure.webpackRules?.hook(async (rules) => [
+              ...rules,
+              {
+                test: /\.m?js/,
+                exclude: /node_modules/,
+                use: await createJavaScriptWebpackRuleSet({
+                  api,
+                  project,
+                  env: options.simulateEnv,
+                  configuration: configure,
+                  cacheDirectory: 'js',
+                  cacheDependencies: [],
+                }),
+              },
+            ]);
+          });
         });
       });
 
@@ -131,8 +133,10 @@ export function babelPresets(
       });
 
       build.hook(({hooks}) => {
-        hooks.configure.hook(({babelConfig}) => {
-          babelConfig?.hook(addBabelPresets);
+        hooks.target.hook(({hooks}) => {
+          hooks.configure.hook(({babelConfig}) => {
+            babelConfig?.hook(addBabelPresets);
+          });
         });
       });
 
@@ -168,8 +172,10 @@ export function babelPlugins(
       });
 
       build.hook(({hooks}) => {
-        hooks.configure.hook(({babelConfig}) => {
-          babelConfig?.hook(addBabelPlugins);
+        hooks.target.hook(({hooks}) => {
+          hooks.configure.hook(({babelConfig}) => {
+            babelConfig?.hook(addBabelPlugins);
+          });
         });
       });
 

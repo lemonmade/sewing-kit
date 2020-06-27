@@ -4,18 +4,18 @@ import {Base, Options as BaseOptions, toId} from './base';
 export interface PackageEntryOptions {
   readonly root: string;
   readonly name?: string;
-  readonly runtime?: Runtime;
+  readonly runtimes?: Runtime[];
 }
 
 export class PackageEntry {
   readonly root: string;
   readonly name: string | undefined;
-  readonly runtime: Runtime | undefined;
+  readonly runtimes: Runtime[] | undefined;
 
-  constructor({root, name, runtime}: PackageEntryOptions) {
+  constructor({root, name, runtimes}: PackageEntryOptions) {
     this.root = root;
     this.name = name;
-    this.runtime = runtime;
+    this.runtimes = runtimes;
   }
 }
 
@@ -38,14 +38,14 @@ export class PackageBinary {
 }
 
 export interface PackageOptions extends BaseOptions {
-  runtime?: Runtime;
+  runtimes?: Runtime[];
   readonly entries?: readonly PackageEntryOptions[];
   readonly binaries?: readonly PackageBinaryOptions[];
 }
 
 export class Package extends Base {
   readonly kind = ProjectKind.Package;
-  readonly runtime: Runtime | undefined;
+  readonly runtimes: Runtime[] | undefined;
   readonly entries: readonly PackageEntry[];
   readonly binaries: readonly PackageBinary[];
 
@@ -57,10 +57,15 @@ export class Package extends Base {
     return this.packageJson?.name ?? this.name;
   }
 
-  constructor({entries = [], binaries = [], runtime, ...rest}: PackageOptions) {
+  constructor({
+    entries = [],
+    binaries = [],
+    runtimes,
+    ...rest
+  }: PackageOptions) {
     super(rest);
 
-    this.runtime = runtime;
+    this.runtimes = runtimes;
     this.entries = entries.map((entry) => new PackageEntry(entry));
     this.binaries = binaries.map((binary) => new PackageBinary(binary));
   }

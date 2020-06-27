@@ -29,11 +29,9 @@ export function graphql({
     PLUGIN,
     ({api, project, tasks: {build, dev, test}}) => {
       build.hook(({hooks, options: {simulateEnv}}) => {
-        hooks.configure.hook(
-          (
-            configure: import('@sewing-kit/hooks').BuildProjectConfigurationHooks,
-          ) => {
-            configure.webpackRules?.hook(async (rules) => {
+        hooks.target.hook(({hooks}) => {
+          hooks.configure.hook((configuration) => {
+            configuration.webpackRules?.hook(async (rules) => {
               const {createCacheLoaderRule} = await import(
                 '@sewing-kit/plugin-webpack'
               );
@@ -47,7 +45,7 @@ export function graphql({
                       env: simulateEnv,
                       api,
                       project,
-                      configuration: configure,
+                      configuration,
                       cachePath: 'graphql',
                       dependencies: ['graphql'],
                     }),
@@ -59,43 +57,39 @@ export function graphql({
                 } as import('webpack').RuleSetRule,
               ];
             });
-          },
-        );
+          });
+        });
       });
 
       dev.hook(({hooks}) => {
-        hooks.configure.hook(
-          (
-            configure: import('@sewing-kit/hooks').DevProjectConfigurationHooks,
-          ) => {
-            configure.webpackRules?.hook(async (rules) => {
-              const {createCacheLoaderRule} = await import(
-                '@sewing-kit/plugin-webpack'
-              );
+        hooks.configure.hook((configuration) => {
+          configuration.webpackRules?.hook(async (rules) => {
+            const {createCacheLoaderRule} = await import(
+              '@sewing-kit/plugin-webpack'
+            );
 
-              return [
-                ...rules,
-                {
-                  test: webpackMatcher,
-                  use: [
-                    await createCacheLoaderRule({
-                      env: Env.Development,
-                      api,
-                      project,
-                      configuration: configure,
-                      cachePath: 'graphql',
-                      dependencies: ['graphql'],
-                    }),
-                    {
-                      loader: require.resolve('@sewing-kit/graphql/webpack'),
-                      options: {export: exportStyle},
-                    },
-                  ],
-                } as import('webpack').RuleSetRule,
-              ];
-            });
-          },
-        );
+            return [
+              ...rules,
+              {
+                test: webpackMatcher,
+                use: [
+                  await createCacheLoaderRule({
+                    env: Env.Development,
+                    api,
+                    project,
+                    configuration,
+                    cachePath: 'graphql',
+                    dependencies: ['graphql'],
+                  }),
+                  {
+                    loader: require.resolve('@sewing-kit/graphql/webpack'),
+                    options: {export: exportStyle},
+                  },
+                ],
+              } as import('webpack').RuleSetRule,
+            ];
+          });
+        });
       });
 
       test.hook(({hooks}) => {

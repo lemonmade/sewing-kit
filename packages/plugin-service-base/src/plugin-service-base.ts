@@ -1,6 +1,11 @@
 import {join} from 'path';
 
-import {Env, Service, createProjectDevPlugin} from '@sewing-kit/plugins';
+import {
+  Env,
+  Service,
+  createProjectDevPlugin,
+  TargetRuntime,
+} from '@sewing-kit/plugins';
 import {createWebpackConfig} from '@sewing-kit/plugin-webpack';
 
 const PLUGIN = 'SewingKit.ServiceBase';
@@ -40,7 +45,11 @@ export function webpackDevService({
 
               const webpackConfig = await createWebpackConfig({
                 api,
-                project,
+                target: {
+                  project,
+                  options: {},
+                  runtime: TargetRuntime.fromProject(project),
+                },
                 workspace,
                 env: Env.Development,
                 hooks: configuration,

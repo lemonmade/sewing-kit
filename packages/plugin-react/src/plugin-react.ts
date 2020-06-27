@@ -19,16 +19,18 @@ export function react({preact = false, fastRefresh = true}: Options = {}) {
         fastReload: false,
       });
 
-      hooks.configure.hook((configure) => {
-        configure.babelConfig?.hook(addReactBabelConfig);
+      hooks.target.hook(({hooks}) => {
+        hooks.configure.hook((configure) => {
+          configure.babelConfig?.hook(addReactBabelConfig);
 
-        if (options.simulateEnv === Env.Development) {
-          configure.webpackDevtool?.hook(() => DEV_WEBPACK_DEVTOOL);
-        }
+          if (options.simulateEnv === Env.Development) {
+            configure.webpackDevtool?.hook(() => DEV_WEBPACK_DEVTOOL);
+          }
 
-        if (preact) {
-          configure.webpackAliases?.hook(addPreactWebpackAliases);
-        }
+          if (preact) {
+            configure.webpackAliases?.hook(addPreactWebpackAliases);
+          }
+        });
       });
     });
 

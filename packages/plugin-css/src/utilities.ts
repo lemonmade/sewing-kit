@@ -1,13 +1,11 @@
 import {
   Env,
-  Service,
+  Target,
   Project,
   PluginApi,
-  Package,
   Runtime,
   ValueOrGetter,
   unwrapPossibleGetter,
-  projectTypeSwitch,
 } from '@sewing-kit/plugins';
 import type {CSSWebpackHooks, PostcssPlugins} from './types';
 import type {Options as PostcssPresetOptions} from './postcss-preset';
@@ -18,30 +16,28 @@ export async function createCSSWebpackRuleSet({
   id,
   env,
   api,
-  project,
+  target,
   configuration,
   sourceMaps,
   postcss = true,
   cssModules = true,
   cacheDirectory,
   cacheDependencies: initialCacheDependencies = [],
-  runtimes = getDefaultRuntimes(project),
 }: {
   id?: string;
   env: Env;
   api: PluginApi;
-  project: Project;
+  target: Target<Project, any>;
   configuration: Partial<CSSWebpackHooks>;
   sourceMaps?: boolean;
-  postcss?: boolean;
+  postcss?: boolean | PostcssPlugins;
   cssModules?: boolean;
   cacheDirectory: string;
   cacheDependencies?: readonly string[];
-  runtimes?: readonly Runtime[];
 }) {
-  const fullCss = usesRealCss(runtimes);
+  const fullCss = usesRealCss(target);
   const production = env === Env.Production;
-  const finalPostcss = postcss && fullCss;
+  const finalPostcss = fullCss && postcss;
 
   const [
     {default: MiniCssExtractPlugin},
@@ -54,7 +50,11 @@ export async function createCSSWebpackRuleSet({
     configuration.cssModuleClassNamePattern!.run(
       production ? '[hash:base64:5]' : '[name]-[local]_[hash:base64:5]',
     ),
-    finalPostcss ? configuration.postcssPlugins!.run({}) : Promise.resolve({}),
+    finalPostcss
+      ? configuration.postcssPlugins!.run(
+          typeof finalPostcss === 'object' ? finalPostcss : {},
+        )
+      : Promise.resolve({}),
   ] as const);
 
   const pluginNames = Object.keys(postcssPlugins);
@@ -91,10 +91,7 @@ export async function createCSSWebpackRuleSet({
       importLoaders: 1,
       sourceMap: sourceMaps,
       esModule: true,
-      onlyLocals:
-        project instanceof Service ||
-        (project instanceof Package &&
-          project.entries[0]?.runtime === Runtime.Node),
+      onlyLocals: !fullCss,
     }),
     postcss
       ? configuration.cssWebpackPostcssLoaderOptions!.run({
@@ -120,7 +117,7 @@ export async function createCSSWebpackRuleSet({
       await createCacheLoaderRule({
         env,
         api,
-        project,
+        project: target.project,
         configuration: configuration as any,
         cachePath: cacheDirectory,
         dependencies: cacheDependencies,
@@ -143,18 +140,8 @@ export async function createCSSWebpackRuleSet({
   return use;
 }
 
-export function usesRealCss(runtimes: readonly Runtime[]) {
-  return runtimes.some((runtime) => runtime === Runtime.Browser);
-}
-
-function getDefaultRuntimes(project: Project) {
-  return (
-    projectTypeSwitch(project, {
-      package: (pkg) => (pkg.runtime ? [pkg.runtime] : []),
-      webApp: () => [Runtime.Browser],
-      service: () => [Runtime.Node],
-    }) ?? []
-  );
+export function usesRealCss(target: Target<any, any>) {
+  return target.runtime.includes(Runtime.Browser);
 }
 
 export function updatePostcssPlugin<Options = object>(

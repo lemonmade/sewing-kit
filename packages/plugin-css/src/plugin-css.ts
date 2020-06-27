@@ -9,8 +9,7 @@ import {
   unwrapPossibleGetter,
   ValueOrArray,
   unwrapPossibleArrayGetter,
-  projectTypeSwitch,
-  Runtime,
+  TargetRuntime,
 } from '@sewing-kit/plugins';
 
 import {} from '@sewing-kit/plugin-jest';
@@ -101,25 +100,22 @@ export function css({
       build.hook(({hooks, options: {simulateEnv, sourceMaps}}) => {
         hooks.configureHooks.hook(addWebpackHooks);
 
-        hooks.configure.hook((configuration) => {
-          configuration.postcssPlugins?.hook(
-            createBasePresetAdder(configuration),
-          );
-        });
+        hooks.target.hook(({hooks, target}) => {
+          hooks.configure.hook((configuration) => {
+            configuration.postcssPlugins?.hook(
+              createBasePresetAdder(configuration),
+            );
 
-        hooks.variant.hook(({hooks}) => {
-          hooks.configure.hook((configuration, {variant: {runtimes}}) => {
             configuration.webpackRules?.hook(
               createWebpackRuleAdder({
                 sourceMaps,
                 configuration,
                 env: simulateEnv,
-                runtimes,
+                target,
               }),
             );
 
-            if (simulateEnv !== Env.Production || !usesRealCss(runtimes))
-              return;
+            if (simulateEnv !== Env.Production || !usesRealCss(target)) return;
 
             configuration.webpackOptimizeMinizers?.hook(async (minimizers) => {
               const [
@@ -196,14 +192,7 @@ export function css({
         hooks.configureHooks.hook(addWebpackHooks);
 
         hooks.configure.hook((configuration) => {
-          const runtimes =
-            projectTypeSwitch(project, {
-              package: (pkg) => (pkg.runtime ? [pkg.runtime] : []),
-              webApp: () => [Runtime.Browser],
-              service: () => [Runtime.Node],
-            }) ?? [];
-
-          if (usesRealCss(runtimes)) {
+          if (project instanceof WebApp) {
             configuration.postcssPlugins!.hook(
               createBasePresetAdder(configuration),
             );
@@ -214,7 +203,11 @@ export function css({
               sourceMaps,
               configuration,
               env: Env.Development,
-              runtimes,
+              target: {
+                options: {},
+                project,
+                runtime: TargetRuntime.fromProject(project),
+              },
             }),
           );
         });
@@ -223,7 +216,7 @@ export function css({
       function createWebpackRuleAdder(
         options: Pick<
           Parameters<typeof createCSSWebpackRuleSet>[0],
-          'env' | 'sourceMaps' | 'configuration' | 'runtimes'
+          'env' | 'sourceMaps' | 'configuration' | 'target'
         >,
       ) {
         return async (rules: readonly import('webpack').Rule[]) => {
@@ -234,7 +227,6 @@ export function css({
               use: await createCSSWebpackRuleSet({
                 id,
                 api,
-                project,
                 cssModules,
                 cacheDependencies: [],
                 cacheDirectory: 'css',
@@ -289,11 +281,13 @@ export function postcssPlugins(
     `${PLUGIN}.SetPostcssPlugins`,
     ({tasks: {dev, build}}) => {
       build.hook(({hooks}) => {
-        hooks.configure.hook(({postcssPlugins}) => {
-          postcssPlugins?.hook(async (allPlugins) => ({
-            ...allPlugins,
-            ...(await unwrapPossibleGetter(plugins, allPlugins)),
-          }));
+        hooks.target.hook(({hooks}) => {
+          hooks.configure.hook(({postcssPlugins}) => {
+            postcssPlugins?.hook(async (allPlugins) => ({
+              ...allPlugins,
+              ...(await unwrapPossibleGetter(plugins, allPlugins)),
+            }));
+          });
         });
       });
 
@@ -316,11 +310,13 @@ export function postcssEnvFeatures(
     `${PLUGIN}.SetPostcssEnvFeatures`,
     ({tasks: {dev, build}}) => {
       build.hook(({hooks}) => {
-        hooks.configure.hook(({postcssEnvFeatures}) => {
-          postcssEnvFeatures?.hook(async (allFeatures) => ({
-            ...allFeatures,
-            ...(await unwrapPossibleGetter(features, allFeatures)),
-          }));
+        hooks.target.hook(({hooks}) => {
+          hooks.configure.hook(({postcssEnvFeatures}) => {
+            postcssEnvFeatures?.hook(async (allFeatures) => ({
+              ...allFeatures,
+              ...(await unwrapPossibleGetter(features, allFeatures)),
+            }));
+          });
         });
       });
 
@@ -343,11 +339,13 @@ export function cssCustomValues(
     `${PLUGIN}.SetPostcssEnvFeatures`,
     ({tasks: {dev, build}}) => {
       build.hook(({hooks}) => {
-        hooks.configure.hook(({cssCustomValues}) => {
-          cssCustomValues?.hook(async (allImports) => [
-            ...allImports,
-            ...(await unwrapPossibleArrayGetter(importFrom, allImports)),
-          ]);
+        hooks.target.hook(({hooks}) => {
+          hooks.configure.hook(({cssCustomValues}) => {
+            cssCustomValues?.hook(async (allImports) => [
+              ...allImports,
+              ...(await unwrapPossibleArrayGetter(importFrom, allImports)),
+            ]);
+          });
         });
       });
 
@@ -388,15 +386,17 @@ export function cssModuleClassNamePattern(
     `${PLUGIN}.SetCSSModuleClassNamePattern`,
     ({tasks: {dev, build}}) => {
       build.hook(({hooks}) => {
-        hooks.configure.hook((configure) => {
-          if (typeof pattern === 'string') {
-            configure.cssModuleClassNamePattern?.hook(() => pattern);
-          } else {
-            configure.cssWebpackLoaderOptions?.hook((options) => ({
-              ...options,
-              getLocalIdent: pattern,
-            }));
-          }
+        hooks.target.hook(({hooks}) => {
+          hooks.configure.hook((configure) => {
+            if (typeof pattern === 'string') {
+              configure.cssModuleClassNamePattern?.hook(() => pattern);
+            } else {
+              configure.cssWebpackLoaderOptions?.hook((options) => ({
+                ...options,
+                getLocalIdent: pattern,
+              }));
+            }
+          });
         });
       });
 
@@ -430,8 +430,10 @@ export function cssWebpackLoaderOptions(
       });
 
       build.hook(({hooks}) => {
-        hooks.configure.hook(({cssWebpackLoaderOptions}) => {
-          cssWebpackLoaderOptions?.hook(setLoaderOptions);
+        hooks.target.hook(({hooks}) => {
+          hooks.configure.hook(({cssWebpackLoaderOptions}) => {
+            cssWebpackLoaderOptions?.hook(setLoaderOptions);
+          });
         });
       });
 

@@ -1,4 +1,4 @@
-import {BuildWebAppOptions} from '@sewing-kit/hooks';
+import {BuildWebAppTargetOptions} from '@sewing-kit/hooks';
 import {createProjectBuildPlugin, WebApp} from '@sewing-kit/plugins';
 import {updateSewingKitBabelPreset} from '@sewing-kit/plugin-javascript';
 import {updatePostcssEnvPreset} from '@sewing-kit/plugin-css';
@@ -8,7 +8,7 @@ import {} from '@sewing-kit/plugin-webpack';
 import {LATEST_EVERGREEN} from './groups';
 
 declare module '@sewing-kit/hooks' {
-  interface BuildWebAppOptions {
+  interface BuildWebAppTargetOptions {
     readonly browsers: string;
   }
 }
@@ -31,18 +31,22 @@ export function differentialServing({
   browsers: browserGroups = DEFAULT_BROWSER_GROUPS,
 }: Options = {}) {
   return createProjectBuildPlugin<WebApp>(PLUGIN, ({hooks}) => {
-    hooks.variants.hook((variants) => [
-      ...variants,
-      ...Object.keys(browserGroups).flatMap((browsers) =>
-        variants.map((build) => ({
-          ...build,
-          browsers: browsers as BuildWebAppOptions['browsers'],
-        })),
+    hooks.targets.hook((targets) =>
+      targets.map((target) =>
+        target.default
+          ? target.multiply((currentTarget) =>
+              Object.keys(browserGroups).map((browsers) => ({
+                ...currentTarget,
+                browsers: browsers as BuildWebAppTargetOptions['browsers'],
+              })),
+            )
+          : target,
       ),
-    ]);
+    );
 
-    hooks.variant.hook(({variant: {browsers}, hooks}) => {
+    hooks.target.hook(({target, hooks}) => {
       hooks.configure.hook((configuration) => {
+        const {browsers} = target.options;
         const browserslistQuery = browsers && browserGroups[browsers];
 
         if (babel) {

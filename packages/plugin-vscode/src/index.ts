@@ -6,17 +6,19 @@ export function vscode() {
     // TODO: need a debug option on build/ dev
     // TODO: need an output hook/ plugin in webpack
     build.hook(({hooks}) => {
-      hooks.configure.hook((configure) => {
-        configure.webpackConfig?.hook((config) => {
-          return {
-            ...config,
-            output: {
-              ...config.output,
-              devtoolModuleFilenameTemplate: '[absolute-resource-path]',
-              devtoolFallbackModuleFilenameTemplate:
-                '[absolute-resource-path]?[hash]',
-            },
-          };
+      hooks.target.hook(({hooks}) => {
+        hooks.configure.hook((configure) => {
+          configure.webpackConfig?.hook((config) => {
+            return {
+              ...config,
+              output: {
+                ...config.output,
+                devtoolModuleFilenameTemplate: '[absolute-resource-path]',
+                devtoolFallbackModuleFilenameTemplate:
+                  '[absolute-resource-path]?[hash]',
+              },
+            };
+          });
         });
       });
     });

@@ -17,7 +17,7 @@ const PLUGIN = 'SewingKit.PackageEsModules';
 const VARIANT = 'esmodules';
 
 declare module '@sewing-kit/hooks' {
-  interface BuildPackageOptions {
+  interface BuildPackageTargetOptions {
     [VARIANT]: boolean;
   }
 }
@@ -32,31 +32,19 @@ export function esmodulesOutput() {
     `${PLUGIN}.Consumer`,
     ({tasks: {build, dev}}) => {
       build.hook(({hooks}) => {
-        hooks.configure.hook(
-          (
-            configure: Partial<
-              import('@sewing-kit/hooks').BuildWebAppConfigurationHooks &
-                import('@sewing-kit/hooks').BuildServiceConfigurationHooks
-            >,
-          ) => {
-            configure.webpackRules?.hook(addWebpackRule);
-            configure.webpackExtensions?.hook(addExtension);
-          },
-        );
+        hooks.target.hook(({hooks}) => {
+          hooks.configure.hook((configuration) => {
+            configuration.webpackRules?.hook(addWebpackRule);
+            configuration.webpackExtensions?.hook(addExtension);
+          });
+        });
       });
 
       dev.hook(({hooks}) => {
-        hooks.configure.hook(
-          (
-            configure: Partial<
-              import('@sewing-kit/hooks').BuildWebAppConfigurationHooks &
-                import('@sewing-kit/hooks').BuildServiceConfigurationHooks
-            >,
-          ) => {
-            configure.webpackRules?.hook(addWebpackRule);
-            configure.webpackExtensions?.hook(addExtension);
-          },
-        );
+        hooks.configure.hook((configuration) => {
+          configuration.webpackRules?.hook(addWebpackRule);
+          configuration.webpackExtensions?.hook(addExtension);
+        });
       });
     },
   );
@@ -66,20 +54,20 @@ export function buildEsModulesOutput() {
   return createProjectBuildPlugin<Package>(PLUGIN, (context) => {
     const {api, hooks, project} = context;
 
-    hooks.variants.hook((variants) => [...variants, {[VARIANT]: true}]);
+    hooks.targets.hook((targets) =>
+      targets.map((target) =>
+        target.default ? target.add({esmodules: true}) : target,
+      ),
+    );
 
-    hooks.variant.hook(({variant: {esmodules}, hooks}) => {
-      if (!esmodules) return;
+    hooks.target.hook(({target, hooks}) => {
+      if (!target.options.esmodules) return;
 
       hooks.configure.hook((configuration) => {
         configuration.babelConfig?.hook(updateBabelPreset);
       });
 
       hooks.steps.hook((steps, configuration) => {
-        if (!esmodules) {
-          return steps;
-        }
-
         const outputPath = project.fs.buildPath('esm');
 
         return [

@@ -17,7 +17,7 @@ const VARIANT = 'node';
 const EXTENSION = '.node';
 
 declare module '@sewing-kit/hooks' {
-  interface BuildPackageOptions {
+  interface BuildPackageTargetOptions {
     [VARIANT]: boolean;
   }
 }
@@ -34,18 +34,25 @@ export function buildNodeOutput() {
   return createProjectBuildPlugin<Package>(PLUGIN, (context) => {
     const {api, hooks, project} = context;
 
-    hooks.variants.hook((variants) => {
-      // If all the entries already target node, there is no need to do a
-      // node-only build (it will match the CommonJS build).
-      if (project.entries.every(({runtime}) => runtime === Runtime.Node)) {
-        return variants;
-      }
+    hooks.targets.hook((targets) =>
+      targets.map((target) => {
+        if (!target.default) return target;
 
-      return [...variants, {[VARIANT]: true}];
-    });
+        // If all the entries already target node, there is no need to do a
+        // node-only build (it will match the CommonJS build).
+        if (
+          target.runtime.includes(Runtime.Node) &&
+          target.runtime.runtimes.size === 1
+        ) {
+          return target;
+        }
 
-    hooks.variant.hook(({variant: {node}, hooks}) => {
-      if (!node) return;
+        return target.add({node: true});
+      }),
+    );
+
+    hooks.target.hook(({target, hooks}) => {
+      if (!target.options.node) return;
 
       hooks.configure.hook((configurationHooks) => {
         configurationHooks.babelConfig?.hook(

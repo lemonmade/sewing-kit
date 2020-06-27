@@ -9,7 +9,7 @@ const PLUGIN = 'SewingKit.PackageCommonJs';
 const VARIANT = 'commonjs';
 
 declare module '@sewing-kit/hooks' {
-  interface BuildPackageOptions {
+  interface BuildPackageTargetOptions {
     [VARIANT]: boolean;
   }
 }
@@ -28,16 +28,20 @@ export function buildCommonJsOutput() {
   return createProjectBuildPlugin<Package>(PLUGIN, (context) => {
     const {api, hooks, project} = context;
 
-    hooks.variants.hook((variants) => [...variants, {[VARIANT]: true}]);
+    hooks.targets.hook((targets) =>
+      targets.map((target) =>
+        target.default ? target.add({commonjs: true}) : target,
+      ),
+    );
 
-    hooks.variant.hook(({variant: {commonjs}, hooks}) => {
-      if (!commonjs) return;
+    hooks.target.hook(({target, hooks}) => {
+      if (!target.options.commonjs) return;
 
       hooks.configure.hook((configuration) => {
         configuration.babelConfig?.hook((babelConfig) => {
-          const allEntriesAreNode = project.entries.every(
-            ({runtime}) => runtime === Runtime.Node,
-          );
+          const allEntriesAreNode =
+            target.runtime.includes(Runtime.Node) &&
+            target.runtime.runtimes.size === 1;
 
           return allEntriesAreNode
             ? setNodeTarget(babelConfig)

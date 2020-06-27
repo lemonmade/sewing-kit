@@ -6,6 +6,7 @@ import {
   addHooks,
   WaterfallHook,
   createProjectDevPlugin,
+  TargetRuntime,
 } from '@sewing-kit/plugins';
 import {createWebpackConfig} from '@sewing-kit/plugin-webpack';
 import {updateSewingKitBabelPreset} from '@sewing-kit/plugin-javascript';
@@ -105,7 +106,11 @@ export function webpackDevWebApp({
                 api,
                 env: Env.Development,
                 hooks: configuration,
-                project,
+                target: {
+                  project,
+                  options: {},
+                  runtime: TargetRuntime.fromProject(project),
+                },
                 workspace,
                 sourceMaps: options.sourceMaps,
               });

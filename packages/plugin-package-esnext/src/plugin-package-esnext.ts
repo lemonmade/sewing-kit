@@ -4,6 +4,8 @@ import {
   createProjectPlugin,
   createProjectBuildPlugin,
   Env,
+  Runtime,
+  TargetRuntime,
 } from '@sewing-kit/plugins';
 import {
   ExportStyle,
@@ -19,7 +21,7 @@ const VARIANT = 'esnext';
 const EXTENSION = '.esnext';
 
 declare module '@sewing-kit/hooks' {
-  interface BuildPackageOptions {
+  interface BuildPackageTargetOptions {
     [VARIANT]: boolean;
   }
 }
@@ -29,30 +31,36 @@ export function esnextOutput() {
     `${PLUGIN}.Consumer`,
     ({api, project, tasks: {build, dev}}) => {
       build.hook(({hooks, options}) => {
-        hooks.configure.hook((configure) => {
-          configure.webpackExtensions?.hook(addExtension);
-          configure.webpackRules?.hook(async (rules) => [
-            ...rules,
-            {
-              test: /\.esnext/,
-              include: /node_modules/,
-              use: await createJavaScriptWebpackRuleSet({
-                api,
-                project,
-                env: options.simulateEnv,
-                configuration: configure,
-                cacheDirectory: 'esnext',
-              }),
-            },
-          ]);
+        hooks.target.hook(({target, hooks}) => {
+          hooks.configure.hook((configuration) => {
+            configuration.webpackExtensions?.hook(addExtension);
+            configuration.webpackConfig?.hook(
+              createMainFieldAdder(target.runtime),
+            );
+            configuration.webpackRules?.hook(async (rules) => [
+              ...rules,
+              {
+                test: /\.esnext/,
+                include: /node_modules/,
+                use: await createJavaScriptWebpackRuleSet({
+                  api,
+                  project,
+                  env: options.simulateEnv,
+                  configuration,
+                  cacheDirectory: 'esnext',
+                }),
+              },
+            ]);
+          });
         });
       });
 
       dev.hook(({hooks}) => {
         hooks.configure.hook((configure) => {
           configure.webpackExtensions?.hook(addExtension);
-          // TODO: make resolve.mainFields include 'esnext', and recommend adding
-          // a "esnext": "index.esnext" to package.json for the package
+          configure.webpackConfig?.hook(
+            createMainFieldAdder(TargetRuntime.fromProject(project)),
+          );
           configure.webpackRules?.hook(async (rules) => [
             ...rules,
             {
@@ -69,6 +77,24 @@ export function esnextOutput() {
           ]);
         });
       });
+
+      function createMainFieldAdder(runtime: TargetRuntime) {
+        return (config: import('webpack').Configuration) => {
+          return {
+            ...config,
+            resolve: {
+              ...config.resolve,
+              mainFields: [
+                'esnext',
+                ...(config.resolve?.mainFields ??
+                  (runtime.includes(Runtime.Node) && runtime.runtimes.size === 1
+                    ? ['module', 'main']
+                    : ['browser', 'module', 'main'])),
+              ] as string[] | string[][],
+            },
+          };
+        };
+      }
     },
   );
 }
@@ -77,10 +103,14 @@ export function buildEsNextOutput() {
   return createProjectBuildPlugin<Package>(PLUGIN, (context) => {
     const {api, hooks, project} = context;
 
-    hooks.variants.hook((variants) => [...variants, {[VARIANT]: true}]);
+    hooks.targets.hook((targets) =>
+      targets.map((target) =>
+        target.default ? target.add({esnext: true}) : target,
+      ),
+    );
 
-    hooks.variant.hook(({variant: {esnext}, hooks}) => {
-      if (!esnext) return;
+    hooks.target.hook(({target, hooks}) => {
+      if (!target.options.esnext) return;
 
       hooks.configure.hook((configuration) => {
         configuration.babelConfig?.hook(

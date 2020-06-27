@@ -18,14 +18,19 @@ class PackageBuilder extends BaseBuilder<
   }
 
   runtime(defaultRuntime: Runtime) {
-    this.options.runtime = defaultRuntime;
+    this.options.runtimes = [defaultRuntime];
+    return this;
+  }
+
+  runtimes(...defaultRuntimes: Runtime[]) {
+    this.options.runtimes = defaultRuntimes;
     return this;
   }
 
   entry(entry: PackageEntryOptions) {
     this.options.entries = this.options.entries ?? [];
     this.options.entries.push({
-      runtime: this.options.runtime,
+      runtimes: this.options.runtimes,
       ...entry,
       root:
         typeof entry.root === 'string' && entry.root.startsWith('/')

@@ -4,6 +4,7 @@ import {
   Service,
   WaterfallHook,
   createProjectPlugin,
+  TargetRuntime,
 } from '@sewing-kit/plugins';
 import {createCSSWebpackRuleSet} from '@sewing-kit/plugin-css';
 
@@ -41,15 +42,13 @@ export function sass({
           sassIncludePaths: new WaterfallHook(),
         }));
 
-        hooks.configure.hook((configuration) => {
-          configuration.cssWebpackCacheDependencies?.hook((dependencies) => [
-            ...dependencies,
-            'node-sass',
-          ]);
-        });
+        hooks.target.hook(({target, hooks}) => {
+          hooks.configure.hook((configuration) => {
+            configuration.cssWebpackCacheDependencies?.hook((dependencies) => [
+              ...dependencies,
+              'node-sass',
+            ]);
 
-        hooks.variant.hook(({hooks}) => {
-          hooks.configure.hook((configuration, {variant: {runtimes}}) => {
             configuration.webpackRules?.hook(async (rules) => {
               const sassIncludePaths = await configuration.sassIncludePaths!.run(
                 baseSassIncludes,
@@ -65,12 +64,11 @@ export function sass({
                       api,
                       env: simulateEnv,
                       configuration,
-                      project,
                       postcss,
                       sourceMaps,
                       cacheDirectory: 'sass',
                       cacheDependencies: ['node-sass'],
-                      runtimes,
+                      target,
                     })),
                     {
                       path: 'sass-loader',
@@ -113,7 +111,11 @@ export function sass({
                     api,
                     env: Env.Development,
                     configuration,
-                    project,
+                    target: {
+                      project,
+                      options: {},
+                      runtime: TargetRuntime.fromProject(project),
+                    },
                     sourceMaps,
                     cacheDirectory: 'sass',
                     cacheDependencies: ['node-sass'],

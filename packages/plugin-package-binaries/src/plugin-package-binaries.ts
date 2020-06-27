@@ -25,9 +25,13 @@ function createWriteBinariesStep({
 }: Pick<ProjectPluginContext<Package>, 'project' | 'api'>) {
   const binaryCount = project.binaries.length;
 
-  const allNodeEntries = project.entries.every(
-    ({runtime}) => runtime === Runtime.Node,
-  );
+  const allNodeEntries =
+    project.runtimes?.length === 1 &&
+    project.runtimes?.includes(Runtime.Node) &&
+    project.entries.every(
+      ({runtimes}) =>
+        (runtimes?.length === 1 && runtimes?.includes(Runtime.Node)) ?? false,
+    );
 
   const sourceRoot = project.fs.resolvePath('src');
 

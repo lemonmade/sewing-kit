@@ -2,19 +2,23 @@ import {
   WaterfallHook,
   SeriesHook,
   BuildServiceHooks,
-  BuildServiceVariantHooks,
+  BuildServiceTargetHooks,
   BuildWebAppHooks,
-  BuildWebAppVariantHooks,
+  BuildWebAppTargetHooks,
   BuildPackageHooks,
-  BuildPackageVariantHooks,
+  BuildPackageTargetHooks,
+  BuildWebAppTargetOptions,
+  BuildServiceTargetOptions,
+  BuildPackageTargetOptions,
 } from '@sewing-kit/hooks';
 import {
   Env,
   BuildTaskOptions,
   BuildWorkspaceTaskHooks,
 } from '@sewing-kit/tasks';
+import {TargetBuilder, Target, Step} from '@sewing-kit/core';
+import {WebApp, Service, Package} from '@sewing-kit/model';
 
-import {Runtime} from '@sewing-kit/model';
 import {LogLevel} from './ui';
 import {run, StepDetails} from './runner';
 import {
@@ -24,12 +28,6 @@ import {
   createWorkspaceTasksAndApplyPlugins,
   createProjectTasksAndApplyPlugins,
 } from './common';
-
-type ArrayElement<T> = T extends (infer U)[]
-  ? U
-  : T extends readonly (infer U)[]
-  ? U
-  : never;
 
 export const build = createCommand(
   {
@@ -92,11 +90,10 @@ export async function runBuild(
       );
 
       const hooks: BuildWebAppHooks = {
-        variants: new WaterfallHook(),
-        variant: new SeriesHook(),
+        targets: new WaterfallHook(),
+        target: new SeriesHook(),
         steps: new WaterfallHook(),
         context: new WaterfallHook(),
-        configure: new SeriesHook(),
         configureHooks: new WaterfallHook(),
       };
 
@@ -115,84 +112,90 @@ export async function runBuild(
       await buildTaskHooks.webApp.run(projectDetails);
       await build.run(details);
 
-      const [variants, context] = await Promise.all([
-        hooks.variants.run([]),
+      const [targets, context] = await Promise.all([
+        hooks.targets.run([new TargetBuilder({project: webApp})]),
         hooks.context.run({}),
       ]);
 
-      const stepsForVariant = async (
-        variant: ArrayElement<typeof variants>,
+      const hookContext = {workspace: workspaceContext, project: context};
+
+      const stepsForTarget = async (
+        target: Target<WebApp, BuildWebAppTargetOptions>,
       ) => {
-        const variantHooks: BuildWebAppVariantHooks = {
-          context: new WaterfallHook(),
+        const targetHooks: BuildWebAppTargetHooks = {
           steps: new WaterfallHook(),
           configure: new SeriesHook(),
         };
 
-        await hooks.variant.run({variant, hooks: variantHooks});
+        await hooks.target.run({
+          target,
+          context: hookContext,
+          hooks: targetHooks,
+        });
 
-        const [configuration, variantContext] = await Promise.all([
-          hooks.configureHooks.run({}),
-          variantHooks.context.run({runtimes: [Runtime.Browser]}),
-        ]);
+        const configuration = await hooks.configureHooks.run({});
 
-        const baseHookContext = {workspace: workspaceContext, project: context};
-        const variantHookContext = {
-          ...baseHookContext,
-          variant: variantContext,
-        };
-
-        await hooks.configure.run(configuration, baseHookContext);
-        await variantHooks.configure.run(configuration, variantHookContext);
-
-        return variantHooks.steps.run([], configuration, variantHookContext);
+        await targetHooks.configure.run(configuration);
+        return targetHooks.steps.run([], configuration);
       };
 
-      const variantSteps = await Promise.all(
-        variants.map(
-          async (variant): Promise<StepDetails> => {
-            const steps = await stepsForVariant(variant);
+      const targetBuilderToSteps = new Map<
+        TargetBuilder<WebApp, BuildWebAppTargetOptions>,
+        readonly Step[]
+      >();
 
-            const step = createStep(
-              {
-                id: 'SewingKit.BuildWebAppVariant',
-                label: (fmt) =>
-                  fmt`build web app {emphasis ${
-                    webApp.name
-                  }} variant {subdued ${stringifyVariant(variant)}}`,
-              },
-              async (step) => {
-                if (steps.length === 0) {
-                  step.log('no build steps available', {level: LogLevel.Debug});
-                  return;
-                }
+      await Promise.all(
+        targets.map(async (targetBuilder) => {
+          const targets = targetBuilder.toTargets();
 
-                await step.runNested(steps);
-              },
-            );
+          const steps = await Promise.all(
+            targets.map(async (target) => {
+              const steps = await stepsForTarget(target);
 
-            return {step, target: webApp};
-          },
-        ),
+              return createStep(
+                {
+                  id: 'SewingKit.BuildWebAppTarget',
+                  label: (fmt) =>
+                    fmt`build web app {emphasis ${
+                      webApp.name
+                    }} variant {subdued ${stringifyVariant(target.options)}}`,
+                },
+                async (step) => {
+                  if (steps.length === 0) {
+                    step.log('no build steps available', {
+                      level: LogLevel.Debug,
+                    });
+                    return;
+                  }
+
+                  await step.runNested(steps);
+                },
+              );
+            }),
+          );
+
+          targetBuilderToSteps.set(targetBuilder, steps);
+        }),
       );
+
+      const targetSteps: StepDetails[] = [...targetBuilderToSteps.entries()]
+        .map(([builder, steps]) =>
+          steps.map(
+            (step): StepDetails => ({
+              step,
+              target: webApp,
+              dependencies: [...builder.needs].flatMap(
+                (needed) => targetBuilderToSteps.get(needed) ?? [],
+              ),
+            }),
+          ),
+        )
+        .flat();
 
       const additionalSteps: StepDetails[] = [];
 
       if (hooks.steps.hasHooks) {
-        const configuration = await hooks.configureHooks.run({});
-
-        const hookContext = {
-          project: context,
-          workspace: workspaceContext,
-        };
-
-        await hooks.configure.run(configuration, hookContext);
-
-        const nonVariantSteps = await hooks.steps.run(
-          [],
-          configuration,
-          hookContext,
-        );
+        const nonVariantSteps = await hooks.steps.run([], hookContext);
 
         const step = createStep(
           {
@@ -212,11 +215,11 @@ export async function runBuild(
         additionalSteps.push({
           step,
           target: webApp,
-          dependencies: variantSteps.map(({step}) => step),
+          dependencies: targetSteps.map(({step}) => step),
         });
       }
 
-      return [...variantSteps, ...additionalSteps];
+      return [...targetSteps, ...additionalSteps];
     }),
   );
 
@@ -230,10 +233,9 @@ export async function runBuild(
       const hooks: BuildServiceHooks = {
         steps: new WaterfallHook(),
         context: new WaterfallHook(),
-        configure: new SeriesHook(),
         configureHooks: new WaterfallHook(),
-        variants: new WaterfallHook(),
-        variant: new SeriesHook(),
+        targets: new WaterfallHook(),
+        target: new SeriesHook(),
       };
 
       const details = {
@@ -251,87 +253,95 @@ export async function runBuild(
       await buildTaskHooks.service.run(projectDetails);
       await build.run(details);
 
-      const [variants, context] = await Promise.all([
-        hooks.variants.run([]),
+      const [targets, context] = await Promise.all([
+        hooks.targets.run([new TargetBuilder({project: service})]),
         hooks.context.run({}),
       ]);
 
-      const stepsForVariant = async (
-        variant: ArrayElement<typeof variants>,
+      const hookContext = {workspace: workspaceContext, project: context};
+
+      const stepsForTarget = async (
+        target: Target<Service, BuildServiceTargetOptions>,
       ) => {
-        const variantHooks: BuildServiceVariantHooks = {
-          context: new WaterfallHook(),
+        const targetHooks: BuildServiceTargetHooks = {
           steps: new WaterfallHook(),
           configure: new SeriesHook(),
         };
 
-        await hooks.variant.run({variant, hooks: variantHooks});
+        await hooks.target.run({
+          target,
+          context: hookContext,
+          hooks: targetHooks,
+        });
 
-        const [configuration, variantContext] = await Promise.all([
-          hooks.configureHooks.run({}),
-          variantHooks.context.run({runtimes: [Runtime.Node]}),
-        ]);
+        const configuration = await hooks.configureHooks.run({});
 
-        const baseHookContext = {workspace: workspaceContext, project: context};
-        const variantHookContext = {
-          ...baseHookContext,
-          variant: variantContext,
-        };
-
-        await hooks.configure.run(configuration, baseHookContext);
-        await variantHooks.configure.run(configuration, variantHookContext);
-
-        return variantHooks.steps.run([], configuration, variantHookContext);
+        await targetHooks.configure.run(configuration);
+        return targetHooks.steps.run([], configuration);
       };
 
-      const variantSteps = await Promise.all(
-        variants.map(async (variant) => {
-          const steps = await stepsForVariant(variant);
+      const targetBuilderToSteps = new Map<
+        TargetBuilder<Service, BuildServiceTargetOptions>,
+        readonly Step[]
+      >();
 
-          const step = createStep(
-            {
-              id: 'SewingKit.BuildServiceVariant',
-              label: (fmt) =>
-                fmt`build service {emphasis ${
-                  service.name
-                }} variant {subdued ${stringifyVariant(variant)}}`,
-            },
-            async (step) => {
-              if (steps.length === 0) {
-                step.log('no build steps available', {level: LogLevel.Debug});
-                return;
-              }
+      await Promise.all(
+        targets.map(async (targetBuilder) => {
+          const targets = targetBuilder.toTargets();
 
-              await step.runNested(steps);
-            },
+          const steps = await Promise.all(
+            targets.map(async (target) => {
+              const steps = await stepsForTarget(target);
+
+              return createStep(
+                {
+                  id: 'SewingKit.BuildWebAppTarget',
+                  label: (fmt) =>
+                    fmt`build service {emphasis ${
+                      service.name
+                    }} variant {subdued ${stringifyVariant(target.options)}}`,
+                },
+                async (step) => {
+                  if (steps.length === 0) {
+                    step.log('no build steps available', {
+                      level: LogLevel.Debug,
+                    });
+                    return;
+                  }
+
+                  await step.runNested(steps);
+                },
+              );
+            }),
           );
 
-          return {step, target: service};
+          targetBuilderToSteps.set(targetBuilder, steps);
         }),
       );
+
+      const targetSteps: StepDetails[] = [...targetBuilderToSteps.entries()]
+        .map(([builder, steps]) =>
+          steps.map(
+            (step): StepDetails => ({
+              step,
+              target: service,
+              dependencies: [...builder.needs].flatMap(
+                (needed) => targetBuilderToSteps.get(needed) ?? [],
+              ),
+            }),
+          ),
+        )
+        .flat();
 
       const additionalSteps: StepDetails[] = [];
 
       if (hooks.steps.hasHooks) {
-        const configuration = await hooks.configureHooks.run({});
-
-        const hookContext = {
-          project: context,
-          workspace: workspaceContext,
-        };
-
-        await hooks.configure.run(configuration, hookContext);
-
-        const nonVariantSteps = await hooks.steps.run(
-          [],
-          configuration,
-          hookContext,
-        );
+        const nonVariantSteps = await hooks.steps.run([], hookContext);
 
         const step = createStep(
           {
-            id: 'SewingKit.BuildService',
-            label: (fmt) => fmt`build package {emphasis ${service.name}}`,
+            id: 'SewingKit.BuildWebApp',
+            label: (fmt) => fmt`build service {emphasis ${service.name}}`,
           },
           async (step) => {
             if (nonVariantSteps.length === 0) {
@@ -346,11 +356,11 @@ export async function runBuild(
         additionalSteps.push({
           step,
           target: service,
-          dependencies: variantSteps.map(({step}) => step),
+          dependencies: targetSteps.map(({step}) => step),
         });
       }
 
-      return [...variantSteps, ...additionalSteps];
+      return [...targetSteps, ...additionalSteps];
     }),
   );
 
@@ -359,11 +369,10 @@ export async function runBuild(
       const {build} = await createProjectTasksAndApplyPlugins(pkg, taskContext);
 
       const hooks: BuildPackageHooks = {
-        variants: new WaterfallHook(),
-        variant: new SeriesHook(),
+        targets: new WaterfallHook(),
+        target: new SeriesHook(),
         steps: new WaterfallHook(),
         context: new WaterfallHook(),
-        configure: new SeriesHook(),
         configureHooks: new WaterfallHook(),
       };
 
@@ -382,84 +391,90 @@ export async function runBuild(
       await buildTaskHooks.package.run(projectDetails);
       await build.run(details);
 
-      const [variants, context] = await Promise.all([
-        hooks.variants.run([]),
+      const [targets, context] = await Promise.all([
+        hooks.targets.run([new TargetBuilder({project: pkg})]),
         hooks.context.run({}),
       ]);
 
-      const stepsForVariant = async (
-        variant: ArrayElement<typeof variants>,
+      const hookContext = {workspace: workspaceContext, project: context};
+
+      const stepsForTarget = async (
+        target: Target<Package, BuildPackageTargetOptions>,
       ) => {
-        const variantHooks: BuildPackageVariantHooks = {
-          context: new WaterfallHook(),
+        const targetHooks: BuildPackageTargetHooks = {
           steps: new WaterfallHook(),
           configure: new SeriesHook(),
         };
 
-        await hooks.variant.run({variant, hooks: variantHooks});
+        await hooks.target.run({
+          target,
+          context: hookContext,
+          hooks: targetHooks,
+        });
 
-        const [configuration, variantContext] = await Promise.all([
-          hooks.configureHooks.run({}),
-          variantHooks.context.run({
-            runtimes: pkg.runtime == null ? [] : [pkg.runtime],
-          }),
-        ]);
+        const configuration = await hooks.configureHooks.run({});
 
-        const baseHookContext = {workspace: workspaceContext, project: context};
-        const variantHookContext = {
-          ...baseHookContext,
-          variant: variantContext,
-        };
-
-        await hooks.configure.run(configuration, baseHookContext);
-        await variantHooks.configure.run(configuration, variantHookContext);
-
-        return variantHooks.steps.run([], configuration, variantHookContext);
+        await targetHooks.configure.run(configuration);
+        return targetHooks.steps.run([], configuration);
       };
 
-      const variantSteps = await Promise.all(
-        variants.map(async (variant) => {
-          const steps = await stepsForVariant(variant);
+      const targetBuilderToSteps = new Map<
+        TargetBuilder<Package, BuildPackageTargetOptions>,
+        readonly Step[]
+      >();
 
-          const step = createStep(
-            {
-              id: 'SewingKit.BuildPackageVariant',
-              label: (fmt) =>
-                fmt`build package {emphasis ${
-                  pkg.name
-                }} variant {subdued ${stringifyVariant(variant)}}`,
-            },
-            async (step) => {
-              if (steps.length === 0) {
-                step.log('no build steps available', {level: LogLevel.Debug});
-                return;
-              }
+      await Promise.all(
+        targets.map(async (targetBuilder) => {
+          const targets = targetBuilder.toTargets();
 
-              await step.runNested(steps);
-            },
+          const steps = await Promise.all(
+            targets.map(async (target) => {
+              const steps = await stepsForTarget(target);
+
+              return createStep(
+                {
+                  id: 'SewingKit.BuildPackageTarget',
+                  label: (fmt) =>
+                    fmt`build package {emphasis ${
+                      pkg.name
+                    }} variant {subdued ${stringifyVariant(target.options)}}`,
+                },
+                async (step) => {
+                  if (steps.length === 0) {
+                    step.log('no build steps available', {
+                      level: LogLevel.Debug,
+                    });
+                    return;
+                  }
+
+                  await step.runNested(steps);
+                },
+              );
+            }),
           );
 
-          return {step, target: pkg};
+          targetBuilderToSteps.set(targetBuilder, steps);
         }),
       );
+
+      const targetSteps: StepDetails[] = [...targetBuilderToSteps.entries()]
+        .map(([builder, steps]) =>
+          steps.map(
+            (step): StepDetails => ({
+              step,
+              target: pkg,
+              dependencies: [...builder.needs].flatMap(
+                (needed) => targetBuilderToSteps.get(needed) ?? [],
+              ),
+            }),
+          ),
+        )
+        .flat();
 
       const additionalSteps: StepDetails[] = [];
 
       if (hooks.steps.hasHooks) {
-        const configuration = await hooks.configureHooks.run({});
-
-        const hookContext = {
-          project: context,
-          workspace: workspaceContext,
-        };
-
-        await hooks.configure.run(configuration, hookContext);
-
-        const nonVariantSteps = await hooks.steps.run(
-          [],
-          configuration,
-          hookContext,
-        );
+        const nonVariantSteps = await hooks.steps.run([], hookContext);
 
         const step = createStep(
           {
@@ -479,11 +494,11 @@ export async function runBuild(
         additionalSteps.push({
           step,
           target: pkg,
-          dependencies: variantSteps.map(({step}) => step),
+          dependencies: targetSteps.map(({step}) => step),
         });
       }
 
-      return [...variantSteps, ...additionalSteps];
+      return [...targetSteps, ...additionalSteps];
     }),
   );
 

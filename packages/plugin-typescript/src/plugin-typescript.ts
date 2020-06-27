@@ -49,26 +49,28 @@ export function typescript() {
       });
 
       build.hook(({hooks, options}) => {
-        hooks.configure.hook((configure) => {
-          configure.babelConfig?.hook(addTypeScriptBabelConfig);
-          configure.babelExtensions?.hook(addTypeScriptExtensions);
-          configure.webpackExtensions?.hook(addTypeScriptExtensions);
-          configure.webpackPlugins?.hook(addWebpackPlugins);
-          configure.webpackRules?.hook(async (rules) => [
-            ...rules,
-            {
-              test: /\.tsx?/,
-              exclude: /node_modules/,
-              use: await createJavaScriptWebpackRuleSet({
-                api,
-                project,
-                env: options.simulateEnv,
-                configuration: configure,
-                cacheDirectory: 'ts',
-                cacheDependencies: [],
-              }),
-            },
-          ]);
+        hooks.target.hook(({hooks}) => {
+          hooks.configure.hook((configure) => {
+            configure.babelConfig?.hook(addTypeScriptBabelConfig);
+            configure.babelExtensions?.hook(addTypeScriptExtensions);
+            configure.webpackExtensions?.hook(addTypeScriptExtensions);
+            configure.webpackPlugins?.hook(addWebpackPlugins);
+            configure.webpackRules?.hook(async (rules) => [
+              ...rules,
+              {
+                test: /\.tsx?/,
+                exclude: /node_modules/,
+                use: await createJavaScriptWebpackRuleSet({
+                  api,
+                  project,
+                  env: options.simulateEnv,
+                  configuration: configure,
+                  cacheDirectory: 'ts',
+                  cacheDependencies: [],
+                }),
+              },
+            ]);
+          });
         });
       });
 

@@ -10,3 +10,5 @@ export type {
 } from './types';
 export {LogLevel} from './types';
 export {DiagnosticError, isDiagnosticError} from './errors';
+export {TargetBuilder, TargetRuntime} from './target';
+export type {Target} from './target';
