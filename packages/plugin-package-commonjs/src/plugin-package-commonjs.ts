@@ -21,6 +21,7 @@ const setCommonJsModules = updateSewingKitBabelPreset({
 
 const setNodeTarget = updateSewingKitBabelPreset({
   polyfill: 'inline',
+  modules: 'commonjs',
   target: 'node',
 });
 
