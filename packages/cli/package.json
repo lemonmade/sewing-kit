@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/cli",
   "license": "MIT",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -12,12 +12,12 @@
     "sk": "./bin/sk"
   },
   "dependencies": {
-    "@sewing-kit/config": "^0.1.1",
-    "@sewing-kit/core": "^0.0.39",
-    "@sewing-kit/hooks": "^0.1.1",
-    "@sewing-kit/model": "^0.0.15",
-    "@sewing-kit/plugins": "^0.1.1",
-    "@sewing-kit/tasks": "^0.1.1",
+    "@sewing-kit/config": "^0.1.2",
+    "@sewing-kit/core": "^0.1.0",
+    "@sewing-kit/hooks": "^0.1.2",
+    "@sewing-kit/model": "^0.1.0",
+    "@sewing-kit/plugins": "^0.1.2",
+    "@sewing-kit/tasks": "^0.1.2",
     "@types/signal-exit": "^3.0.0",
     "ansi-escapes": "^4.3.1",
     "arg": "^4.1.3",

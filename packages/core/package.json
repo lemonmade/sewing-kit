@@ -1,14 +1,14 @@
 {
   "name": "@sewing-kit/core",
   "license": "MIT",
-  "version": "0.0.39",
+  "version": "0.1.0",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
     "@sewing-kit:registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@sewing-kit/model": "^0.0.15",
+    "@sewing-kit/model": "^0.1.0",
     "execa": "^4.0.0"
   }
 }
