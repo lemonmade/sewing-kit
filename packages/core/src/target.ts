@@ -46,6 +46,7 @@ interface BuilderOptions<Kind extends Project, Options> {
   options?: Options[];
   runtime?: TargetRuntime;
   needs?: Iterable<TargetBuilder<Kind, Options>>;
+  default?: boolean;
 }
 
 export class TargetBuilder<Kind extends Project, Options> {
@@ -60,10 +61,11 @@ export class TargetBuilder<Kind extends Project, Options> {
     options,
     needs,
     runtime = TargetRuntime.fromProject(project),
+    default: isDefault = options == null,
   }: BuilderOptions<Kind, Options>) {
     this.project = project;
     this.runtime = runtime;
-    this.default = options == null;
+    this.default = isDefault;
     this.options = options ?? [{} as any];
     this.needs = new Set(needs);
   }
@@ -72,6 +74,7 @@ export class TargetBuilder<Kind extends Project, Options> {
     return new TargetBuilder({
       project: this.project,
       runtime: this.runtime,
+      default: this.default,
       options: [...this.options, ...options],
     });
   }
@@ -80,6 +83,7 @@ export class TargetBuilder<Kind extends Project, Options> {
     return new TargetBuilder({
       project: this.project,
       runtime: this.runtime,
+      default: this.default,
       options: this.options.map(multiplier).flat(),
     });
   }
