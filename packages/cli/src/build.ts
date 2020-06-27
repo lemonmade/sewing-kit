@@ -144,39 +144,35 @@ export async function runBuild(
         readonly Step[]
       >();
 
-      await Promise.all(
-        targets.map(async (targetBuilder) => {
-          const targets = targetBuilder.toTargets();
+      for (const targetBuilder of targets) {
+        const targets = targetBuilder.toTargets();
 
-          const steps = await Promise.all(
-            targets.map(async (target) => {
+        const steps = targets.map((target) => {
+          return createStep(
+            {
+              id: 'SewingKit.BuildWebAppTarget',
+              label: (fmt) =>
+                fmt`build web app {emphasis ${
+                  webApp.name
+                }} variant {subdued ${stringifyVariant(target.options)}}`,
+            },
+            async (step) => {
               const steps = await stepsForTarget(target);
 
-              return createStep(
-                {
-                  id: 'SewingKit.BuildWebAppTarget',
-                  label: (fmt) =>
-                    fmt`build web app {emphasis ${
-                      webApp.name
-                    }} variant {subdued ${stringifyVariant(target.options)}}`,
-                },
-                async (step) => {
-                  if (steps.length === 0) {
-                    step.log('no build steps available', {
-                      level: LogLevel.Debug,
-                    });
-                    return;
-                  }
+              if (steps.length === 0) {
+                step.log('no build steps available', {
+                  level: LogLevel.Debug,
+                });
+                return;
+              }
 
-                  await step.runNested(steps);
-                },
-              );
-            }),
+              await step.runNested(steps);
+            },
           );
+        });
 
-          targetBuilderToSteps.set(targetBuilder, steps);
-        }),
-      );
+        targetBuilderToSteps.set(targetBuilder, steps);
+      }
 
       const targetSteps: StepDetails[] = [...targetBuilderToSteps.entries()]
         .map(([builder, steps]) =>
@@ -285,39 +281,35 @@ export async function runBuild(
         readonly Step[]
       >();
 
-      await Promise.all(
-        targets.map(async (targetBuilder) => {
-          const targets = targetBuilder.toTargets();
+      for (const targetBuilder of targets) {
+        const targets = targetBuilder.toTargets();
 
-          const steps = await Promise.all(
-            targets.map(async (target) => {
+        const steps = targets.map((target) => {
+          return createStep(
+            {
+              id: 'SewingKit.BuildServiceTarget',
+              label: (fmt) =>
+                fmt`build service {emphasis ${
+                  service.name
+                }} variant {subdued ${stringifyVariant(target.options)}}`,
+            },
+            async (step) => {
               const steps = await stepsForTarget(target);
 
-              return createStep(
-                {
-                  id: 'SewingKit.BuildWebAppTarget',
-                  label: (fmt) =>
-                    fmt`build service {emphasis ${
-                      service.name
-                    }} variant {subdued ${stringifyVariant(target.options)}}`,
-                },
-                async (step) => {
-                  if (steps.length === 0) {
-                    step.log('no build steps available', {
-                      level: LogLevel.Debug,
-                    });
-                    return;
-                  }
+              if (steps.length === 0) {
+                step.log('no build steps available', {
+                  level: LogLevel.Debug,
+                });
+                return;
+              }
 
-                  await step.runNested(steps);
-                },
-              );
-            }),
+              await step.runNested(steps);
+            },
           );
+        });
 
-          targetBuilderToSteps.set(targetBuilder, steps);
-        }),
-      );
+        targetBuilderToSteps.set(targetBuilder, steps);
+      }
 
       const targetSteps: StepDetails[] = [...targetBuilderToSteps.entries()]
         .map(([builder, steps]) =>
@@ -423,39 +415,35 @@ export async function runBuild(
         readonly Step[]
       >();
 
-      await Promise.all(
-        targets.map(async (targetBuilder) => {
-          const targets = targetBuilder.toTargets();
+      for (const targetBuilder of targets) {
+        const targets = targetBuilder.toTargets();
 
-          const steps = await Promise.all(
-            targets.map(async (target) => {
+        const steps = targets.map((target) => {
+          return createStep(
+            {
+              id: 'SewingKit.BuildPackageTarget',
+              label: (fmt) =>
+                fmt`build package {emphasis ${
+                  pkg.name
+                }} variant {subdued ${stringifyVariant(target.options)}}`,
+            },
+            async (step) => {
               const steps = await stepsForTarget(target);
 
-              return createStep(
-                {
-                  id: 'SewingKit.BuildPackageTarget',
-                  label: (fmt) =>
-                    fmt`build package {emphasis ${
-                      pkg.name
-                    }} variant {subdued ${stringifyVariant(target.options)}}`,
-                },
-                async (step) => {
-                  if (steps.length === 0) {
-                    step.log('no build steps available', {
-                      level: LogLevel.Debug,
-                    });
-                    return;
-                  }
+              if (steps.length === 0) {
+                step.log('no build steps available', {
+                  level: LogLevel.Debug,
+                });
+                return;
+              }
 
-                  await step.runNested(steps);
-                },
-              );
-            }),
+              await step.runNested(steps);
+            },
           );
+        });
 
-          targetBuilderToSteps.set(targetBuilder, steps);
-        }),
-      );
+        targetBuilderToSteps.set(targetBuilder, steps);
+      }
 
       const targetSteps: StepDetails[] = [...targetBuilderToSteps.entries()]
         .map(([builder, steps]) =>

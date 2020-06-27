@@ -93,7 +93,7 @@ export async function createCSSWebpackRuleSet({
       esModule: true,
       onlyLocals: !fullCss,
     }),
-    postcss
+    finalPostcss
       ? configuration.cssWebpackPostcssLoaderOptions!.run({
           config: {ctx: postcssContext},
           sourceMap: sourceMaps,
@@ -130,7 +130,7 @@ export async function createCSSWebpackRuleSet({
     options: cssLoaderOptions,
   });
 
-  if (postcss) {
+  if (finalPostcss) {
     use.push({
       loader: 'postcss-loader',
       options: postcssOptions,

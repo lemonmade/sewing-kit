@@ -234,6 +234,11 @@ async function buildWebpack(config: import('webpack').Configuration) {
   return new Promise<import('webpack').Stats>((resolve, reject) => {
     compiler.run((error, stats) => {
       if (error) {
+        reject(error);
+        return;
+      }
+
+      if (stats.hasErrors()) {
         reject(new Error(stats.toString('errors-warnings')));
         return;
       }

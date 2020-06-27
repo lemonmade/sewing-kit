@@ -230,7 +230,7 @@ export function css({
                 cssModules,
                 cacheDependencies: [],
                 cacheDirectory: 'css',
-                postcss: Boolean(postcss),
+                postcss,
                 ...options,
               }),
             } as import('webpack').RuleSetRule,
