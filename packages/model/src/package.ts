@@ -4,6 +4,7 @@ import {Base, Options as BaseOptions, toId} from './base';
 export interface PackageEntryOptions {
   readonly root: string;
   readonly name?: string;
+  readonly runtime?: Runtime;
   readonly runtimes?: Runtime[];
 }
 

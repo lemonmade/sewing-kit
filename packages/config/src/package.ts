@@ -27,15 +27,15 @@ class PackageBuilder extends BaseBuilder<
     return this;
   }
 
-  entry(entry: PackageEntryOptions) {
+  entry({runtime, runtimes, ...entry}: PackageEntryOptions) {
     this.options.entries = this.options.entries ?? [];
     this.options.entries.push({
-      runtimes: this.options.runtimes,
       ...entry,
       root:
         typeof entry.root === 'string' && entry.root.startsWith('/')
           ? entry.root.slice(1)
           : entry.root,
+      runtimes: runtime ? [runtime] : runtimes ?? this.options.runtimes,
     });
 
     return this;
