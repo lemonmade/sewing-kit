@@ -9,7 +9,7 @@ import {
   addHooks,
   MissingPluginError,
 } from '@sewing-kit/plugins';
-import {} from '@sewing-kit/plugin-javascript';
+import {updateSewingKitBabelPreset} from '@sewing-kit/plugin-javascript';
 
 // Brings in the Babel hook augmentations
 import {} from 'jest';
@@ -120,6 +120,10 @@ export function jest() {
         );
 
         hooks.configure.hook((configuration) => {
+          configuration.babelConfig?.hook(
+            updateSewingKitBabelPreset({modules: 'commonjs', target: 'node'}),
+          );
+
           context.jestProjectConfigurations!.set(project, configuration);
         });
       });

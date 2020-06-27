@@ -16,7 +16,7 @@ export default function babelPresetSewingKit(
   {
     target,
     debug = false,
-    modules = 'commonjs',
+    modules = 'preserve',
     polyfill = 'entry',
   }: Options = {},
 ) {

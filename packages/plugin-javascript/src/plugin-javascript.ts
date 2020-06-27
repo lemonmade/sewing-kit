@@ -46,8 +46,7 @@ export function javascript({babelConfig}: Options = {}) {
 
         hooks.configure.hook((configure) => {
           configure.babelConfig?.hook(
-            explicitBabelConfig ??
-              addCoreBabelPreset({modules: 'commonjs', target: 'node'}),
+            explicitBabelConfig ?? addCoreBabelPreset(),
           );
         });
       });
@@ -60,6 +59,7 @@ export function javascript({babelConfig}: Options = {}) {
             configure.babelConfig?.hook(
               explicitBabelConfig ?? addCoreBabelPreset(),
             );
+
             configure.webpackRules?.hook(async (rules) => [
               ...rules,
               {
