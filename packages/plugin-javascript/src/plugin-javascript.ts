@@ -44,11 +44,11 @@ export function javascript({babelConfig}: Options = {}) {
       test.hook(({hooks}) => {
         hooks.configureHooks.hook(addBabelHooks);
 
-        if (explicitBabelConfig) {
-          hooks.configure.hook((configure) => {
+        hooks.configure.hook((configure) => {
+          if (explicitBabelConfig) {
             configure.babelConfig?.hook(explicitBabelConfig);
-          });
-        }
+          }
+        });
       });
 
       build.hook(({hooks, options}) => {
