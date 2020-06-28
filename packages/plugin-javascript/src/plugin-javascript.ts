@@ -6,6 +6,8 @@ import {
   unwrapPossibleArrayGetter,
   ValueOrGetter,
   ValueOrArray,
+  TargetRuntime,
+  Runtime,
 } from '@sewing-kit/plugins';
 
 import type {} from '@sewing-kit/plugin-webpack';
@@ -46,7 +48,8 @@ export function javascript({babelConfig}: Options = {}) {
 
         hooks.configure.hook((configure) => {
           configure.babelConfig?.hook(
-            explicitBabelConfig ?? addCoreBabelPreset(),
+            explicitBabelConfig ??
+              addCoreBabelPreset(TargetRuntime.fromProject(project)),
           );
         });
       });
@@ -54,10 +57,10 @@ export function javascript({babelConfig}: Options = {}) {
       build.hook(({hooks, options}) => {
         hooks.configureHooks.hook(addBabelHooks);
 
-        hooks.target.hook(({hooks}) => {
+        hooks.target.hook(({hooks, target}) => {
           hooks.configure.hook((configure) => {
             configure.babelConfig?.hook(
-              explicitBabelConfig ?? addCoreBabelPreset(),
+              explicitBabelConfig ?? addCoreBabelPreset(target.runtime),
             );
 
             configure.webpackRules?.hook(async (rules) => [
@@ -84,7 +87,8 @@ export function javascript({babelConfig}: Options = {}) {
 
         hooks.configure.hook((configure) => {
           configure.babelConfig?.hook(
-            explicitBabelConfig ?? addCoreBabelPreset(),
+            explicitBabelConfig ??
+              addCoreBabelPreset(TargetRuntime.fromProject(project)),
           );
           configure.webpackRules?.hook(async (rules) => [
             ...rules,
@@ -188,7 +192,14 @@ export function babelPlugins(
   );
 }
 
-function addCoreBabelPreset(options: BabelPresetOptions = {}) {
+function addCoreBabelPreset(runtime: TargetRuntime) {
+  const options: BabelPresetOptions = {
+    target:
+      runtime.includes(Runtime.Node) && runtime.runtimes.size === 0
+        ? 'node'
+        : undefined,
+  };
+
   return (config: BabelConfig): BabelConfig => ({
     ...config,
     presets: [...config.presets, [require.resolve(CORE_PRESET), options]],

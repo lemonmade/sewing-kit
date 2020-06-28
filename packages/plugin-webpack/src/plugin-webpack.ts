@@ -299,6 +299,11 @@ export async function createWebpackConfig({
     RUNTIME_TO_TARGET[runtime],
   );
 
+  const isBrowserTarget = new Set<typeof webpackTarget>([
+    'web',
+    'webworker',
+  ]).has(webpackTarget);
+
   const mode = toMode(env);
   const cachePath = await hooks.webpackCachePath!.run(api.cachePath('webpack'));
 
@@ -387,8 +392,11 @@ export async function createWebpackConfig({
     }) ?? [],
   );
 
+  const minimize = await hooks.webpackOptimizeMinimize!.run(
+    mode === 'production' && isBrowserTarget,
+  );
+
   const [
-    minimize,
     namedOutputs,
     minimizer,
     runtimeChunk,
@@ -396,52 +404,52 @@ export async function createWebpackConfig({
     aliases,
     mainFields,
   ] = await Promise.all([
-    // TODO: should server minify by default?
-    hooks.webpackOptimizeMinimize!.run(mode === 'production'),
     hooks.webpackOptimizeNamedOutputs!.run(true),
-    (async () => {
-      const [parallel, terserOptions] = await Promise.all([
-        // TODO: Shopify/ CircleCI plugin to set: https://github.com/Shopify/sewing-kit/blob/1c5e7acd53786fa7530c60e3d9cdeb39e9433896/packages/sewing-kit/src/tools/webpack/config/optimization.ts#L121
-        hooks.webpackTerserParallel!.run(true),
-        // TODO: are these the best options? Should differential serving
-        // configure them differently?
-        hooks.webpackTerserOptions!.run({
-          ecma: 8,
-          warnings: false,
-          // Per one of the authors of Preact, the extra pass may inline more esmodule imports
-          // @see https://github.com/webpack-contrib/mini-css-extract-plugin/pull/509#issuecomment-599083073
-          compress: {
-            passes: 2,
-          },
-          ie8: false,
-          safari10: true,
-          mangle: {
-            safari10: true,
-          },
-          // TODO: use these options for a debug mode
-          // output: {beautify: true},
-          // compress: {
-          //   booleans: false,
-          //   conditionals: false,
-          //   comparisons: false,
-          //   // eslint-disable-next-line @typescript-eslint/camelcase
-          //   dead_code: true,
-          //   inline: false,
-          // },
-          // mangle: false,
-        }),
-      ] as const);
+    minimize
+      ? []
+      : (async () => {
+          const [parallel, terserOptions] = await Promise.all([
+            // TODO: Shopify/ CircleCI plugin to set: https://github.com/Shopify/sewing-kit/blob/1c5e7acd53786fa7530c60e3d9cdeb39e9433896/packages/sewing-kit/src/tools/webpack/config/optimization.ts#L121
+            hooks.webpackTerserParallel!.run(true),
+            // TODO: are these the best options? Should differential serving
+            // configure them differently?
+            hooks.webpackTerserOptions!.run({
+              ecma: 8,
+              warnings: false,
+              // Per one of the authors of Preact, the extra pass may inline more esmodule imports
+              // @see https://github.com/webpack-contrib/mini-css-extract-plugin/pull/509#issuecomment-599083073
+              compress: {
+                passes: 2,
+              },
+              ie8: false,
+              safari10: true,
+              mangle: {
+                safari10: true,
+              },
+              // TODO: use these options for a debug mode
+              // output: {beautify: true},
+              // compress: {
+              //   booleans: false,
+              //   conditionals: false,
+              //   comparisons: false,
+              //   // eslint-disable-next-line @typescript-eslint/camelcase
+              //   dead_code: true,
+              //   inline: false,
+              // },
+              // mangle: false,
+            }),
+          ] as const);
 
-      const options = await hooks.webpackTerserPluginOptions!.run({
-        cache: join(cachePath, 'terser'),
-        parallel,
-        terserOptions,
-      });
+          const options = await hooks.webpackTerserPluginOptions!.run({
+            cache: join(cachePath, 'terser'),
+            parallel,
+            terserOptions,
+          });
 
-      return hooks.webpackOptimizeMinizers!.run([
-        new TerserWebpackPlugin(options),
-      ]);
-    })(),
+          return hooks.webpackOptimizeMinizers!.run([
+            new TerserWebpackPlugin(options),
+          ]);
+        })(),
     hooks.webpackOptimizeRuntimeChunk!.run(
       mode === 'production' && webpackTarget === 'web' ? 'single' : false,
     ),
@@ -517,6 +525,7 @@ export async function createWebpackConfig({
           chunkFilename,
           publicPath,
           globalObject: webpackTarget === 'node' ? 'global' : 'self',
+          libraryTarget: webpackTarget === 'node' ? 'commonjs2' : undefined,
           hashFunction,
           hashDigestLength,
           // Setting crossorigin=anonymous on async chunks improves the browser
