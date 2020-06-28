@@ -49,7 +49,7 @@ export function javascript({babelConfig}: Options = {}) {
         hooks.configure.hook((configure) => {
           configure.babelConfig?.hook(
             explicitBabelConfig ??
-              addCoreBabelPreset(TargetRuntime.fromProject(project)),
+              addCoreBabelPreset(new TargetRuntime([Runtime.Node])),
           );
         });
       });
@@ -195,7 +195,7 @@ export function babelPlugins(
 function addCoreBabelPreset(runtime: TargetRuntime) {
   const options: BabelPresetOptions = {
     target:
-      runtime.includes(Runtime.Node) && runtime.runtimes.size === 0
+      runtime.includes(Runtime.Node) && runtime.runtimes.size === 1
         ? 'node'
         : undefined,
   };

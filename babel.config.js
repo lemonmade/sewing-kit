@@ -9,7 +9,7 @@ module.exports = {
     '@babel/plugin-proposal-numeric-separator',
   ],
   presets: [
-    ['@babel/preset-env', {targets: {node: true}}],
+    ['@babel/preset-env', {targets: {node: 'current'}, modules: 'commonjs'}],
     '@babel/preset-typescript',
   ],
 };
