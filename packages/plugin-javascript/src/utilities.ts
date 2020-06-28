@@ -134,7 +134,7 @@ export function createCompileBabelStep({
         babelExtensions,
       ] = await Promise.all([
         configuration.babelConfig.run({
-          presets: [],
+          presets: [CORE_PRESET],
           plugins: [
             // This avoids compilation targets without generators having bare
             // `regeneratorRuntime` globals. It does mean that the final consumer
