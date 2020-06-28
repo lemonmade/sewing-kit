@@ -121,7 +121,10 @@ export function jest() {
 
         hooks.configure.hook((configuration) => {
           configuration.babelConfig?.hook(
-            updateSewingKitBabelPreset({modules: 'commonjs', target: 'node'}),
+            updateSewingKitBabelPreset(
+              {modules: 'commonjs', target: 'node'},
+              {addIfMissing: false},
+            ),
           );
 
           context.jestProjectConfigurations!.set(project, configuration);
@@ -215,7 +218,12 @@ export function jest() {
                       project.fs.resolvePath('node_modules/'),
                     ]),
                     hooks.babelConfig.run({
-                      presets: [],
+                      presets: [
+                        [
+                          '@sewing-kit/plugin-javascript/babel-preset',
+                          {target: 'node', modules: 'commonjs'},
+                        ],
+                      ],
                       plugins: [],
                     }),
                     hooks.jestTransforms!.run(

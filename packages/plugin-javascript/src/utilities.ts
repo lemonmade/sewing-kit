@@ -48,7 +48,7 @@ export async function createJavaScriptWebpackRuleSet({
   ] = await Promise.all([
     configuration.babelConfig?.run({
       plugins: [],
-      presets: [],
+      presets: [CORE_PRESET],
     }),
     configuration.babelCacheDependencies?.run([
       '@babel/core',

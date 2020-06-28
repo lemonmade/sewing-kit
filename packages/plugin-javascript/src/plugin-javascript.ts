@@ -6,15 +6,12 @@ import {
   unwrapPossibleArrayGetter,
   ValueOrGetter,
   ValueOrArray,
-  TargetRuntime,
-  Runtime,
 } from '@sewing-kit/plugins';
 
 import type {} from '@sewing-kit/plugin-webpack';
 
-import type {Options as BabelPresetOptions} from './babel-preset';
 import type {BabelHooks, BabelConfig} from './types';
-import {CORE_PRESET, createJavaScriptWebpackRuleSet} from './utilities';
+import {createJavaScriptWebpackRuleSet} from './utilities';
 
 declare module '@sewing-kit/hooks' {
   interface TestProjectConfigurationCustomHooks extends BabelHooks {}
@@ -46,22 +43,21 @@ export function javascript({babelConfig}: Options = {}) {
       test.hook(({hooks}) => {
         hooks.configureHooks.hook(addBabelHooks);
 
-        hooks.configure.hook((configure) => {
-          configure.babelConfig?.hook(
-            explicitBabelConfig ??
-              addCoreBabelPreset(new TargetRuntime([Runtime.Node])),
-          );
-        });
+        if (explicitBabelConfig) {
+          hooks.configure.hook((configure) => {
+            configure.babelConfig?.hook(explicitBabelConfig);
+          });
+        }
       });
 
       build.hook(({hooks, options}) => {
         hooks.configureHooks.hook(addBabelHooks);
 
-        hooks.target.hook(({hooks, target}) => {
+        hooks.target.hook(({hooks}) => {
           hooks.configure.hook((configure) => {
-            configure.babelConfig?.hook(
-              explicitBabelConfig ?? addCoreBabelPreset(target.runtime),
-            );
+            if (explicitBabelConfig) {
+              configure.babelConfig?.hook(explicitBabelConfig);
+            }
 
             configure.webpackRules?.hook(async (rules) => [
               ...rules,
@@ -86,10 +82,10 @@ export function javascript({babelConfig}: Options = {}) {
         hooks.configureHooks.hook(addBabelHooks);
 
         hooks.configure.hook((configure) => {
-          configure.babelConfig?.hook(
-            explicitBabelConfig ??
-              addCoreBabelPreset(TargetRuntime.fromProject(project)),
-          );
+          if (explicitBabelConfig) {
+            configure.babelConfig?.hook(explicitBabelConfig);
+          }
+
           configure.webpackRules?.hook(async (rules) => [
             ...rules,
             {
@@ -190,18 +186,4 @@ export function babelPlugins(
       });
     },
   );
-}
-
-function addCoreBabelPreset(runtime: TargetRuntime) {
-  const options: BabelPresetOptions = {
-    target:
-      runtime.includes(Runtime.Node) && runtime.runtimes.size === 1
-        ? 'node'
-        : undefined,
-  };
-
-  return (config: BabelConfig): BabelConfig => ({
-    ...config,
-    presets: [...config.presets, [require.resolve(CORE_PRESET), options]],
-  });
 }
