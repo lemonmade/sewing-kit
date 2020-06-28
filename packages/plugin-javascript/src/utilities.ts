@@ -9,6 +9,8 @@ import {
   PluginApi,
   Package,
   toArgs,
+  Target,
+  Runtime,
   unwrapPossibleGetter,
   ValueOrGetter,
   MissingPluginError,
@@ -27,14 +29,14 @@ export enum ExportStyle {
 export async function createJavaScriptWebpackRuleSet({
   api,
   env,
-  project,
+  target,
   configuration,
   cacheDirectory: cacheDirectoryName,
   cacheDependencies: initialCacheDependencies = [],
 }: {
   api: PluginApi;
   env: Env;
-  project: Project;
+  target: Target<Project, any>;
   configuration:
     | import('@sewing-kit/hooks').BuildProjectConfigurationHooks
     | import('@sewing-kit/hooks').DevProjectConfigurationHooks;
@@ -48,7 +50,19 @@ export async function createJavaScriptWebpackRuleSet({
   ] = await Promise.all([
     configuration.babelConfig?.run({
       plugins: [],
-      presets: [CORE_PRESET],
+      presets: [
+        [
+          CORE_PRESET,
+          {
+            modules: 'preserve',
+            target:
+              target.runtime.includes(Runtime.Node) &&
+              target.runtime.runtimes.size === 1
+                ? 'node'
+                : undefined,
+          } as BabelPresetOptions,
+        ],
+      ],
     }),
     configuration.babelCacheDependencies?.run([
       '@babel/core',
@@ -68,7 +82,7 @@ export async function createJavaScriptWebpackRuleSet({
         configFile: false,
         cacheIdentifier: babelCacheIdentifier(
           env,
-          project,
+          target.project,
           babelOptions,
           babelCacheDependencies,
         ),
