@@ -174,13 +174,12 @@ The `createJavaScriptWebpackRuleSet` returns a promise for a [webpack `UseEntry`
 import {createPackageBuildPlugin} from '@sewing-kit/config';
 import {createJavaScriptWebpackRuleSet} from '@sewing-kit/plugin-javascript';
 
-const plugin = createPackageBuildPlugin(
-  'MyPlugin',
-  ({pkg, api, options, hooks}) => {
-    hooks.configure.hook((configure) => {
+const plugin = createPackageBuildPlugin('MyPlugin', ({api, options, hooks}) => {
+  hooks.target.hook(({target, hooks}) => {
+    hooks.configure.hook((configuration) => {
       // This assumes the @sewing-kit/plugin-webpack webpackHooks() plugin
       // was also included.
-      configure.webpackRules?.hook(async (rules) => {
+      configuration.webpackRules?.hook(async (rules) => {
         // A new webpack rule that will process .esnext files using the Babel
         // configuration provided by this plugin’s javascript() hooks.
         const esnextRule = {
@@ -188,15 +187,15 @@ const plugin = createPackageBuildPlugin(
           exclude: /node_modules/,
           use: await createJavaScriptWebpackRuleSet({
             api,
-            project,
+            target,
             // The environment to build for, typically best to pass
             // through the options.simulateEnv for the build in question.
             env: options.simulateEnv,
-            configuration: configure,
+            configuration,
             // At least one level of directory. The Babel cache will be scoped
             // under this directory so it does not conflict with other
             // file types being processed using Babel.
-            cacheDirectory: 'ts',
+            cacheDirectory: 'esnext',
             // Additional packages to consider in the Babel cache key (optional,
             // defaults to an empty array. These dependencies will be used as the
             // initial value for the `babelCacheDependencies` hook)
@@ -207,8 +206,8 @@ const plugin = createPackageBuildPlugin(
         return [...rules, esnextRule];
       });
     });
-  },
-);
+  });
+});
 ```
 
 ### `createCompileBabelStep()`

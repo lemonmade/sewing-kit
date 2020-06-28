@@ -44,7 +44,7 @@ export function esnextOutput() {
                 include: /node_modules/,
                 use: await createJavaScriptWebpackRuleSet({
                   api,
-                  project,
+                  target,
                   env: options.simulateEnv,
                   configuration,
                   cacheDirectory: 'esnext',
@@ -68,7 +68,11 @@ export function esnextOutput() {
               include: /node_modules/,
               use: await createJavaScriptWebpackRuleSet({
                 api,
-                project,
+                target: {
+                  project,
+                  options: {},
+                  runtime: TargetRuntime.fromProject(project),
+                },
                 env: Env.Development,
                 configuration: configure,
                 cacheDirectory: 'esnext',

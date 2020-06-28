@@ -6,6 +6,7 @@ import {
   unwrapPossibleArrayGetter,
   ValueOrGetter,
   ValueOrArray,
+  TargetRuntime,
 } from '@sewing-kit/plugins';
 
 import type {} from '@sewing-kit/plugin-webpack';
@@ -53,7 +54,7 @@ export function javascript({babelConfig}: Options = {}) {
       build.hook(({hooks, options}) => {
         hooks.configureHooks.hook(addBabelHooks);
 
-        hooks.target.hook(({hooks}) => {
+        hooks.target.hook(({target, hooks}) => {
           hooks.configure.hook((configure) => {
             if (explicitBabelConfig) {
               configure.babelConfig?.hook(explicitBabelConfig);
@@ -66,7 +67,7 @@ export function javascript({babelConfig}: Options = {}) {
                 exclude: /node_modules/,
                 use: await createJavaScriptWebpackRuleSet({
                   api,
-                  project,
+                  target,
                   env: options.simulateEnv,
                   configuration: configure,
                   cacheDirectory: 'js',
@@ -93,7 +94,11 @@ export function javascript({babelConfig}: Options = {}) {
               exclude: /node_modules/,
               use: await createJavaScriptWebpackRuleSet({
                 api,
-                project,
+                target: {
+                  project,
+                  options: {},
+                  runtime: TargetRuntime.fromProject(project),
+                },
                 env: Env.Development,
                 configuration: configure,
                 cacheDirectory: 'js',

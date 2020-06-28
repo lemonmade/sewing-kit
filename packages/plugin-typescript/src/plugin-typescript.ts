@@ -10,6 +10,7 @@ import {
   createProjectPlugin,
   createWorkspacePlugin,
   WorkspacePluginContext,
+  TargetRuntime,
 } from '@sewing-kit/plugins';
 import {createJavaScriptWebpackRuleSet} from '@sewing-kit/plugin-javascript';
 
@@ -49,7 +50,7 @@ export function typescript() {
       });
 
       build.hook(({hooks, options}) => {
-        hooks.target.hook(({hooks}) => {
+        hooks.target.hook(({target, hooks}) => {
           hooks.configure.hook((configure) => {
             configure.babelConfig?.hook(addTypeScriptBabelConfig);
             configure.babelExtensions?.hook(addTypeScriptExtensions);
@@ -62,7 +63,7 @@ export function typescript() {
                 exclude: /node_modules/,
                 use: await createJavaScriptWebpackRuleSet({
                   api,
-                  project,
+                  target,
                   env: options.simulateEnv,
                   configuration: configure,
                   cacheDirectory: 'ts',
@@ -86,7 +87,11 @@ export function typescript() {
               exclude: /node_modules/,
               use: await createJavaScriptWebpackRuleSet({
                 api,
-                project,
+                target: {
+                  project,
+                  options: {},
+                  runtime: TargetRuntime.fromProject(project),
+                },
                 env: Env.Development,
                 configuration: configure,
                 cacheDirectory: 'ts',
