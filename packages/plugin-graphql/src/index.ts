@@ -1,1 +1,1 @@
-export {graphql} from './plugin-graphql';
+export {graphql, workspaceGraphQL} from './plugin-graphql';
