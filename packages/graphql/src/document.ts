@@ -1,8 +1,7 @@
 import {createHash} from 'crypto';
 
-import {
-  print,
-  parse,
+import {print, parse} from 'graphql';
+import type {
   DocumentNode,
   DefinitionNode,
   SelectionSetNode,
@@ -11,6 +10,8 @@ import {
   SelectionNode,
   Location,
 } from 'graphql';
+
+import type {SimpleDocument} from './types';
 
 const IMPORT_REGEX = /^#import\s+['"]([^'"]*)['"];?[\s\n]*/gm;
 const DEFAULT_NAME = 'Operation';
@@ -71,7 +72,9 @@ export function extractImports(rawSource: string) {
   return {imports: [...imports], source};
 }
 
-export function toSimpleDocument(document: EnhancedDocumentNode) {
+export function toSimpleDocument(
+  document: EnhancedDocumentNode,
+): SimpleDocument {
   return {
     id: document.id,
     name: operationNameForDocument(document),
