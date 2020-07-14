@@ -45,7 +45,7 @@ export async function loadWorkspace(root: string): Promise<LoadedWorkspace> {
 
   const configFiles = glob('**/sewing-kit.config.*', {
     cwd: root as string,
-    ignore: ['**/node_modules/**', '**/build/**'],
+    ignore: ['**/node_modules/**', `${root}/**/build/**`],
     absolute: true,
   });
 
