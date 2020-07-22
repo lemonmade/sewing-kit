@@ -71,7 +71,7 @@ export function react({preact = false, fastRefresh = true}: Options = {}) {
 
     test.hook(({hooks}) => {
       const addBabelPreset = createBabelConfigAdjuster({
-        development: true,
+        development: false,
         fastReload: false,
       });
 
