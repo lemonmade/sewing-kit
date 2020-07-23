@@ -1,7 +1,7 @@
 {
   "name": "@sewing-kit/plugin-package-node",
   "license": "MIT",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "sideEffects": false,
   "publishConfig": {
     "access": "public",
@@ -13,6 +13,6 @@
     "@sewing-kit/plugins": "^0.1.4"
   },
   "optionalDependencies": {
-    "@sewing-kit/plugin-jest": "^0.1.17"
+    "@sewing-kit/plugin-jest": "^0.1.18"
   }
 }
