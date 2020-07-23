@@ -240,7 +240,7 @@ export function jest() {
                       ...setupEnvironment,
                       ...setupEnvironmentIndexes,
                     ]),
-                    hooks.jestSetupEnv!.run([
+                    hooks.jestSetupTests!.run([
                       ...rootSetupTestsFiles,
                       ...setupTests,
                       ...setupTestsIndexes,

@@ -1,6 +1,5 @@
 import {
   Env,
-  Service,
   WebApp,
   addHooks,
   WaterfallHook,
@@ -63,7 +62,7 @@ export function css({
   postcss = true,
   cssModules = true,
 }: Options = {}) {
-  return createProjectPlugin<Service | WebApp>(
+  return createProjectPlugin(
     PLUGIN,
     ({api, project, tasks: {dev, build, test}}) => {
       test.hook(({hooks}) => {
