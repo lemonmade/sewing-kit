@@ -71,10 +71,12 @@ export function sass({
                       target,
                     })),
                     {
-                      path: 'sass-loader',
+                      loader: 'sass-loader',
                       options: {
                         sourceMap: sourceMaps,
-                        includePaths: sassIncludePaths,
+                        sassOptions: {
+                          includePaths: sassIncludePaths,
+                        }
                       },
                     },
                   ],
@@ -121,10 +123,12 @@ export function sass({
                     cacheDependencies: ['node-sass'],
                   })),
                   {
-                    path: 'sass-loader',
+                    loader: 'sass-loader',
                     options: {
                       sourceMap: sourceMaps,
-                      includePaths: sassIncludePaths,
+                      sassOptions: {
+                        includePaths: sassIncludePaths,
+                      },
                     },
                   },
                 ],
