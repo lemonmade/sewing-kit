@@ -1,4 +1,4 @@
-import {resolve, relative} from 'path';
+import {resolve, relative, sep} from 'path';
 import {createHash} from 'crypto';
 
 import nodeObjectHash from 'node-object-hash';
@@ -315,7 +315,7 @@ export function updateBabelPlugin<Options extends object = object>(
                 ? plugin
                 : [plugin];
 
-              if (normalizedPlugins.includes(name)) {
+              if (checkForPluginPresetMatch(normalizedPlugins, name)) {
                 hasMatch = true;
 
                 const newOptions = await unwrapPossibleGetter(
@@ -369,7 +369,7 @@ export function updateBabelPreset<Options extends object = object>(
                 ? preset
                 : [preset];
 
-              if (normalizedPresets.includes(name)) {
+              if (checkForPluginPresetMatch(normalizedPresets, name)) {
                 hasMatch = true;
 
                 const newOptions = await unwrapPossibleGetter(
@@ -400,6 +400,31 @@ export function updateBabelPreset<Options extends object = object>(
 
     return newConfig;
   };
+}
+
+export function checkForPluginPresetMatch(
+  searchNames: string[],
+  actualName: string,
+) {
+  return searchNames.some((searchName) => {
+    if (searchName === actualName) return true;
+
+    const delimitedSearchName = delimitName(searchName);
+    const delimitedActualName = delimitName(actualName);
+
+    return (
+      delimitedSearchName.includes(delimitedActualName) ||
+      delimitedActualName.includes(delimitedSearchName)
+    );
+  });
+}
+
+function delimitName(name: string) {
+  let result = name.substr(0, name.lastIndexOf('.')) || name;
+  result = result[0] === sep ? result : sep + result;
+  result = result[result.length - 1] === sep ? result : result + sep;
+
+  return result;
 }
 
 export function updateSewingKitBabelPreset(
