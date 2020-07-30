@@ -5,9 +5,7 @@
   "eslint.validate": ["typescript", "typescriptreact", "javascript"],
   "eslint.enable": true,
   "[typescript]": {
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "cSpell.ignoreWords": [
-    "browserslist"
-  ]
+  "cSpell.ignoreWords": ["browserslist"]
 }
