@@ -10,6 +10,7 @@
   "dependencies": {
     "@sewing-kit/hooks": "^0.1.4",
     "@sewing-kit/plugins": "^0.1.4",
+    "@sewing-kit/config": "0.1.5",
     "eslint": "^7.0.0"
   }
 }
