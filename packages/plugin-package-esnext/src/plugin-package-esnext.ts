@@ -105,7 +105,12 @@ export function esnextOutput() {
 
 export function buildEsNextOutput() {
   return createProjectBuildPlugin<Package>(PLUGIN, (context) => {
-    const {api, hooks, project} = context;
+    const {
+      api,
+      hooks,
+      project,
+      options: {cache},
+    } = context;
 
     hooks.targets.hook((targets) =>
       targets.map((target) =>
@@ -139,6 +144,7 @@ export function buildEsNextOutput() {
             extension: EXTENSION,
             configFile: 'babel.esnext.js',
             exportStyle: ExportStyle.EsModules,
+            cache,
           }),
         ];
       });

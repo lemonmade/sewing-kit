@@ -52,7 +52,12 @@ export function esmodulesOutput() {
 
 export function buildEsModulesOutput() {
   return createProjectBuildPlugin<Package>(PLUGIN, (context) => {
-    const {api, hooks, project} = context;
+    const {
+      api,
+      hooks,
+      project,
+      options: {cache},
+    } = context;
 
     hooks.targets.hook((targets) =>
       targets.map((target) =>
@@ -80,6 +85,7 @@ export function buildEsModulesOutput() {
             extension: '.mjs',
             configFile: 'babel.esm.js',
             exportStyle: ExportStyle.EsModules,
+            cache,
           }),
         ];
       });

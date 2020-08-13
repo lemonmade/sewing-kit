@@ -32,7 +32,12 @@ export function nodeOutput() {
 
 export function buildNodeOutput() {
   return createProjectBuildPlugin<Package>(PLUGIN, (context) => {
-    const {api, hooks, project} = context;
+    const {
+      api,
+      hooks,
+      project,
+      options: {cache},
+    } = context;
 
     hooks.targets.hook((targets) =>
       targets.map((target) => {
@@ -76,6 +81,7 @@ export function buildNodeOutput() {
             configuration,
             configFile: 'babel.node.js',
             exportStyle: ExportStyle.CommonJs,
+            cache,
           }),
         ];
       });

@@ -27,7 +27,12 @@ const setNodeTarget = updateSewingKitBabelPreset({
 
 export function buildCommonJsOutput() {
   return createProjectBuildPlugin<Package>(PLUGIN, (context) => {
-    const {api, hooks, project} = context;
+    const {
+      api,
+      hooks,
+      project,
+      options: {cache},
+    } = context;
 
     hooks.targets.hook((targets) =>
       targets.map((target) =>
@@ -62,6 +67,7 @@ export function buildCommonJsOutput() {
             outputPath,
             configFile: 'babel.cjs.js',
             exportStyle: ExportStyle.CommonJs,
+            cache,
           }),
         ];
       });
