@@ -181,7 +181,8 @@ export function createCompileBabelStep({
       ]);
 
       // Check Babel package build cache
-      let cacheValue = '';
+      let cacheValue = '',
+        cachePath = '';
       if (cache) {
         cacheValue = generateBabelPackageCacheValue(
           pkg,
@@ -190,7 +191,8 @@ export function createCompileBabelStep({
           [...babelIgnorePatterns],
           [...babelExtensions],
         );
-        if (await readBabelPackageCache(api, cacheValue, pkg, configFile)) {
+        cachePath = getBabelPackageCachePath(api, pkg.name, configFile);
+        if (await readBabelPackageCache(cacheValue, cachePath)) {
           step.log(
             `Successfully read from Babel cache for package ${pkg.name}, skipping compilation`,
           );
@@ -252,39 +254,23 @@ export function createCompileBabelStep({
       });
 
       if (cache) {
-        await writeBabelPackageCache(api, cacheValue, pkg, configFile);
+        await writeBabelPackageCache(cacheValue, cachePath);
       }
     },
   );
 }
 
-async function readBabelPackageCache(
-  api: PluginApi,
-  newCacheValue: string,
-  pkg: Package,
-  configFile: string,
-) {
+async function readBabelPackageCache(newCacheValue: string, cachePath: string) {
   try {
-    const {name} = pkg;
-    const cacheFilePath = getBabelPackageCachePath(api, name, configFile);
-    const cacheValue = await readFile(cacheFilePath, 'utf8');
-
-    return cacheValue === newCacheValue;
+    return (await readFile(cachePath, 'utf8')) === newCacheValue;
   } catch (err) {
     return false;
   }
 }
 
-async function writeBabelPackageCache(
-  api: PluginApi,
-  cacheValue: string,
-  pkg: Package,
-  configFile: string,
-) {
-  const {name} = pkg;
-  const cacheFilePath = getBabelPackageCachePath(api, name, configFile);
-  await mkdirp(dirname(cacheFilePath));
-  await writeFile(cacheFilePath, cacheValue);
+async function writeBabelPackageCache(cacheValue: string, cachePath: string) {
+  await mkdirp(dirname(cachePath));
+  await writeFile(cachePath, cacheValue);
 }
 
 function getBabelPackageCachePath(
@@ -308,6 +294,7 @@ function generateBabelPackageCacheValue(
   babelExtensions: string[],
 ) {
   const optionsHash = [...babelIgnorePatterns, ...babelExtensions].join('&');
+
   const dependencyString = [...babelCacheDependencies]
     .map(
       (dependency) =>
@@ -321,6 +308,7 @@ function generateBabelPackageCacheValue(
     .update(dependencyString)
     .update(String(latestModifiedTime))
     .digest('hex');
+
   const configHash = nodeObjectHash().hash(babelConfig);
 
   return `${optionsHash}+${dependencyModifiedHash}+${configHash}`;
