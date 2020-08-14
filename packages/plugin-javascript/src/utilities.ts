@@ -187,6 +187,9 @@ export function createCompileBabelStep({
         cacheValue = generateBabelPackageCacheValue(
           pkg,
           babelConfig,
+          outputPath,
+          extension || '.js',
+          exportStyle || ExportStyle.CommonJs,
           [...babelCacheDependencies],
           [...babelIgnorePatterns],
           [...babelExtensions],
@@ -289,11 +292,20 @@ function getBabelPackageCachePath(
 function generateBabelPackageCacheValue(
   pkg: Package,
   babelConfig: BabelConfig,
+  outputPath: string,
+  extension: string,
+  exportStyle: ExportStyle,
   babelCacheDependencies: string[],
   babelIgnorePatterns: string[],
   babelExtensions: string[],
 ) {
-  const optionsHash = [...babelIgnorePatterns, ...babelExtensions].join('&');
+  const optionsHash = [
+    outputPath,
+    extension,
+    exportStyle,
+    ...babelIgnorePatterns,
+    ...babelExtensions,
+  ].join('&');
 
   const dependencyString = [...babelCacheDependencies]
     .map(
