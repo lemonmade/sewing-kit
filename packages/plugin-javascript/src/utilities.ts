@@ -103,14 +103,10 @@ function babelCacheIdentifier(
 ) {
   const optionsHash = nodeObjectHash().hash(babelOptions);
   const prefix = `sk:${env}:`;
-  const dependencyString = ['webpack', ...dependencies]
-    .map(
-      (dependency) =>
-        `${dependency}:${
-          project.dependency(dependency)?.version || 'notinstalled'
-        }`,
-    )
-    .join('&');
+  const dependencyString = createDependencyString(
+    ['webpack', ...dependencies],
+    project,
+  );
 
   return `${prefix}${createHash('md5')
     .update(dependencyString)
@@ -181,10 +177,8 @@ export function createCompileBabelStep({
       ]);
 
       // Check Babel package build cache
-      let cacheValue = '',
-        cachePath = '';
       if (cache) {
-        cacheValue = generateBabelPackageCacheValue(
+        const cacheValue = generateBabelPackageCacheValue(
           pkg,
           babelConfig,
           outputPath,
@@ -194,12 +188,15 @@ export function createCompileBabelStep({
           [...babelIgnorePatterns],
           [...babelExtensions],
         );
-        cachePath = getBabelPackageCachePath(api, pkg.name, configFile);
+        const cachePath = getBabelPackageCachePath(api, pkg.name, configFile);
+
         if (await readBabelPackageCache(cacheValue, cachePath)) {
           step.log(
-            `Successfully read from Babel cache for package ${pkg.name}, skipping compilation`,
+            `Successfully read from Babel cache for package ${pkg.name} (config: ${configFile}), skipping compilation`,
           );
           return;
+        } else {
+          await writeBabelPackageCache(cacheValue, cachePath);
         }
       }
 
@@ -255,10 +252,6 @@ export function createCompileBabelStep({
         outputPath,
         exportStyle,
       });
-
-      if (cache) {
-        await writeBabelPackageCache(cacheValue, cachePath);
-      }
     },
   );
 }
@@ -299,31 +292,31 @@ function generateBabelPackageCacheValue(
   babelIgnorePatterns: string[],
   babelExtensions: string[],
 ) {
-  const optionsHash = [
+  const optionsString = [
     outputPath,
     extension,
     exportStyle,
     ...babelIgnorePatterns,
     ...babelExtensions,
   ].join('&');
+  const dependencyModifiedTimeHash = createHash('md5')
+    .update(createDependencyString([...babelCacheDependencies], pkg))
+    .update(String(getLatestModifiedTime(pkg, babelExtensions)))
+    .digest('hex');
+  const configHash = nodeObjectHash().hash(babelConfig);
 
-  const dependencyString = [...babelCacheDependencies]
+  return `${optionsString}+${dependencyModifiedTimeHash}+${configHash}`;
+}
+
+function createDependencyString(dependencies: string[], project: Project) {
+  return dependencies
     .map(
       (dependency) =>
         `${dependency}:${
-          pkg.dependency(dependency)?.version || 'notinstalled'
+          project.dependency(dependency)?.version || 'notinstalled'
         }`,
     )
     .join('&');
-  const latestModifiedTime = getLatestModifiedTime(pkg, babelExtensions);
-  const dependencyModifiedHash = createHash('md5')
-    .update(dependencyString)
-    .update(String(latestModifiedTime))
-    .digest('hex');
-
-  const configHash = nodeObjectHash().hash(babelConfig);
-
-  return `${optionsHash}+${dependencyModifiedHash}+${configHash}`;
 }
 
 function getLatestModifiedTime(pkg: Package, babelExtensions: string[]) {
