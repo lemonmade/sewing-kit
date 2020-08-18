@@ -178,16 +178,15 @@ export function createCompileBabelStep({
 
       // Check Babel package build cache
       if (cache) {
-        const cacheValue = generateBabelPackageCacheValue(
-          pkg,
+        const cacheValue = generateBabelPackageCacheValue(pkg, {
           babelConfig,
           outputPath,
-          extension || '.js',
-          exportStyle || ExportStyle.CommonJs,
-          [...babelCacheDependencies],
-          [...babelIgnorePatterns],
-          [...babelExtensions],
-        );
+          extension: extension || '.js',
+          exportStyle: exportStyle || ExportStyle.CommonJs,
+          babelCacheDependencies: [...babelCacheDependencies],
+          babelIgnorePatterns: [...babelIgnorePatterns],
+          babelExtensions: [...babelExtensions],
+        });
         const cachePath = getBabelPackageCachePath(api, pkg.name, configFile);
 
         if (await readBabelPackageCache(cacheValue, cachePath)) {
@@ -282,16 +281,30 @@ function getBabelPackageCachePath(
   );
 }
 
+interface BabelPackageCacheOptions {
+  babelConfig: BabelConfig;
+  outputPath: string;
+  extension: string;
+  exportStyle: ExportStyle;
+  babelCacheDependencies: string[];
+  babelIgnorePatterns: string[];
+  babelExtensions: string[];
+}
+
 function generateBabelPackageCacheValue(
   pkg: Package,
-  babelConfig: BabelConfig,
-  outputPath: string,
-  extension: string,
-  exportStyle: ExportStyle,
-  babelCacheDependencies: string[],
-  babelIgnorePatterns: string[],
-  babelExtensions: string[],
+  options: BabelPackageCacheOptions,
 ) {
+  const {
+    babelConfig,
+    outputPath,
+    extension,
+    exportStyle,
+    babelCacheDependencies,
+    babelIgnorePatterns,
+    babelExtensions,
+  } = options;
+
   const optionsString = [
     outputPath,
     extension,
