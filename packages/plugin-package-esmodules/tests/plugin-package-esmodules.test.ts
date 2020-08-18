@@ -2,7 +2,7 @@ import {join} from 'path';
 import {withWorkspace} from '../../../tests/utilities';
 
 describe('@sewing-kit/plugin-package-esmodules', () => {
-  it('builds a package at root while preserving ES import/ exports', async () => {
+  it('builds a package at root while preserving ES import/exports', async () => {
     await withWorkspace('simple-package', async (workspace) => {
       await workspace.writeConfig(`
         import {createPackage} from '@sewing-kit/config';
