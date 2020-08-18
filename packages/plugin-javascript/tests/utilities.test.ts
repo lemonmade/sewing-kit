@@ -1,24 +1,12 @@
-import {statSync as stat} from 'fs';
-
 import {Package} from '@sewing-kit/plugins';
 
-import {withWorkspace, Workspace} from '../../../tests/utilities';
+import {withWorkspace} from '../../../tests/utilities';
 import {
   ExportStyle,
   getLatestModifiedTime,
   generateBabelPackageCacheValue,
 } from '../src/utilities';
-
-function getModifiedTime(filepath: string) {
-  return stat(filepath).mtimeMs;
-}
-
-async function writeToSrc(workspace: Workspace, filepath: string) {
-  await workspace.writeFile(
-    `src/${filepath}`,
-    `export function pkg(greet) { console.log(\`Hello, \${greet}!\`); }`,
-  );
-}
+import {getModifiedTime, writeToSrc} from './utilities';
 
 describe('utilities', () => {
   describe('getLatestModifiedTime()', () => {
