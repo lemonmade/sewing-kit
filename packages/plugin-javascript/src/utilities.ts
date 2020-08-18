@@ -287,7 +287,7 @@ interface BabelPackageCacheOptions {
   babelExtensions: string[];
 }
 
-function generateBabelPackageCacheValue(
+export function generateBabelPackageCacheValue(
   pkg: Package,
   options: BabelPackageCacheOptions,
 ) {
@@ -328,11 +328,18 @@ function createDependencyString(dependencies: string[], project: Project) {
     .join('&');
 }
 
-function getLatestModifiedTime(pkg: Package, babelExtensions: string[]) {
+export function getLatestModifiedTime(pkg: Package, babelExtensions: string[]) {
   const sourceRoot = resolve(pkg.root, 'src');
-  const compiledFiles = glob(
-    `${sourceRoot}/**/*{${babelExtensions.join(',')}}`,
-  );
+  const compiledFiles =
+    babelExtensions.length === 0
+      ? []
+      : glob(
+          `${sourceRoot}/**/*${
+            babelExtensions.length === 1
+              ? babelExtensions[0]
+              : `{${babelExtensions.join(',')}}`
+          }`,
+        );
   return compiledFiles.reduce((latestTime, file) => {
     const {mtimeMs} = stat(file);
 
