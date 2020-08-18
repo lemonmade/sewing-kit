@@ -131,8 +131,8 @@ export function createCompileBabelStep({
   configuration,
   configFile,
   outputPath,
-  extension,
-  exportStyle,
+  extension = '.js',
+  exportStyle = ExportStyle.CommonJs,
   cache,
   cacheDependencies: initialCacheDependencies = [],
 }: CompileBabelOptions) {
@@ -181,8 +181,8 @@ export function createCompileBabelStep({
         const cacheValue = generateBabelPackageCacheValue(pkg, {
           babelConfig,
           outputPath,
-          extension: extension || '.js',
-          exportStyle: exportStyle || ExportStyle.CommonJs,
+          extension,
+          exportStyle,
           babelCacheDependencies: [...babelCacheDependencies],
           babelIgnorePatterns: [...babelIgnorePatterns],
           babelExtensions: [...babelExtensions],
@@ -213,10 +213,9 @@ export function createCompileBabelStep({
       );
 
       const sourceRoot = resolve(pkg.root, 'src');
-      const replaceExtension =
-        extension == null || extension.startsWith('.')
-          ? extension
-          : `.${extension}`;
+      const replaceExtension = extension.startsWith('.')
+        ? extension
+        : `.${extension}`;
 
       // TODO: use `cacheDependencies` and cache directories to get good caching going here
       await step.exec('node_modules/.bin/babel', [
@@ -346,9 +345,9 @@ function getLatestModifiedTime(pkg: Package, babelExtensions: string[]) {
 
 async function writeEntries({
   project,
-  extension = '.js',
+  extension,
   outputPath,
-  exportStyle = ExportStyle.CommonJs,
+  exportStyle,
 }: Pick<
   CompileBabelOptions,
   'project' | 'extension' | 'outputPath' | 'exportStyle'
