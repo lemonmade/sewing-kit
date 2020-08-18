@@ -5,11 +5,62 @@ import {getModifiedTime, writeToSrc} from './utilities';
 
 const babelCompilationConfig = `
 import {createPackage} from '@sewing-kit/config';
-import {javascript} from '@sewing-kit/plugin-javascript';
-import {buildEsModulesOutput} from '@sewing-kit/plugin-package-esmodules';
+import {
+  javascript,
+  ExportStyle,
+  updateSewingKitBabelPreset,
+  createCompileBabelStep,
+} from '@sewing-kit/plugin-javascript';
+import {createProjectBuildPlugin} from '@sewing-kit/plugins';
+
+function compileBabelBuild() {
+  return createProjectBuildPlugin('TestPackage.BuildPlugin', (context) => {
+    const {
+      api,
+      hooks,
+      project,
+      options: {cache},
+    } = context;
+
+    hooks.targets.hook((targets) =>
+      targets.map((target) =>
+        target.default ? target.add({esmodules: true}) : target,
+      ),
+    );
+
+    hooks.target.hook(({target, hooks}) => {
+      if (!target.options.esmodules) return;
+
+      hooks.configure.hook((configuration) => {
+        configuration.babelConfig?.hook(updateSewingKitBabelPreset({
+          polyfill: 'inline',
+          modules: 'preserve',
+        }));
+      });
+
+      hooks.steps.hook((steps, configuration) => {
+        const outputPath = project.fs.buildPath('esm');
+
+        return [
+          ...steps,
+          createCompileBabelStep({
+            api,
+            project,
+            configuration,
+            outputPath,
+            extension: '.mjs',
+            configFile: 'babel.esm.js',
+            exportStyle: ExportStyle.EsModules,
+            cache,
+          }),
+        ];
+      });
+    });
+  });
+}
 
 export default createPackage((pkg) => {
-  pkg.use(javascript(), buildEsModulesOutput());
+  pkg.use(javascript(), compileBabelBuild());
 });
 `;
 
