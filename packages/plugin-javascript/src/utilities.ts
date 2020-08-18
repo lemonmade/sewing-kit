@@ -1,8 +1,7 @@
-import {resolve, relative, dirname} from 'path';
+import {resolve, relative} from 'path';
 import {sync as glob} from 'glob';
 import {statSync as stat} from 'fs';
 import {createHash} from 'crypto';
-import {readFile, writeFile, mkdirp} from 'fs-extra';
 
 import nodeObjectHash from 'node-object-hash';
 
@@ -18,6 +17,7 @@ import {
   ValueOrGetter,
   MissingPluginError,
 } from '@sewing-kit/plugins';
+import {FileSystem} from '@sewing-kit/model';
 
 import type {BabelHooks, BabelConfig} from './types';
 import type {Options as BabelPresetOptions} from './babel-preset';
@@ -178,6 +178,9 @@ export function createCompileBabelStep({
 
       // Check Babel package build cache
       if (cache) {
+        const cacheFS = new FileSystem(
+          api.cachePath('babel', 'packages', pkg.name),
+        );
         const cacheValue = generateBabelPackageCacheValue(pkg, {
           babelConfig,
           outputPath,
@@ -187,15 +190,15 @@ export function createCompileBabelStep({
           babelIgnorePatterns: [...babelIgnorePatterns],
           babelExtensions: [...babelExtensions],
         });
-        const cachePath = getBabelPackageCachePath(api, pkg.name, configFile);
+        const cachePath = cacheFS.resolvePath(configFile.replace(/\./g, '-'));
 
-        if (await readBabelPackageCache(cacheValue, cachePath)) {
+        if (await readBabelPackageCache(cacheFS, cacheValue, cachePath)) {
           step.log(
             `Successfully read from Babel cache for package ${pkg.name} (config: ${configFile}), skipping compilation`,
           );
           return;
         } else {
-          await writeBabelPackageCache(cacheValue, cachePath);
+          await writeBabelPackageCache(cacheFS, cacheValue, cachePath);
         }
       }
 
@@ -254,30 +257,24 @@ export function createCompileBabelStep({
   );
 }
 
-async function readBabelPackageCache(newCacheValue: string, cachePath: string) {
+async function readBabelPackageCache(
+  cacheFS: FileSystem,
+  newCacheValue: string,
+  cachePath: string,
+) {
   try {
-    return (await readFile(cachePath, 'utf8')) === newCacheValue;
+    return (await cacheFS.read(cachePath)) === newCacheValue;
   } catch (err) {
     return false;
   }
 }
 
-async function writeBabelPackageCache(cacheValue: string, cachePath: string) {
-  await mkdirp(dirname(cachePath));
-  await writeFile(cachePath, cacheValue);
-}
-
-function getBabelPackageCachePath(
-  api: PluginApi,
-  pkgName: string,
-  configFileName: string,
+async function writeBabelPackageCache(
+  cacheFS: FileSystem,
+  cacheValue: string,
+  cachePath: string,
 ) {
-  return api.cachePath(
-    'babel',
-    'packages',
-    pkgName,
-    configFileName.replace(/\./g, '-'),
-  );
+  await cacheFS.write(cachePath, cacheValue);
 }
 
 interface BabelPackageCacheOptions {
