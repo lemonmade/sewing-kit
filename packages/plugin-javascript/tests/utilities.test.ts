@@ -1,21 +1,16 @@
-import {Package} from '@sewing-kit/plugins';
-
 import {withWorkspace} from '../../../tests/utilities';
 import {
   ExportStyle,
   getLatestModifiedTime,
   generateBabelPackageCacheValue,
 } from '../src/utilities';
-import {getModifiedTime, writeToSrc} from './utilities';
+import {getModifiedTime, writeToSrc, createTestPackage} from './utilities';
 
 describe('utilities', () => {
   describe('getLatestModifiedTime()', () => {
     it('gets the latest modified time', async () => {
       await withWorkspace('simple-package', async (workspace) => {
-        const testPackage = new Package({
-          name: 'simple-package',
-          root: workspace.root,
-        });
+        const testPackage = createTestPackage(workspace);
         const fileExtensions = ['.js'];
 
         await writeToSrc(workspace, 'index.js');
@@ -38,10 +33,7 @@ describe('utilities', () => {
 
     it('gets the latest modified time of a group of files', async () => {
       await withWorkspace('simple-package', async (workspace) => {
-        const testPackage = new Package({
-          name: 'simple-package',
-          root: workspace.root,
-        });
+        const testPackage = createTestPackage(workspace);
         const fileExtensions = ['.js', '.ts', '.mjs'];
 
         await writeToSrc(workspace, 'index.js');
@@ -70,12 +62,9 @@ describe('utilities', () => {
       });
     });
 
-    it('excludes files with extensions not included in the provided list', async () => {
+    it('excludes .ts file extensions when it is not included in fileExtensions', async () => {
       await withWorkspace('simple-package', async (workspace) => {
-        const testPackage = new Package({
-          name: 'simple-package',
-          root: workspace.root,
-        });
+        const testPackage = createTestPackage(workspace);
         const fileExtensions = ['.js'];
 
         await writeToSrc(workspace, 'index.js');
@@ -116,35 +105,17 @@ describe('utilities', () => {
 
     it('generates the same hash for unchanged options/dependencies/modified time', async () => {
       await withWorkspace('simple-package', async (workspace) => {
-        const testPackage = new Package({
-          name: 'simple-package',
-          root: workspace.root,
-        });
+        const testPackage = createTestPackage(workspace);
 
-        await writeToSrc(workspace, 'index.js');
-        await writeToSrc(workspace, 'file-a.js');
-        await writeToSrc(workspace, 'file-b.js');
-
-        const hash1 = generateBabelPackageCacheValue(testPackage, options);
-        const hash2 = generateBabelPackageCacheValue(testPackage, options);
-
-        expect(hash1).toEqual(hash2);
+        expect(generateBabelPackageCacheValue(testPackage, options)).toEqual(
+          generateBabelPackageCacheValue(testPackage, options),
+        );
       });
     });
 
     it('generates a different hash if the Babel config changes', async () => {
       await withWorkspace('simple-package', async (workspace) => {
-        const testPackage = new Package({
-          name: 'simple-package',
-          root: workspace.root,
-        });
-
-        await writeToSrc(workspace, 'index.js');
-        await writeToSrc(workspace, 'file-a.js');
-        await writeToSrc(workspace, 'file-b.js');
-
-        const hash1 = generateBabelPackageCacheValue(testPackage, options);
-
+        const testPackage = createTestPackage(workspace);
         const newOptions = {
           ...options,
           babelConfig: {
@@ -153,97 +124,57 @@ describe('utilities', () => {
           },
         };
 
-        const hash2 = generateBabelPackageCacheValue(testPackage, newOptions);
-
-        expect(hash1).not.toEqual(hash2);
+        expect(
+          generateBabelPackageCacheValue(testPackage, options),
+        ).not.toEqual(generateBabelPackageCacheValue(testPackage, newOptions));
       });
     });
 
     it('generates a different hash if the output path changes', async () => {
       await withWorkspace('simple-package', async (workspace) => {
-        const testPackage = new Package({
-          name: 'simple-package',
-          root: workspace.root,
-        });
-
-        await writeToSrc(workspace, 'index.js');
-        await writeToSrc(workspace, 'file-a.js');
-        await writeToSrc(workspace, 'file-b.js');
-
-        const hash1 = generateBabelPackageCacheValue(testPackage, options);
-
+        const testPackage = createTestPackage(workspace);
         const newOptions = {
           ...options,
           outputPath: 'build/meme',
         };
 
-        const hash2 = generateBabelPackageCacheValue(testPackage, newOptions);
-
-        expect(hash1).not.toEqual(hash2);
+        expect(
+          generateBabelPackageCacheValue(testPackage, options),
+        ).not.toEqual(generateBabelPackageCacheValue(testPackage, newOptions));
       });
     });
 
     it('generates a different hash if the extension changes', async () => {
       await withWorkspace('simple-package', async (workspace) => {
-        const testPackage = new Package({
-          name: 'simple-package',
-          root: workspace.root,
-        });
-
-        await writeToSrc(workspace, 'index.js');
-        await writeToSrc(workspace, 'file-a.js');
-        await writeToSrc(workspace, 'file-b.js');
-
-        const hash1 = generateBabelPackageCacheValue(testPackage, options);
-
+        const testPackage = createTestPackage(workspace);
         const newOptions = {
           ...options,
           extension: '.meme',
         };
 
-        const hash2 = generateBabelPackageCacheValue(testPackage, newOptions);
-
-        expect(hash1).not.toEqual(hash2);
+        expect(
+          generateBabelPackageCacheValue(testPackage, options),
+        ).not.toEqual(generateBabelPackageCacheValue(testPackage, newOptions));
       });
     });
 
     it('generates a different hash if the export style changes', async () => {
       await withWorkspace('simple-package', async (workspace) => {
-        const testPackage = new Package({
-          name: 'simple-package',
-          root: workspace.root,
-        });
-
-        await writeToSrc(workspace, 'index.js');
-        await writeToSrc(workspace, 'file-a.js');
-        await writeToSrc(workspace, 'file-b.js');
-
-        const hash1 = generateBabelPackageCacheValue(testPackage, options);
-
+        const testPackage = createTestPackage(workspace);
         const newOptions = {
           ...options,
           exportStyle: ExportStyle.CommonJs,
         };
 
-        const hash2 = generateBabelPackageCacheValue(testPackage, newOptions);
-
-        expect(hash1).not.toEqual(hash2);
+        expect(
+          generateBabelPackageCacheValue(testPackage, options),
+        ).not.toEqual(generateBabelPackageCacheValue(testPackage, newOptions));
       });
     });
 
     it('generates a different hash if the cache dependencies change', async () => {
       await withWorkspace('simple-package', async (workspace) => {
-        const testPackage = new Package({
-          name: 'simple-package',
-          root: workspace.root,
-        });
-
-        await writeToSrc(workspace, 'index.js');
-        await writeToSrc(workspace, 'file-a.js');
-        await writeToSrc(workspace, 'file-b.js');
-
-        const hash1 = generateBabelPackageCacheValue(testPackage, options);
-
+        const testPackage = createTestPackage(workspace);
         const newOptions = {
           ...options,
           babelCacheDependencies: [
@@ -252,99 +183,69 @@ describe('utilities', () => {
           ],
         };
 
-        const hash2 = generateBabelPackageCacheValue(testPackage, newOptions);
-
-        expect(hash1).not.toEqual(hash2);
+        expect(
+          generateBabelPackageCacheValue(testPackage, options),
+        ).not.toEqual(generateBabelPackageCacheValue(testPackage, newOptions));
       });
     });
 
     it('generates a different hash if the ignore patterns change', async () => {
       await withWorkspace('simple-package', async (workspace) => {
-        const testPackage = new Package({
-          name: 'simple-package',
-          root: workspace.root,
-        });
-
-        await writeToSrc(workspace, 'index.js');
-        await writeToSrc(workspace, 'file-a.js');
-        await writeToSrc(workspace, 'file-b.js');
-
-        const hash1 = generateBabelPackageCacheValue(testPackage, options);
-
+        const testPackage = createTestPackage(workspace);
         const newOptions = {
           ...options,
           babelIgnorePatterns: [...options.babelIgnorePatterns, '.py'],
         };
 
-        const hash2 = generateBabelPackageCacheValue(testPackage, newOptions);
-
-        expect(hash1).not.toEqual(hash2);
+        expect(
+          generateBabelPackageCacheValue(testPackage, options),
+        ).not.toEqual(generateBabelPackageCacheValue(testPackage, newOptions));
       });
     });
 
     it('generates a different hash if the extensions change', async () => {
       await withWorkspace('simple-package', async (workspace) => {
-        const testPackage = new Package({
-          name: 'simple-package',
-          root: workspace.root,
-        });
-
-        await writeToSrc(workspace, 'index.js');
-        await writeToSrc(workspace, 'file-a.js');
-        await writeToSrc(workspace, 'file-b.js');
-
-        const hash1 = generateBabelPackageCacheValue(testPackage, options);
-
+        const testPackage = createTestPackage(workspace);
         const newOptions = {
           ...options,
           babelExtensions: [...options.babelExtensions, '.esnext'],
         };
 
-        const hash2 = generateBabelPackageCacheValue(testPackage, newOptions);
-
-        expect(hash1).not.toEqual(hash2);
+        expect(
+          generateBabelPackageCacheValue(testPackage, options),
+        ).not.toEqual(generateBabelPackageCacheValue(testPackage, newOptions));
       });
     });
 
     it('generates a different hash if the last modified time changes', async () => {
       await withWorkspace('simple-package', async (workspace) => {
-        const testPackage = new Package({
-          name: 'simple-package',
-          root: workspace.root,
-        });
+        const testPackage = createTestPackage(workspace);
 
-        await writeToSrc(workspace, 'index.js');
-        await writeToSrc(workspace, 'file-a.js');
-        await writeToSrc(workspace, 'file-b.js');
+        await writeToSrc(workspace, 'file.js');
 
-        const hash1 = generateBabelPackageCacheValue(testPackage, options);
+        const oldHash = generateBabelPackageCacheValue(testPackage, options);
 
-        await writeToSrc(workspace, 'file-b.js');
+        await writeToSrc(workspace, 'file.js');
 
-        const hash2 = generateBabelPackageCacheValue(testPackage, options);
+        const newHash = generateBabelPackageCacheValue(testPackage, options);
 
-        expect(hash1).not.toEqual(hash2);
+        expect(oldHash).not.toEqual(newHash);
       });
     });
 
     it('generates the same hash if only a excluded file changes', async () => {
       await withWorkspace('simple-package', async (workspace) => {
-        const testPackage = new Package({
-          name: 'simple-package',
-          root: workspace.root,
-        });
+        const testPackage = createTestPackage(workspace);
 
-        await writeToSrc(workspace, 'index.js');
-        await writeToSrc(workspace, 'file-a.js');
-        await writeToSrc(workspace, 'file-b.js');
+        await writeToSrc(workspace, 'file.esnext');
 
-        const hash1 = generateBabelPackageCacheValue(testPackage, options);
+        const oldHash = generateBabelPackageCacheValue(testPackage, options);
 
-        await writeToSrc(workspace, 'file-c.esnext');
+        await writeToSrc(workspace, 'file.esnext');
 
-        const hash2 = generateBabelPackageCacheValue(testPackage, options);
+        const newHash = generateBabelPackageCacheValue(testPackage, options);
 
-        expect(hash1).toEqual(hash2);
+        expect(oldHash).toEqual(newHash);
       });
     });
   });

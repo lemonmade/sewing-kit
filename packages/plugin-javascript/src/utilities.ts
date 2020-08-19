@@ -289,9 +289,7 @@ interface BabelPackageCacheOptions {
 
 export function generateBabelPackageCacheValue(
   pkg: Package,
-  options: BabelPackageCacheOptions,
-) {
-  const {
+  {
     babelConfig,
     outputPath,
     extension,
@@ -299,8 +297,8 @@ export function generateBabelPackageCacheValue(
     babelCacheDependencies,
     babelIgnorePatterns,
     babelExtensions,
-  } = options;
-
+  }: BabelPackageCacheOptions,
+) {
   const optionsString = [
     outputPath,
     extension,

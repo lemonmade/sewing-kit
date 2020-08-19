@@ -70,7 +70,6 @@ describe('@sewing-kit/plugin-javascript', () => {
       it('creates a cache', async () => {
         await withWorkspace('simple-package', async (workspace) => {
           await workspace.writeConfig(babelCompilationConfig);
-
           await writeToSrc(workspace, 'index.js');
 
           await workspace.run('build');
@@ -85,20 +84,24 @@ describe('@sewing-kit/plugin-javascript', () => {
 
       it('reads from the cache and skips compilation if hash is same', async () => {
         await withWorkspace('simple-package', async (workspace) => {
-          await workspace.writeConfig(babelCompilationConfig);
+          const builtIndexFilePath = resolve(
+            workspace.root,
+            'build',
+            'esm',
+            'index.mjs',
+          );
 
+          await workspace.writeConfig(babelCompilationConfig);
           await writeToSrc(workspace, 'index.js');
 
           await workspace.run('build');
 
-          const builtOutputModifiedTime = getModifiedTime(
-            resolve(workspace.root, 'build', 'esm', 'index.mjs'),
-          );
+          const builtOutputModifiedTime = getModifiedTime(builtIndexFilePath);
 
           await workspace.run('build');
 
           const updatedBuiltOutputModifiedTime = getModifiedTime(
-            resolve(workspace.root, 'build', 'esm', 'index.mjs'),
+            builtIndexFilePath,
           );
 
           expect(builtOutputModifiedTime).toEqual(
@@ -109,22 +112,26 @@ describe('@sewing-kit/plugin-javascript', () => {
 
       it('invalidates cache if something changes', async () => {
         await withWorkspace('simple-package', async (workspace) => {
-          await workspace.writeConfig(babelCompilationConfig);
+          const builtIndexFilePath = resolve(
+            workspace.root,
+            'build',
+            'esm',
+            'index.mjs',
+          );
 
+          await workspace.writeConfig(babelCompilationConfig);
           await writeToSrc(workspace, 'index.js');
 
           await workspace.run('build');
 
-          const builtOutputModifiedTime = getModifiedTime(
-            resolve(workspace.root, 'build', 'esm', 'index.mjs'),
-          );
+          const builtOutputModifiedTime = getModifiedTime(builtIndexFilePath);
 
           await writeToSrc(workspace, 'index.js');
 
           await workspace.run('build');
 
           const updatedBuiltOutputModifiedTime = getModifiedTime(
-            resolve(workspace.root, 'build', 'esm', 'index.mjs'),
+            builtIndexFilePath,
           );
 
           expect(builtOutputModifiedTime).not.toEqual(
