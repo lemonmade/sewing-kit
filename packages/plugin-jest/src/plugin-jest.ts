@@ -353,7 +353,7 @@ function packageEntryMatcherMap({runtimeName, entries, fs}: Package) {
 
   for (const {name, root} of entries) {
     map[
-      name ? join(runtimeName, `${name}$`) : `${runtimeName}$`
+      name ? `^${join(runtimeName, name)}$` : `^${runtimeName}$`
     ] = fs.resolvePath(root);
   }
 
