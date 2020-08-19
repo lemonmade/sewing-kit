@@ -289,10 +289,12 @@ export function jest() {
               watchPlugins,
             });
 
-            await api.write(
-              rootConfigPath,
+            const rootConfigString = liftRepeatedValueInJSONString(
               `module.exports = ${JSON.stringify(rootConfig)};`,
+              {defaultModuleMapper: JSON.stringify(internalModuleMap)},
             );
+
+            await api.write(rootConfigPath, rootConfigString);
           },
         ),
       ]);
@@ -358,4 +360,20 @@ function packageEntryMatcherMap({runtimeName, entries, fs}: Package) {
   }
 
   return map;
+}
+
+export function liftRepeatedValueInJSONString(
+  json: string,
+  values: {[key: string]: string},
+) {
+  return Object.keys(values).reduce((json, name) => {
+    const value = values[name];
+    const declaration = `const ${name} = ${value};`;
+    const valueRegex = new RegExp(
+      value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+      'g',
+    );
+
+    return `${declaration}${json.replace(valueRegex, name)}`;
+  }, json);
 }
