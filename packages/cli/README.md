@@ -1,5 +1,7 @@
 # `@sewing-kit/cli`
 
+The CLI for working with Sewing Kit.
+
 ## Installation
 
 ```
@@ -8,47 +10,60 @@ yarn add @sewing-kit/cli --dev
 
 ## Usage
 
-```typescript
-yarn run sewing-kit <command> <options>
+```ts
+yarn sewing-kit <command> <options>
+// or...
+yarn sk <command> <options>
 ```
 
-### Commands
+## Commands
 
-- `build` - compiles code and SCSS into deployable assets
-  | options |
-  |-----------------|
-  | `--source-maps` |
-  | `--env` |
+| Command                       | Function                                                  |
+| ----------------------------- | --------------------------------------------------------- |
+| [`build`](###build)           | Builds the apps, services, and packages in your workspace |
+| [`dev`](###dev)               | Starts a hot-reloading development server                 |
+| [`test`](###test)             | Runs tests                                                |
+| [`lint`](###lint)             | Lints your code                                           |
+| [`type-check`](###type-check) | Type-checks your code                                     |
 
-- `dev` - starts a hot-reloading development server
+## Options
 
-  | options         |
-  | --------------- |
-  | `--reload`      |
-  | `--source-maps` |
+### `build`
 
-- `test` - runs all tests
+| Option          | Description |
+| --------------- | ----------- |
+| `--source-maps` |             |
+| `--env`         |             |
 
-  | options               |
-  | --------------------- |
-  | `--help`              |
-  | `--no-watch`          |
-  | `--coverage`          |
-  | `--debug`             |
-  | `--update-snapshots`  |
-  | `--test-name-pattern` |
+### `dev`
 
-- `lint` - lints Sass, JavaScript, TypeScript, and GraphQL files
+| Option          | Description |
+| --------------- | ----------- |
+| `--source-maps` |             |
+| `--reload`      |             |
 
-  | options         |
-  | --------------- |
-  | `--fix`         |
-  | `--cache`       |
-  | `--allow-empty` |
+### `test`
 
-- `type-check` - checks TypeScript files for type violations
+| Option                | Description |
+| --------------------- | ----------- |
+| `--help`              |             |
+| `--no-watch`          |             |
+| `--coverage`          |             |
+| `--debug`             |             |
+| `--update-snapshots`  |             |
+| `--test-name-pattern` |             |
 
-  | options   |
-  | --------- |
-  | `--watch` |
-  | `--cache` |
+### `lint`
+
+| Option          | Description |
+| --------------- | ----------- |
+| `--fix`         |             |
+| `--cache`       |             |
+| `--allow-empty` |             |
+
+#### `type-check`
+
+| Option    | Description |
+| --------- | ----------- |
+| `--watch` |             |
+| `--cache` |             |
