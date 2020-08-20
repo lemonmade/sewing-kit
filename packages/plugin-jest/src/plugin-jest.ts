@@ -364,7 +364,7 @@ function internalPackageDependencyGraph(
   });
   packages.forEach((pkg) => {
     pkg.dependencies({all: true}).forEach((dep) => {
-      if (packageMap[dep] !== undefined) {
+      if (isInternalPackage(dep, packageMap)) {
         depGraph.addDependency(pkg.runtimeName, dep);
       }
     });
@@ -408,7 +408,7 @@ function minimalModuleMap(
   const projectDeps = project.dependencies({all: true});
 
   return projectDeps.reduce((map, dep) => {
-    if (packageEntryMapDict[dep] !== undefined) {
+    if (isInternalPackage(dep, packageEntryMapDict)) {
       const depDeps = packageDependencyGraph.dependenciesOf(dep);
 
       return depDeps.reduce(
@@ -424,4 +424,11 @@ function minimalModuleMap(
       return map;
     }
   }, {});
+}
+
+function isInternalPackage(
+  dependencyName: string,
+  packageMap: Record<string, any>,
+) {
+  return packageMap[dependencyName] !== undefined;
 }
