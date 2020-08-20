@@ -1,6 +1,6 @@
 # `sewing-kit` Architecture
 
-This document outlines the key moving pieces that make up `sewing-kit`
+This document outlines the key moving pieces that make up `sewing-kit` can i commit this
 
 ## `@sewing-kit/hooks`
 
