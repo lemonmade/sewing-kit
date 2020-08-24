@@ -352,9 +352,9 @@ function packageEntryMatcherMap({runtimeName, entries, fs}: Package) {
   const map: Record<string, string> = Object.create(null);
 
   for (const {name, root} of entries) {
-    map[
-      name ? join(runtimeName, `${name}$`) : `${runtimeName}$`
-    ] = fs.resolvePath(root);
+    map[`^${name ? join(runtimeName, name) : runtimeName}$`] = fs.resolvePath(
+      root,
+    );
   }
 
   return map;
