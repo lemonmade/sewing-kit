@@ -22,10 +22,10 @@ yarn sk <command> <options>
 
 | Command                       | Function                                                  |
 | ----------------------------- | --------------------------------------------------------- |
-| [`build`](###build)           | Builds the apps, services, and packages in your workspace |
-| [`dev`](###dev)               | Starts a hot-reloading development server                 |
-| [`test`](###test)             | Runs tests                                                |
-| [`lint`](###lint)             | Lints your code                                           |
+| [`build`](#build)             | Builds the apps, services, and packages in your workspace |
+| [`dev`](#dev)                 | Starts a hot-reloading development server                 |
+| [`test`](#test)               | Runs tests                                                |
+| [`lint`](#lint)               | Lints your code                                           |
 | [`type-check`](###type-check) | Type-checks your code                                     |
 
 ## Options
