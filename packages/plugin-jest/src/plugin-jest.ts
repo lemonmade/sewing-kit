@@ -10,6 +10,7 @@ import {
   MissingPluginError,
 } from '@sewing-kit/plugins';
 import {updateSewingKitBabelPreset} from '@sewing-kit/plugin-javascript';
+import {DepGraph} from 'dependency-graph';
 
 // Brings in the Babel hook augmentations
 import {} from 'jest';
@@ -139,14 +140,11 @@ export function jest() {
             label: 'write jest configuration files',
           },
           async () => {
-            const internalModuleMap = workspace.packages.reduce<{
-              [key: string]: string;
-            }>(
-              (all, pkg) => ({
-                ...all,
-                ...packageEntryMatcherMap(pkg),
-              }),
-              {},
+            const packages = [...workspace.packages];
+            const packageEntryMapDict = internalPackageEntryMapDict(packages);
+            const packageDependencyGraph = internalPackageDependencyGraph(
+              packages,
+              packageEntryMapDict,
             );
 
             const [
@@ -234,7 +232,13 @@ export function jest() {
                     // versions of the file, which Jest can't parse. To avoid transforming
                     // those otherwise-fine files, we prefer .js for tests only.
                     hooks.jestExtensions!.run(['.js', '.mjs', '.json']),
-                    hooks.jestModuleMapper!.run(internalModuleMap),
+                    hooks.jestModuleMapper!.run(
+                      minimalModuleMap(
+                        project,
+                        packageEntryMapDict,
+                        packageDependencyGraph,
+                      ),
+                    ),
                     hooks.jestSetupEnv!.run([
                       ...rootSetupEnvironmentFiles,
                       ...setupEnvironment,
@@ -348,14 +352,87 @@ export function jest() {
   );
 }
 
+// Creates a dependency graph of internal packages
+export function internalPackageDependencyGraph(
+  packages: Package[],
+  packageMap: Record<string, any>,
+): DepGraph<string> {
+  const depGraph = new DepGraph<string>({circular: true});
+
+  packages.forEach((pkg) => {
+    depGraph.addNode(pkg.runtimeName);
+  });
+  packages.forEach((pkg) => {
+    pkg.dependencies({all: true}).forEach((dep) => {
+      if (isInternalPackage(dep, packageMap)) {
+        depGraph.addDependency(pkg.runtimeName, dep);
+      }
+    });
+  });
+
+  return depGraph;
+}
+
+// Creates a map of internal packages to their entry module mapping
+export function internalPackageEntryMapDict(
+  packages: Package[],
+): Record<string, Record<string, string>> {
+  return packages.reduce(
+    (dict, pkg) => ({
+      ...dict,
+      [pkg.runtimeName]: packageEntryMatcherMap(pkg),
+    }),
+    {},
+  );
+}
+
 function packageEntryMatcherMap({runtimeName, entries, fs}: Package) {
   const map: Record<string, string> = Object.create(null);
 
   for (const {name, root} of entries) {
-    map[`^${name ? join(runtimeName, name) : runtimeName}$`] = fs.resolvePath(
-      root,
-    );
+    map[
+      moduleMapKey(name ? join(runtimeName, name) : runtimeName)
+    ] = fs.resolvePath(root);
   }
 
   return map;
+}
+
+export function moduleMapKey(packageName: string) {
+  return `^${packageName}$`;
+}
+
+// Creates a minimal module mapping for the project's Jest config
+// Jest requires that every dependency down the tree be mapped, not just its immediate deps
+export function minimalModuleMap(
+  project: Project,
+  packageEntryMapDict: Record<string, Record<string, string>>,
+  packageDependencyGraph: DepGraph<string>,
+): Record<string, string> {
+  const projectDeps = project.dependencies({all: true});
+
+  return projectDeps.reduce((map, dep) => {
+    if (isInternalPackage(dep, packageEntryMapDict)) {
+      const depDeps = packageDependencyGraph.dependenciesOf(dep);
+
+      return depDeps.reduce(
+        (map, depDep) => {
+          return {...map, ...packageEntryMapDict[depDep]};
+        },
+        {
+          ...map,
+          ...packageEntryMapDict[dep],
+        },
+      );
+    } else {
+      return map;
+    }
+  }, {});
+}
+
+function isInternalPackage(
+  dependencyName: string,
+  packageMap: Record<string, any>,
+) {
+  return packageMap[dependencyName] !== undefined;
 }
