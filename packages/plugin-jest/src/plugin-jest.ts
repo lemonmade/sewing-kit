@@ -353,7 +353,7 @@ export function jest() {
 }
 
 // Creates a dependency graph of internal packages
-function internalPackageDependencyGraph(
+export function internalPackageDependencyGraph(
   packages: Package[],
   packageMap: Record<string, any>,
 ): DepGraph<string> {
@@ -374,7 +374,7 @@ function internalPackageDependencyGraph(
 }
 
 // Creates a map of internal packages to their entry module mapping
-function internalPackageEntryMapDict(
+export function internalPackageEntryMapDict(
   packages: Package[],
 ): Record<string, Record<string, string>> {
   return packages.reduce(
@@ -390,17 +390,21 @@ function packageEntryMatcherMap({runtimeName, entries, fs}: Package) {
   const map: Record<string, string> = Object.create(null);
 
   for (const {name, root} of entries) {
-    map[`^${name ? join(runtimeName, name) : runtimeName}$`] = fs.resolvePath(
-      root,
-    );
+    map[
+      moduleMapKey(name ? join(runtimeName, name) : runtimeName)
+    ] = fs.resolvePath(root);
   }
 
   return map;
 }
 
+export function moduleMapKey(packageName: string) {
+  return `^${packageName}$`;
+}
+
 // Creates a minimal module mapping for the project's Jest config
 // Jest requires that every dependency down the tree be mapped, not just its immediate deps
-function minimalModuleMap(
+export function minimalModuleMap(
   project: Project,
   packageEntryMapDict: Record<string, Record<string, string>>,
   packageDependencyGraph: DepGraph<string>,
